@@ -1,13 +1,6 @@
-// ============================================================
-// Zahlx — Express API Server
-//
-// Core endpoints for the accounting/inventory system.
-// Every sale runs inside a SQL transaction to guarantee
-// atomicity: invoice + line items + stock update + ledger.
-// ============================================================
-import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import express from 'express';
 import pool from './db.js';
 
 dotenv.config();
@@ -18,210 +11,330 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// ────────────────────────────────────────────
-// GET /api/products
-// Returns all products with current stock
-// ────────────────────────────────────────────
+let ownerIdPromise;
+
+const getOwnerId = async () => {
+  if (!ownerIdPromise) {
+    ownerIdPromise = (async () => {
+      const [users] = await pool.query('SELECT id FROM users ORDER BY id ASC LIMIT 1');
+
+      if (users.length > 0) {
+        return users[0].id;
+      }
+
+      const businessName = process.env.DEFAULT_BUSINESS_NAME || 'Zahlx Business';
+      const businessEmail = process.env.DEFAULT_BUSINESS_EMAIL || 'owner@zahlx.local';
+
+      const [result] = await pool.query(
+        `INSERT INTO users (emri_biznesit, email, password_hash)
+         VALUES (?, ?, ?)`,
+        [businessName, businessEmail, 'bootstrap']
+      );
+
+      return result.insertId;
+    })();
+  }
+
+  return ownerIdPromise;
+};
+
 app.get('/api/products', async (req, res) => {
   try {
-    const { rows } = await pool.query(
+    const [rows] = await pool.query(
       `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
        FROM products
        ORDER BY emri ASC`
     );
     res.json(rows);
-  } catch (err) {
-    console.error('GET /api/products error:', err.message);
+  } catch (error) {
+    console.error('GET /api/products error:', error.message);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
 
-// ────────────────────────────────────────────
-// GET /api/dashboard
-// Aggregated metrics for the dashboard cards
-// ────────────────────────────────────────────
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+       FROM products
+       WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Produkti nuk u gjet' });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('GET /api/products/:id error:', error.message);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.post('/api/products', async (req, res) => {
+  try {
+    const ownerId = await getOwnerId();
+    const {
+      emri,
+      kodi_bar,
+      cmimi_blerjes = 0,
+      cmimi_shitjes = 0,
+      stoku_aktual = 0,
+      kategoria = null,
+    } = req.body;
+
+    if (!emri || !kodi_bar) {
+      return res.status(400).json({ error: 'Emri dhe barkodi janë të detyrueshëm' });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO products (user_id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria]
+    );
+
+    const [rows] = await pool.query(
+      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, created_at, updated_at
+       FROM products
+       WHERE id = ?`,
+      [result.insertId]
+    );
+
+    res.status(201).json(rows[0]);
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Ky barkod ekziston tashmë' });
+    }
+
+    console.error('POST /api/products error:', error.message);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const {
+      emri,
+      kodi_bar,
+      cmimi_blerjes = 0,
+      cmimi_shitjes = 0,
+      stoku_aktual = 0,
+      kategoria = null,
+    } = req.body;
+
+    if (!emri || !kodi_bar) {
+      return res.status(400).json({ error: 'Emri dhe barkodi janë të detyrueshëm' });
+    }
+
+    const [result] = await pool.query(
+      `UPDATE products
+       SET emri = ?,
+           kodi_bar = ?,
+           cmimi_blerjes = ?,
+           cmimi_shitjes = ?,
+           stoku_aktual = ?,
+           kategoria = ?,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Produkti nuk u gjet' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, created_at, updated_at
+       FROM products
+       WHERE id = ?`,
+      [req.params.id]
+    );
+
+    res.json(rows[0]);
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Ky barkod ekziston tashmë' });
+    }
+
+    console.error('PUT /api/products/:id error:', error.message);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const [result] = await pool.query(
+      `DELETE FROM products WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Produkti nuk u gjet' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    if (error.code === 'ER_ROW_IS_REFERENCED_2' || error.code === 'ER_ROW_IS_REFERENCED') {
+      return res.status(400).json({ error: 'Produkti ka fatura të lidhura dhe nuk mund të fshihet' });
+    }
+
+    console.error('DELETE /api/products/:id error:', error.message);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
 app.get('/api/dashboard', async (req, res) => {
   try {
-    // Total revenue — sum of all paid invoices
-    const revenueResult = await pool.query(
+    const [revenueRows] = await pool.query(
       `SELECT COALESCE(SUM(totali), 0) AS fitimi_total
        FROM invoices
        WHERE statusi = 'paguar'`
     );
 
-    // Today's sales count and total
-    const todayResult = await pool.query(
+    const [todayRows] = await pool.query(
       `SELECT COUNT(*) AS shitjet_sot_nr,
               COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
        FROM invoices
        WHERE statusi = 'paguar'
-         AND data_krijimit::date = CURRENT_DATE`
+         AND DATE(data_krijimit) = CURDATE()`
     );
 
-    // Total distinct products in stock
-    const productResult = await pool.query(
+    const [productRows] = await pool.query(
       `SELECT COUNT(*) AS total_produkte,
               COALESCE(SUM(stoku_aktual), 0) AS stoku_total
        FROM products`
     );
 
-    // Low stock alerts (5 or fewer remaining)
-    const lowStockResult = await pool.query(
+    const [lowStockRows] = await pool.query(
       `SELECT COUNT(*) AS stoku_ulet
        FROM products
        WHERE stoku_aktual <= 5 AND stoku_aktual > 0`
     );
 
     res.json({
-      fitimi_total:       parseFloat(revenueResult.rows[0].fitimi_total),
-      shitjet_sot_nr:     parseInt(todayResult.rows[0].shitjet_sot_nr),
-      shitjet_sot_vlera:  parseFloat(todayResult.rows[0].shitjet_sot_vlera),
-      total_produkte:     parseInt(productResult.rows[0].total_produkte),
-      stoku_total:        parseInt(productResult.rows[0].stoku_total),
-      stoku_ulet:         parseInt(lowStockResult.rows[0].stoku_ulet),
+      fitimi_total: Number(revenueRows[0].fitimi_total || 0),
+      shitjet_sot_nr: Number(todayRows[0].shitjet_sot_nr || 0),
+      shitjet_sot_vlera: Number(todayRows[0].shitjet_sot_vlera || 0),
+      total_produkte: Number(productRows[0].total_produkte || 0),
+      stoku_total: Number(productRows[0].stoku_total || 0),
+      stoku_ulet: Number(lowStockRows[0].stoku_ulet || 0),
     });
-  } catch (err) {
-    console.error('GET /api/dashboard error:', err.message);
+  } catch (error) {
+    console.error('GET /api/dashboard error:', error.message);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
 
-// ────────────────────────────────────────────
-// GET /api/transactions
-// Recent invoices for the dashboard table
-// ────────────────────────────────────────────
 app.get('/api/transactions', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
-    const { rows } = await pool.query(
+    const limit = Number.parseInt(req.query.limit, 10) || 10;
+    const [rows] = await pool.query(
       `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi
        FROM invoices
        ORDER BY data_krijimit DESC
-       LIMIT $1`,
+       LIMIT ?`,
       [limit]
     );
     res.json(rows);
-  } catch (err) {
-    console.error('GET /api/transactions error:', err.message);
+  } catch (error) {
+    console.error('GET /api/transactions error:', error.message);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
 
-// ────────────────────────────────────────────
-// POST /api/sales
-// Creates a full sale in a single SQL transaction:
-//   1. Generate invoice number
-//   2. Insert invoice header
-//   3. Insert line items
-//   4. Decrement product stock
-//   5. Write double-entry ledger entries
-//   6. COMMIT or ROLLBACK on any failure
-//
-// Expected body:
-// {
-//   klienti: "Emri",           // optional
-//   items: [
-//     { product_id: 1, sasia: 2 },
-//     { product_id: 5, sasia: 1 }
-//   ]
-// }
-// ────────────────────────────────────────────
 app.post('/api/sales', async (req, res) => {
-  const client = await pool.connect();
+  const client = await pool.getConnection();
 
   try {
+    const ownerId = await getOwnerId();
     const { klienti, items } = req.body;
 
-    // Validate input
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Duhet të shtoni së paku një produkt' });
     }
 
-    await client.query('BEGIN');
+    await client.beginTransaction();
 
-    // 1) Generate a unique invoice number: FAT-YYYYMMDD-XXXX
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const countResult = await client.query(
-      `SELECT COUNT(*) AS c FROM invoices WHERE data_krijimit::date = CURRENT_DATE`
+    const [countRows] = await client.query(
+      `SELECT COUNT(*) AS c
+       FROM invoices
+       WHERE DATE(data_krijimit) = CURDATE()`
     );
-    const seqNum = String(parseInt(countResult.rows[0].c) + 1).padStart(4, '0');
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
     const numriFatures = `FAT-${dateStr}-${seqNum}`;
 
-    // 2) Calculate totals and validate stock for each item
     let totali = 0;
     const resolvedItems = [];
 
     for (const item of items) {
-      const productResult = await client.query(
+      const [productRows] = await client.query(
         `SELECT id, emri, cmimi_shitjes, stoku_aktual
          FROM products
-         WHERE id = $1
-         FOR UPDATE`,  // Lock the row to prevent race conditions
+         WHERE id = ?
+         FOR UPDATE`,
         [item.product_id]
       );
 
-      if (productResult.rows.length === 0) {
-        await client.query('ROLLBACK');
+      if (productRows.length === 0) {
+        await client.rollback();
         return res.status(400).json({ error: `Produkti me ID ${item.product_id} nuk ekziston` });
       }
 
-      const product = productResult.rows[0];
+      const product = productRows[0];
 
-      if (product.stoku_aktual < item.sasia) {
-        await client.query('ROLLBACK');
+      if (Number(product.stoku_aktual) < Number(item.sasia)) {
+        await client.rollback();
         return res.status(400).json({
-          error: `Stoku i pamjaftueshëm për "${product.emri}". Në stok: ${product.stoku_aktual}`
+          error: `Stoku i pamjaftueshëm për "${product.emri}". Në stok: ${product.stoku_aktual}`,
         });
       }
 
-      const lineTotal = parseFloat(product.cmimi_shitjes) * item.sasia;
+      const lineTotal = Number(product.cmimi_shitjes) * Number(item.sasia);
       totali += lineTotal;
 
       resolvedItems.push({
         product_id: product.id,
         emri: product.emri,
-        sasia: item.sasia,
-        cmimi_per_njesi: parseFloat(product.cmimi_shitjes),
+        sasia: Number(item.sasia),
+        cmimi_per_njesi: Number(product.cmimi_shitjes),
         line_total: lineTotal,
       });
     }
 
-    // 3) Insert the invoice header
-    const invoiceResult = await client.query(
+    const [invoiceResult] = await client.query(
       `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi)
-       VALUES (1, $1, $2, $3, 'paguar')
-       RETURNING id`,
-      [numriFatures, klienti || 'Klient i përgjithshëm', totali]
+       VALUES (?, ?, ?, ?, 'paguar')`,
+      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', totali]
     );
-    const invoiceId = invoiceResult.rows[0].id;
 
-    // 4) Insert line items + update stock
+    const invoiceId = invoiceResult.insertId;
+
     for (const item of resolvedItems) {
       await client.query(
         `INSERT INTO invoice_items (invoice_id, product_id, sasia, cmimi_per_njesi)
-         VALUES ($1, $2, $3, $4)`,
+         VALUES (?, ?, ?, ?)`,
         [invoiceId, item.product_id, item.sasia, item.cmimi_per_njesi]
       );
 
       await client.query(
-        `UPDATE products SET stoku_aktual = stoku_aktual - $1, updated_at = NOW()
-         WHERE id = $2`,
+        `UPDATE products
+         SET stoku_aktual = stoku_aktual - ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
         [item.sasia, item.product_id]
       );
     }
 
-    // 5) Double-entry ledger:
-    //    DEBIT  "Arka" (Cash)                   — money coming in
-    //    CREDIT "Të hyrat nga shitjet" (Revenue) — revenue recognized
     await client.query(
       `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
        VALUES
-         (1, $1, $2, 'Arka', $3, 0),
-         (1, $1, $2, 'Të hyrat nga shitjet', 0, $3)`,
-      [invoiceId, `Shitje: ${numriFatures}`, totali]
+         (?, ?, ?, 'Arka', ?, 0),
+         (?, ?, ?, 'Të hyrat nga shitjet', 0, ?)` ,
+      [ownerId, invoiceId, `Shitje: ${numriFatures}`, totali, ownerId, invoiceId, `Shitje: ${numriFatures}`, totali]
     );
 
-    await client.query('COMMIT');
+    await client.commit();
 
     res.status(201).json({
       message: 'Shitja u regjistrua me sukses',
@@ -232,18 +345,47 @@ app.post('/api/sales', async (req, res) => {
         items: resolvedItems,
       },
     });
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('POST /api/sales error:', err.message);
+  } catch (error) {
+    await client.rollback();
+    console.error('POST /api/sales error:', error.message);
     res.status(500).json({ error: 'Gabim gjatë regjistrimit të shitjes' });
   } finally {
     client.release();
   }
 });
 
-// ────────────────────────────────────────────
-// Start server
-// ────────────────────────────────────────────
+app.get('/api/invoices/:id', async (req, res) => {
+  try {
+    const [invoiceRows] = await pool.query(
+      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi
+       FROM invoices
+       WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (invoiceRows.length === 0) {
+      return res.status(404).json({ error: 'Fatura nuk u gjet' });
+    }
+
+    const [itemRows] = await pool.query(
+      `SELECT ii.id, ii.product_id, ii.sasia, ii.cmimi_per_njesi, p.emri, p.kodi_bar
+       FROM invoice_items ii
+       JOIN products p ON p.id = ii.product_id
+       WHERE ii.invoice_id = ?
+       ORDER BY ii.id ASC`,
+      [req.params.id]
+    );
+
+    res.json({
+      ...invoiceRows[0],
+      items: itemRows,
+    });
+  } catch (error) {
+    console.error('GET /api/invoices/:id error:', error.message);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✓ Zahlx API running on http://localhost:${PORT}`);
 });

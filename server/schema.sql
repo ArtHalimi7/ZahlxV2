@@ -1,78 +1,75 @@
 -- ============================================================
--- ZAHLX — Database Schema (PostgreSQL)
--- Double-entry bookkeeping for small businesses in Kosovo
--- All monetary values use NUMERIC(12,2) for financial precision
+-- ZAHLX — MySQL Database Schema
+-- Idempotent DDL for the live inventory, sales, and ledger system.
 -- ============================================================
 
--- ▸ Business accounts
 CREATE TABLE IF NOT EXISTS users (
-    id              SERIAL PRIMARY KEY,
-    emri_biznesit   VARCHAR(200)    NOT NULL,
-    email           VARCHAR(200)    UNIQUE NOT NULL,
-    password_hash   VARCHAR(255)    NOT NULL,
-    created_at      TIMESTAMPTZ     DEFAULT NOW()
-);
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    emri_biznesit VARCHAR(200) NOT NULL,
+    email         VARCHAR(200) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ▸ Product catalog
 CREATE TABLE IF NOT EXISTS products (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    emri            VARCHAR(200)    NOT NULL,
-    kodi_bar        VARCHAR(100)    UNIQUE,
-    cmimi_blerjes   NUMERIC(12,2)  NOT NULL DEFAULT 0,    -- Purchase price
-    cmimi_shitjes   NUMERIC(12,2)  NOT NULL DEFAULT 0,    -- Selling price
-    stoku_aktual    INTEGER         NOT NULL DEFAULT 0,    -- Current stock quantity
-    kategoria       VARCHAR(100),
-    created_at      TIMESTAMPTZ     DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ     DEFAULT NOW()
-);
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT UNSIGNED NOT NULL,
+    emri            VARCHAR(200) NOT NULL,
+    kodi_bar        VARCHAR(100) NOT NULL UNIQUE,
+    cmimi_blerjes   DECIMAL(12,2) NOT NULL DEFAULT 0,
+    cmimi_shitjes   DECIMAL(12,2) NOT NULL DEFAULT 0,
+    stoku_aktual    INT NOT NULL DEFAULT 0,
+    kategoria       VARCHAR(100) DEFAULT NULL,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_products_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_products_user    ON products(user_id);
+CREATE INDEX idx_products_user ON products(user_id);
 CREATE INDEX idx_products_barcode ON products(kodi_bar);
 
--- ▸ Sales invoices
 CREATE TABLE IF NOT EXISTS invoices (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    numri_fatures   VARCHAR(50)     NOT NULL UNIQUE,       -- Invoice number (e.g. FAT-20260001)
-    klienti         VARCHAR(200)    DEFAULT 'Klient i përgjithshëm',
-    data_krijimit   TIMESTAMPTZ     DEFAULT NOW(),
-    totali          NUMERIC(12,2)  NOT NULL DEFAULT 0,
-    statusi         VARCHAR(20)     NOT NULL DEFAULT 'paguar'
-                    CHECK (statusi IN ('paguar', 'ne_pritje', 'anuluar'))
-);
+    id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id        INT UNSIGNED NOT NULL,
+    numri_fatures  VARCHAR(50) NOT NULL UNIQUE,
+    klienti        VARCHAR(200) NOT NULL DEFAULT 'Klient i përgjithshëm',
+    data_krijimit  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    totali         DECIMAL(12,2) NOT NULL DEFAULT 0,
+    statusi        ENUM('paguar', 'ne_pritje', 'anuluar') NOT NULL DEFAULT 'paguar',
+    CONSTRAINT fk_invoices_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_invoices_user   ON invoices(user_id);
-CREATE INDEX idx_invoices_date   ON invoices(data_krijimit);
+CREATE INDEX idx_invoices_user ON invoices(user_id);
+CREATE INDEX idx_invoices_date ON invoices(data_krijimit);
 CREATE INDEX idx_invoices_status ON invoices(statusi);
 
--- ▸ Invoice line items
 CREATE TABLE IF NOT EXISTS invoice_items (
-    id              SERIAL PRIMARY KEY,
-    invoice_id      INTEGER         NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
-    product_id      INTEGER         NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
-    sasia           INTEGER         NOT NULL DEFAULT 1,    -- Quantity sold
-    cmimi_per_njesi NUMERIC(12,2)  NOT NULL                -- Unit price at time of sale
-);
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    invoice_id      INT UNSIGNED NOT NULL,
+    product_id      INT UNSIGNED NOT NULL,
+    sasia           INT NOT NULL DEFAULT 1,
+    cmimi_per_njesi DECIMAL(12,2) NOT NULL,
+    CONSTRAINT fk_invoice_items_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    CONSTRAINT fk_invoice_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_invoice_items_invoice ON invoice_items(invoice_id);
 CREATE INDEX idx_invoice_items_product ON invoice_items(product_id);
 
--- ▸ Financial ledger (double-entry bookkeeping)
--- Every financial event creates TWO rows: one debit, one credit.
--- The sum of all debits must always equal the sum of all credits.
 CREATE TABLE IF NOT EXISTS financial_ledger (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    invoice_id      INTEGER         REFERENCES invoices(id) ON DELETE SET NULL,
-    data            TIMESTAMPTZ     DEFAULT NOW(),
-    pershkrimi      TEXT,                                   -- Description of entry
-    llogaria        VARCHAR(100)    NOT NULL,               -- Account name (e.g. 'Arka', 'Të hyrat nga shitjet')
-    debit           NUMERIC(12,2)  NOT NULL DEFAULT 0,
-    kredit          NUMERIC(12,2)  NOT NULL DEFAULT 0
-);
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT UNSIGNED NOT NULL,
+    invoice_id  INT UNSIGNED DEFAULT NULL,
+    data        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    pershkrimi  TEXT,
+    llogaria    VARCHAR(100) NOT NULL,
+    debit       DECIMAL(12,2) NOT NULL DEFAULT 0,
+    kredit      DECIMAL(12,2) NOT NULL DEFAULT 0,
+    CONSTRAINT fk_ledger_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ledger_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_ledger_user    ON financial_ledger(user_id);
-CREATE INDEX idx_ledger_date    ON financial_ledger(data);
+CREATE INDEX idx_ledger_user ON financial_ledger(user_id);
+CREATE INDEX idx_ledger_date ON financial_ledger(data);
 CREATE INDEX idx_ledger_account ON financial_ledger(llogaria);
 CREATE INDEX idx_ledger_invoice ON financial_ledger(invoice_id);

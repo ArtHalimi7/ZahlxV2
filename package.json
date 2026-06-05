@@ -10,7 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "framer-motion": "^11.0.0",
     "lucide-react": "^1.17.0",
+    "mysql2": "^3.22.4",
+    "prop-types": "^15.8.1",
+    "qrcode.react": "^3.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",

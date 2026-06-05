@@ -3,9 +3,8 @@
 @tailwind utilities;
 
 /* ================================================================
-   ZAHLX — Global Styles
-   Clean, minimal dark-mode foundation.
-   ================================================================ */
+  ZAHLX — Premium dark foundation
+  ================================================================ */
 
 @layer base {
   *,
@@ -14,16 +13,32 @@
     box-sizing: border-box;
   }
 
+  :root {
+    color-scheme: dark;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    background: #09090b;
   }
 
   body {
-    @apply bg-surface text-zinc-100 font-sans;
+    @apply bg-zinc-950 text-zinc-100 font-sans;
     line-height: 1.6;
     margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(16, 185, 129, 0.12), transparent 28%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 22%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%),
+      #09090b;
+    background-attachment: fixed;
+  }
+
+  #root {
+    min-height: 100vh;
   }
 
   /* ---- Scrollbar ---- */
@@ -51,6 +66,11 @@
     color: #fff;
   }
 
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
   /* Reset default img behavior from old stylesheet */
   img {
     width: auto;
@@ -70,56 +90,23 @@
 }
 
 @layer components {
-  /* ---- Glass Card ---- */
   .glass {
-    background: rgba(255, 255, 255, 0.025);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
+    backdrop-filter: blur(24px);
   }
 
-  .glass-hover {
-    transition: background 0.2s ease, border-color 0.2s ease;
-  }
-
-  .glass-hover:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  /* ---- Status Badges ---- */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide;
-  }
-
-  .badge-success {
-    @apply bg-emerald-500/10 text-emerald-400;
-  }
-
-  .badge-pending {
-    @apply bg-amber-500/10 text-amber-400;
-  }
-
-  .badge-error {
-    @apply bg-red-500/10 text-red-400;
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium tracking-wide;
   }
 }
 
 @layer utilities {
-  /* Stagger children fade-in for dashboard cards */
-  .stagger-children > * {
-    opacity: 0;
-    animation: fade-in 0.4s ease-out forwards;
+  .soft-glow {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 18px 60px rgba(0, 0, 0, 0.24);
   }
 
-  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-  .stagger-children > *:nth-child(2) { animation-delay: 60ms; }
-  .stagger-children > *:nth-child(3) { animation-delay: 120ms; }
-  .stagger-children > *:nth-child(4) { animation-delay: 180ms; }
-  .stagger-children > *:nth-child(5) { animation-delay: 240ms; }
-  .stagger-children > *:nth-child(6) { animation-delay: 300ms; }
-
-  @keyframes fade-in {
-    0% { opacity: 0; transform: translateY(8px); }
-    100% { opacity: 1; transform: translateY(0); }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
