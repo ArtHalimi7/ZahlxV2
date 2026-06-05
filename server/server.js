@@ -386,6 +386,165 @@ app.get('/api/invoices/:id', async (req, res) => {
   }
 });
 
+app.put('/api/invoices/:id/status', async (req, res) => {
+  try {
+    const { statusi } = req.body;
+    if (!['paguar', 'ne_pritje', 'anuluar'].includes(statusi)) {
+      return res.status(400).json({ error: 'Status i panjohur' });
+    }
+    const [result] = await pool.query(
+      `UPDATE invoices SET statusi = ? WHERE id = ?`,
+      [statusi, req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Fatura nuk u gjet' });
+    }
+    res.json({ message: 'Statusi u përditësua' });
+  } catch (error) {
+    console.error('PUT /api/invoices/:id/status error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.get('/api/arka', async (req, res) => {
+  try {
+    const [balanceRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
+       FROM financial_ledger
+       WHERE llogaria = 'Arka'`
+    );
+
+    const [todayRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS today_in, COALESCE(SUM(kredit), 0) AS today_out
+       FROM financial_ledger
+       WHERE llogaria = 'Arka' AND DATE(data) = CURDATE()`
+    );
+
+    const [entries] = await pool.query(
+      `SELECT fl.id, fl.data, fl.pershkrimi, fl.debit, fl.kredit, fl.invoice_id,
+              i.numri_fatures
+       FROM financial_ledger fl
+       LEFT JOIN invoices i ON i.id = fl.invoice_id
+       WHERE fl.llogaria = 'Arka'
+       ORDER BY fl.data DESC
+       LIMIT 200`
+    );
+
+    const totalIn = Number(balanceRows[0].total_in);
+    const totalOut = Number(balanceRows[0].total_out);
+
+    res.json({
+      balance: totalIn - totalOut,
+      totalIn,
+      totalOut,
+      todayIn: Number(todayRows[0].today_in),
+      todayOut: Number(todayRows[0].today_out),
+      entries: entries.map(e => ({
+        id: e.id,
+        data: e.data,
+        pershkrimi: e.pershkrimi,
+        debit: Number(e.debit),
+        kredit: Number(e.kredit),
+        invoice_id: e.invoice_id,
+        numri_fatures: e.numri_fatures,
+      })),
+    });
+  } catch (error) {
+    console.error('GET /api/arka error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.get('/api/reports', async (req, res) => {
+  try {
+    const [chartDataRows] = await pool.query(
+      `SELECT DATE(data_krijimit) as date, SUM(totali) as revenue
+       FROM invoices
+       WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+       GROUP BY DATE(data_krijimit)
+       ORDER BY date ASC`
+    );
+
+    const [topProductsRows] = await pool.query(
+      `SELECT p.id, p.emri, SUM(ii.sasia) as total_sold, SUM(ii.sasia * ii.cmimi_per_njesi) as revenue
+       FROM invoice_items ii
+       JOIN invoices i ON i.id = ii.invoice_id
+       JOIN products p ON p.id = ii.product_id
+       WHERE i.statusi = 'paguar'
+       GROUP BY p.id, p.emri
+       ORDER BY total_sold DESC
+       LIMIT 5`
+    );
+
+    const [profitRows] = await pool.query(
+      `SELECT
+         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS total_revenue,
+         COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
+       FROM invoice_items ii
+       JOIN invoices i ON i.id = ii.invoice_id
+       JOIN products p ON p.id = ii.product_id
+       WHERE i.statusi = 'paguar'`
+    );
+
+    const [thisMonthRows] = await pool.query(
+      `SELECT COALESCE(SUM(totali), 0) AS revenue
+       FROM invoices
+       WHERE statusi = 'paguar'
+         AND YEAR(data_krijimit) = YEAR(CURDATE())
+         AND MONTH(data_krijimit) = MONTH(CURDATE())`
+    );
+
+    const [lastMonthRows] = await pool.query(
+      `SELECT COALESCE(SUM(totali), 0) AS revenue
+       FROM invoices
+       WHERE statusi = 'paguar'
+         AND YEAR(data_krijimit) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+         AND MONTH(data_krijimit) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))`
+    );
+
+    const [inventoryRows] = await pool.query(
+      `SELECT COALESCE(SUM(stoku_aktual * cmimi_shitjes), 0) AS inventory_value,
+              COALESCE(SUM(stoku_aktual * cmimi_blerjes), 0) AS inventory_cost
+       FROM products`
+    );
+
+    const totalRevenue = Number(profitRows[0].total_revenue);
+    const totalCost = Number(profitRows[0].total_cost);
+    const thisMonth = Number(thisMonthRows[0].revenue);
+    const lastMonth = Number(lastMonthRows[0].revenue);
+
+    res.json({
+      chartData: chartDataRows.map(row => ({
+        date: new Date(row.date).toLocaleDateString('sq-AL', { month: 'short', day: 'numeric' }),
+        revenue: Number(row.revenue)
+      })),
+      topProducts: topProductsRows.map(row => ({
+        id: row.id,
+        emri: row.emri,
+        total_sold: Number(row.total_sold),
+        revenue: Number(row.revenue)
+      })),
+      profitMargin: {
+        revenue: totalRevenue,
+        cost: totalCost,
+        profit: totalRevenue - totalCost,
+      },
+      monthlyComparison: {
+        thisMonth,
+        lastMonth,
+        changePercent: lastMonth > 0 ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : 0,
+      },
+      inventoryValue: {
+        atSalePrice: Number(inventoryRows[0].inventory_value),
+        atCostPrice: Number(inventoryRows[0].inventory_cost),
+      },
+    });
+  } catch (error) {
+    console.error('GET /api/reports error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✓ Zahlx API running on http://localhost:${PORT}`);
 });

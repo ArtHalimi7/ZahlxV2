@@ -14,6 +14,10 @@
   }
 
   :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
     color-scheme: dark;
   }
 
@@ -21,20 +25,31 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    background: #09090b;
+    background: #f8fafc;
   }
 
   body {
-    @apply bg-zinc-950 text-zinc-100 font-sans;
+    @apply font-sans antialiased;
     line-height: 1.6;
     margin: 0;
     min-height: 100vh;
-    background:
-      radial-gradient(circle at top left, rgba(16, 185, 129, 0.12), transparent 28%),
-      radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 22%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%),
-      #09090b;
-    background-attachment: fixed;
+  }
+
+  .noise-bg {
+    position: relative;
+  }
+  
+  .noise-bg::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   }
 
   #root {
@@ -52,12 +67,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(0, 0, 0, 0.25);
   }
 
   /* ---- Selection ---- */
@@ -91,8 +106,8 @@
 
 @layer components {
   .glass {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(24px);
   }
 
@@ -103,7 +118,7 @@
 
 @layer utilities {
   .soft-glow {
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 18px 60px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 18px 60px rgba(0, 0, 0, 0.08);
   }
 
   .tabular-nums {
