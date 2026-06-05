@@ -47,7 +47,7 @@ app.get('/api/products', async (req, res) => {
     );
     res.json(rows);
   } catch (error) {
-    console.error('GET /api/products error:', error.message);
+    console.error('GET /api/products error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -67,7 +67,7 @@ app.get('/api/products/:id', async (req, res) => {
 
     res.json(rows[0]);
   } catch (error) {
-    console.error('GET /api/products/:id error:', error.message);
+    console.error('GET /api/products/:id error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -107,7 +107,7 @@ app.post('/api/products', async (req, res) => {
       return res.status(409).json({ error: 'Ky barkod ekziston tashmë' });
     }
 
-    console.error('POST /api/products error:', error.message);
+    console.error('POST /api/products error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -157,7 +157,7 @@ app.put('/api/products/:id', async (req, res) => {
       return res.status(409).json({ error: 'Ky barkod ekziston tashmë' });
     }
 
-    console.error('PUT /api/products/:id error:', error.message);
+    console.error('PUT /api/products/:id error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -179,7 +179,7 @@ app.delete('/api/products/:id', async (req, res) => {
       return res.status(400).json({ error: 'Produkti ka fatura të lidhura dhe nuk mund të fshihet' });
     }
 
-    console.error('DELETE /api/products/:id error:', error.message);
+    console.error('DELETE /api/products/:id error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -221,7 +221,7 @@ app.get('/api/dashboard', async (req, res) => {
       stoku_ulet: Number(lowStockRows[0].stoku_ulet || 0),
     });
   } catch (error) {
-    console.error('GET /api/dashboard error:', error.message);
+    console.error('GET /api/dashboard error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -238,7 +238,7 @@ app.get('/api/transactions', async (req, res) => {
     );
     res.json(rows);
   } catch (error) {
-    console.error('GET /api/transactions error:', error.message);
+    console.error('GET /api/transactions error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -347,7 +347,7 @@ app.post('/api/sales', async (req, res) => {
     });
   } catch (error) {
     await client.rollback();
-    console.error('POST /api/sales error:', error.message);
+    console.error('POST /api/sales error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim gjatë regjistrimit të shitjes' });
   } finally {
     client.release();
@@ -381,7 +381,7 @@ app.get('/api/invoices/:id', async (req, res) => {
       items: itemRows,
     });
   } catch (error) {
-    console.error('GET /api/invoices/:id error:', error.message);
+    console.error('GET /api/invoices/:id error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });

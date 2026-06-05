@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import pool from './db.js';
 
 dotenv.config();
@@ -87,10 +89,18 @@ const ensureOwner = async () => {
   return result.insertId;
 };
 
-const initDb = async () => {
+export const initDatabase = async ({ closePool = true } = {}) => {
   try {
     for (const statement of statements) {
-      await pool.query(statement);
+      try {
+        await pool.query(statement);
+      } catch (error) {
+        if (error?.code === 'ER_DUP_KEYNAME') {
+          continue;
+        }
+
+        throw error;
+      }
     }
 
     const ownerId = await ensureOwner();
@@ -98,11 +108,16 @@ const initDb = async () => {
     console.log('✓ MySQL schema is ready');
     console.log(`✓ Owner user available with id ${ownerId}`);
   } catch (error) {
-    console.error('Database initialization failed:', error.message);
+    console.error('Database initialization failed:', error?.stack || error?.message || error);
     process.exitCode = 1;
+    throw error;
   } finally {
-    await pool.end();
+    if (closePool) {
+      await pool.end();
+    }
   }
 };
 
-initDb();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await initDatabase();
+}
