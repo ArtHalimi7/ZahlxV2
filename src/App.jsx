@@ -37,7 +37,7 @@ const App = () => {
               </svg>
             </button>
             <span className="text-sm font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Zahlx</span>
-            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-600">Live</span>
+            <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[11px] font-medium text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">Live</span>
           </header>
 
           <main className="flex-1 overflow-y-auto">

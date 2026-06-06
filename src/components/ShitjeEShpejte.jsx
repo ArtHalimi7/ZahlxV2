@@ -175,7 +175,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
         >
           <div className="flex items-start justify-between gap-4 border-b border-slate-200/60 dark:border-white/[0.06] px-5 py-4 sm:px-6">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.28em] text-emerald-600">POS i shpejtë</p>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-indigo-600">POS i shpejtë</p>
               <h2 className="mt-2 text-[18px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">
                 {state === STATES.SELECTING && 'Shitje e Shpejtë'}
                 {state === STATES.CONFIRMING && 'Konfirmo Shitjen'}
@@ -196,9 +196,9 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
 
           <div className="border-b border-slate-200/60 dark:border-white/[0.06] px-5 py-4 sm:px-6">
             <div className="grid grid-cols-3 gap-2 text-[11px] uppercase tracking-[0.24em]">
-              <span className={`rounded-full border px-3 py-2 text-center ${state === STATES.SELECTING || state === STATES.CONFIRMING ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500'}`}>Zgjedhja</span>
-              <span className={`rounded-full border px-3 py-2 text-center ${state === STATES.CONFIRMING ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500'}`}>Konfirmimi</span>
-              <span className={`rounded-full border px-3 py-2 text-center ${state === STATES.SUCCESS ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500'}`}>Përfundimi</span>
+              <span className={`rounded-full border px-3 py-2 text-center ${state === STATES.SELECTING || state === STATES.CONFIRMING ? 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500'}`}>Zgjedhja</span>
+              <span className={`rounded-full border px-3 py-2 text-center ${state === STATES.CONFIRMING ? 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500'}`}>Konfirmimi</span>
+              <span className={`rounded-full border px-3 py-2 text-center ${state === STATES.SUCCESS ? 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500'}`}>Përfundimi</span>
             </div>
           </div>
 
@@ -212,7 +212,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Kërko produkt ose barkod..."
-                    className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] py-3 pl-10 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:text-zinc-500 outline-none transition focus:border-emerald-500/30 focus:bg-white/50 dark:bg-white/[0.04]"
+                    className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] py-3 pl-10 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:text-zinc-500 outline-none transition focus:border-indigo-500/30 focus:bg-white/50 dark:bg-white/[0.04]"
                   />
                 </div>
               </div>
@@ -230,7 +230,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                         key={product.id}
                         onClick={() => handleSelect(product)}
                         disabled={product.stoku_aktual <= 0}
-                        className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 text-left transition ${product.stoku_aktual <= 0 ? 'cursor-not-allowed border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] opacity-40' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] hover:border-emerald-500/20 hover:bg-emerald-500/[0.08]'}`}
+                        className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 text-left transition ${product.stoku_aktual <= 0 ? 'cursor-not-allowed border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] opacity-40' : 'border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] hover:border-indigo-500/20 hover:bg-indigo-500/[0.08]'}`}
                       >
                         <div className="min-w-0">
                           <p className="truncate text-[14px] font-medium text-slate-900 dark:text-zinc-100">{product.emri}</p>
@@ -283,7 +283,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                     value={client}
                     onChange={(e) => setClient(e.target.value)}
                     placeholder="Klienti (Opcionale)"
-                    className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-3 py-2 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30"
+                    className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-3 py-2 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30"
                   />
                 </div>
 
@@ -293,7 +293,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                     <select
                       value={taxRate}
                       onChange={(e) => setTaxRate(Number(e.target.value))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                     >
                       <option value={0}>0%</option>
                       <option value={8}>8%</option>
@@ -306,9 +306,9 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                     <select
                       value={paymentTerms}
                       onChange={(e) => setPaymentTerms(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                     >
-                      <option value="immediate">Sot</option>
+                      <option value="immediate">Menjëherë</option>
                       <option value="net_15">Net 15</option>
                       <option value="net_30">Net 30</option>
                     </select>
@@ -319,7 +319,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                     <select
                       value={invoiceStatus}
                       onChange={(e) => setInvoiceStatus(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                     >
                       <option value="paguar">Paguar</option>
                       <option value="ne_pritje">Draft</option>
@@ -354,7 +354,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="rounded-2xl bg-emerald-600 px-4 py-3 text-[14px] font-semibold text-white shadow-[0_18px_40px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500"
+                  className="rounded-2xl bg-indigo-600 px-4 py-3 text-[14px] font-semibold text-white shadow-[0_18px_40px_rgba(99,102,241,0.35)] transition hover:bg-indigo-500"
                 >
                   Përfundo Shitjen
                 </button>
@@ -364,14 +364,14 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
 
           {state === STATES.LOADING && (
             <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200/60 dark:border-white/[0.06] border-t-emerald-500" />
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200/60 dark:border-white/[0.06] border-t-indigo-500" />
               <p className="mt-4 text-[14px] text-slate-400 dark:text-zinc-500">Po regjistrohet shitja...</p>
             </div>
           )}
 
           {state === STATES.SUCCESS && receiptData && (
             <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.12)]">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-green-500/20 bg-green-500/10 text-green-600 dark:border-green-500/15 dark:text-green-400 shadow-[0_0_30px_rgba(34,197,94,0.12)]">
                 <Check size={26} />
               </div>
               <p className="mt-5 text-[18px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Shitja u regjistrua me sukses</p>
@@ -380,7 +380,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
               <div className="mt-8 w-full max-w-sm rounded-[1.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-5 text-left">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-emerald-600">Fatura</p>
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-indigo-600">Fatura</p>
                     <p className="mt-1 text-[15px] font-medium text-slate-900 dark:text-zinc-100">{receiptData.numri_fatures}</p>
                   </div>
                   <div className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white p-2">
@@ -397,7 +397,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                   <Link
                     to={`/fature/${receiptData.id}`}
                     onClick={onClose}
-                    className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500"
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(99,102,241,0.35)] transition hover:bg-indigo-500"
                   >
                     <QrCode size={16} />
                     Hap Faturën

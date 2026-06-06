@@ -11,10 +11,23 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
+        zinc: {
+          50: '#faf9ff',
+          100: '#f3f2fc',
+          200: '#e4e2f5',
+          300: '#c8c6e5',
+          400: '#9c99c3',
+          500: '#74719e',
+          600: '#55527d',
+          700: '#3b385c',
+          800: '#221e3f',
+          900: '#120d29',
+          950: '#070415',
+        },
         surface: {
-          DEFAULT: '#09090b',   // zinc-950 — main background
-          raised: '#18181b',    // zinc-900 — card backgrounds
-          overlay: '#27272a',   // zinc-800 — modals, dropdowns
+          DEFAULT: '#070415',
+          raised: '#120d29',
+          overlay: '#221e3f',
         },
         border: {
           subtle: 'rgba(255, 255, 255, 0.06)',
@@ -22,8 +35,8 @@ export default {
           strong: 'rgba(255, 255, 255, 0.15)',
         },
         accent: {
-          DEFAULT: '#10b981',   // emerald-500
-          muted: '#065f46',     // emerald-900 — subtle backgrounds
+          DEFAULT: '#6366f1',
+          muted: '#312e81',
         },
       },
       keyframes: {

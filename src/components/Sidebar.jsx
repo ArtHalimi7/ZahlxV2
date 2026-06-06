@@ -53,8 +53,8 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-200/60 dark:border-white/[0.06] px-4 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] shadow-[0_0_32px_rgba(16,185,129,0.12)]">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.45)]" />
+            <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] shadow-[0_0_32px_rgba(99,102,241,0.12)]">
+              <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 shadow-[0_0_18px_rgba(99,102,241,0.45)]" />
             </div>
             {!isCollapsed && (
               <div className="min-w-0">
@@ -91,20 +91,20 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                   transition={{ type: 'spring', stiffness: 380, damping: 28 }}
                   className={`relative flex items-center gap-3 rounded-2xl border px-3 py-3 text-[13px] font-medium transition-colors ${
                     isActive
-                      ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 shadow-[0_0_0_1px_rgba(16,185,129,0.08),0_0_30px_rgba(16,185,129,0.08)]'
+                      ? 'border-indigo-500/20 bg-indigo-500/10 text-indigo-700 shadow-[0_0_0_1px_rgba(99,102,241,0.08),0_0_30px_rgba(99,102,241,0.08)]'
                       : 'border-transparent text-slate-500 dark:text-zinc-400 hover:border-slate-200/60 dark:border-white/[0.06] hover:bg-white/60 dark:bg-white/[0.03] hover:text-slate-900 dark:text-zinc-100'
                   }`}
                 >
                   {isActive && (
                     <motion.span
-                      layoutId="sidebar-active-indicator"
-                      className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-emerald-500 shadow-[0_0_22px_rgba(16,185,129,0.6)]"
+                       layoutId="sidebar-active-indicator"
+                      className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-indigo-500 shadow-[0_0_22px_rgba(99,102,241,0.6)]"
                     />
                   )}
                   <span
                     className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition-colors ${
                       isActive
-                        ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400'
+                        ? 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400'
                         : 'border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] text-slate-400 dark:text-zinc-500'
                     }`}
                   >
@@ -144,7 +144,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
               <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500 dark:text-zinc-500">Gjendja e sistemit</p>
               <div className="mt-2 flex items-center justify-between gap-3">
                 <span className="text-[13px] text-slate-700 dark:text-zinc-300">Online dhe gati</span>
-                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400 px-2.5 py-1 text-[11px] font-medium">Aktiv</span>
+                <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400 px-2.5 py-1 text-[11px] font-medium">Aktiv</span>
               </div>
             </div>
           ) : (
@@ -152,7 +152,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
               <button onClick={toggleTheme} className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 transition-colors">
                 {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
               </button>
-              <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.5)]" />
+              <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-[0_0_18px_rgba(99,102,241,0.5)]" />
             </div>
           )}
         </div>

@@ -5,7 +5,7 @@ import { ArrowUpRight, Clock3, FileText } from 'lucide-react';
 const STATUS_META = {
   paguar: {
     label: 'Paguar',
-    className: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400',
+    className: 'border-green-500/20 bg-green-500/10 text-green-600 dark:border-green-500/15 dark:text-green-400',
   },
   ne_pritje: {
     label: 'Në Pritje',
@@ -48,8 +48,8 @@ const DashboardTransactions = ({ transactions }) => {
           <h2 className="text-[14px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Transaksionet e Fundit</h2>
           <p className="mt-1 text-[12px] text-slate-400 dark:text-zinc-500">Pamje e strukturuar për kontroll të shpejtë dhe pa mbingarkesë vizuale.</p>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-3 py-2 text-[12px] text-slate-500 dark:text-zinc-400">
-          <ArrowUpRight size={14} className="text-emerald-600" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-1.5 px-3 py-2 text-[12px] text-slate-500 dark:text-zinc-400">
+          <ArrowUpRight size={14} className="text-indigo-600 dark:text-indigo-400" />
           <span>{transactions.length} regjistrime</span>
         </div>
       </div>

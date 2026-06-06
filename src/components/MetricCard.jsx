@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 
-const MetricCard = ({ label, value, detail, icon: Icon, tone = 'emerald', delta, className = '' }) => {
+const MetricCard = ({ label, value, detail, icon: Icon, tone = 'indigo', delta, className = '' }) => {
   const toneMap = {
-    emerald: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400',
+    emerald: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400',
+    indigo: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400',
     zinc: 'border-slate-200/60 dark:border-white/[0.06] bg-white/50 dark:bg-white/[0.04] text-slate-800 dark:text-zinc-200',
   };
 
@@ -46,7 +47,7 @@ MetricCard.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   detail: PropTypes.string,
   icon: PropTypes.elementType,
-  tone: PropTypes.oneOf(['emerald', 'zinc']),
+  tone: PropTypes.oneOf(['emerald', 'indigo', 'zinc']),
   delta: PropTypes.string,
   className: PropTypes.string,
 };

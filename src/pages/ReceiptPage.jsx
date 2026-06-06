@@ -11,7 +11,7 @@ const currency = new Intl.NumberFormat('de-DE', {
 });
 
 const STATUS_META = {
-  paguar: { label: 'Paguar', cls: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+  paguar: { label: 'Paguar', cls: 'border-green-500/20 bg-green-500/10 text-green-600 dark:text-green-400' },
   ne_pritje: { label: 'Në Pritje (Draft)', cls: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400' },
   vonese: { label: 'Vonesë (Overdue)', cls: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400' },
   anuluar: { label: 'Anuluar', cls: 'border-slate-500/20 bg-slate-500/10 text-slate-600 dark:text-slate-400' }
@@ -55,10 +55,10 @@ const ReceiptPage = () => {
   if (loading) {
     return (
       <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_24%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%)]" />
         <div className="relative mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-6 py-10 text-center backdrop-blur-xl">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-slate-200/60 dark:border-white/[0.06] border-t-emerald-500" />
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-slate-200/60 dark:border-white/[0.06] border-t-indigo-500" />
             <p className="mt-4 text-[14px] text-slate-500 dark:text-zinc-400">Po ngarkohet rechnung...</p>
           </div>
         </div>
@@ -69,7 +69,7 @@ const ReceiptPage = () => {
   if (error || !receipt) {
     return (
       <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_24%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%)]" />
         <div className="relative mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-6 py-10 text-center backdrop-blur-xl">
             <p className="text-[11px] uppercase tracking-[0.28em] text-rose-600">Fatura nuk u gjet</p>
@@ -90,7 +90,7 @@ const ReceiptPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <Link
@@ -103,7 +103,7 @@ const ReceiptPage = () => {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/15 px-4 py-2.5 text-[13px] font-semibold text-emerald-600 transition hover:border-emerald-500/30 hover:bg-emerald-500/20"
+            className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/15 px-4 py-2.5 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 transition hover:border-indigo-500/30 hover:bg-indigo-500/20"
           >
             <Printer size={16} />
             Print
@@ -120,7 +120,7 @@ const ReceiptPage = () => {
             <div className="p-6 sm:p-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-emerald-600">Rechnung</p>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-indigo-600">Rechnung</p>
                   <h1 className="mt-3 text-[2rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">{receipt.numri_fatures}</h1>
                   <p className="mt-3 text-[14px] text-slate-500 dark:text-zinc-400">Klienti: {receipt.klienti}</p>
                 </div>
@@ -188,7 +188,7 @@ const ReceiptPage = () => {
                     )}
                     <tr className="text-[14px] font-bold text-slate-900 dark:text-zinc-100 border-t border-slate-200/30 dark:border-white/[0.03]">
                       <td colSpan="3" className="px-4 py-3 text-right">Totali:</td>
-                      <td colSpan="2" className="px-4 py-3 text-right text-emerald-600 dark:text-emerald-400 tabular-nums">{currency.format(receipt.totali)}</td>
+                      <td colSpan="2" className="px-4 py-3 text-right text-indigo-600 dark:text-indigo-400 tabular-nums">{currency.format(receipt.totali)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -197,7 +197,7 @@ const ReceiptPage = () => {
 
             <div className="border-t border-slate-200/60 dark:border-white/[0.06] bg-[#f4f4f5] dark:bg-zinc-950/40 p-6 sm:p-8 lg:border-l lg:border-t-0">
               <div className="flex items-start gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
                   <Sparkles size={16} />
                 </div>
                 <div>
@@ -234,7 +234,7 @@ const ReceiptPage = () => {
 
               <div className="mt-6 flex items-center justify-between rounded-[1.25rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[13px] text-slate-700 dark:text-zinc-300">
                 <span>Shkurtim operativ</span>
-                <Link to="/stoku" className="text-emerald-600 transition hover:text-emerald-200">
+                <Link to="/produktet" className="text-indigo-600 dark:text-indigo-400 transition hover:text-indigo-200">
                   <ScanBarcode size={16} className="inline-block align-[-3px]" />
                   Kthehu te produktet
                 </Link>

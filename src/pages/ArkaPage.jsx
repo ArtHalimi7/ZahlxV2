@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowDownLeft, ArrowUpRight, RefreshCcw, Wallet } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, RefreshCcw, Wallet, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -35,23 +35,27 @@ const ArkaPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
-      <div className="relative mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
+      <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
 
+        {/* Page Title */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-emerald-600/90">Qarkullimi Ditor</p>
-            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem]">
-              Arka
-              {loading && <RefreshCcw size={20} className="animate-spin text-slate-400 dark:text-zinc-500" />}
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-zinc-900/40 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500 font-medium">
+              <Sparkles size={11} className="text-indigo-600 dark:text-indigo-400" />
+              Qarkullimi Ditor
+            </div>
+            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem] leading-[1.15]">
+              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300">Arka</span>
+              {loading && <RefreshCcw size={20} className="animate-spin text-slate-450 dark:text-zinc-500" />}
             </h1>
-            <p className="mt-3 max-w-2xl text-[14px] leading-7 text-slate-500 dark:text-zinc-400">
+            <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 max-w-xl">
               Gjendja aktuale e arkës, paratë që kanë hyrë dhe dalë, dhe historiku i plotë i lëvizjeve.
             </p>
           </div>
           <button
             onClick={fetchArka}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[13px] font-medium text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:hover:border-white/[0.12] hover:text-slate-900 dark:hover:text-zinc-100"
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
           >
             <RefreshCcw size={16} />
             Rifresko
@@ -64,89 +68,99 @@ const ArkaPage = () => {
           </div>
         ) : (
           <>
-            <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Top metrics grid */}
+            <div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-[1.75rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Balanca Totale</p>
+                    <h3 className="mt-2 text-[26px] font-bold text-indigo-600 dark:text-indigo-400 tracking-tight font-mono">
+                      {currency.format(data.balance)}
+                    </h3>
+                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
                     <Wallet size={18} />
                   </div>
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Balanca Totale</p>
                 </div>
-                <p className="text-[28px] font-bold tracking-tight text-emerald-600 tabular-nums">
-                  {currency.format(data.balance)}
-                </p>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="rounded-[1.75rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Hyrje Sot</p>
+                    <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">
+                      {currency.format(data.todayIn)}
+                    </h3>
+                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-green-500/20 bg-green-500/10 text-green-600 dark:text-green-500">
                     <ArrowDownLeft size={18} />
                   </div>
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Hyrje Sot</p>
                 </div>
-                <p className="text-[22px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">
-                  {currency.format(data.todayIn)}
-                </p>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="rounded-[1.75rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Dalje Sot</p>
+                    <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">
+                      {currency.format(data.todayOut)}
+                    </h3>
+                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-500">
                     <ArrowUpRight size={18} />
                   </div>
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Dalje Sot</p>
                 </div>
-                <p className="text-[22px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">
-                  {currency.format(data.todayOut)}
-                </p>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="rounded-[1.75rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] text-slate-500 dark:text-zinc-400">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Totali Hyrjeve</p>
+                    <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">
+                      {currency.format(data.totalIn)}
+                    </h3>
+                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-405">
                     <ArrowDownLeft size={18} />
                   </div>
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Totali Hyrjeve</p>
                 </div>
-                <p className="text-[22px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">
-                  {currency.format(data.totalIn)}
-                </p>
               </motion.div>
             </div>
 
-            <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-              <div className="border-b border-slate-200/60 dark:border-white/[0.06] px-6 py-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Regjistri i Arkës</p>
-                <h2 className="mt-1 text-[15px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Lëvizjet e fundit</h2>
+            {/* Ledger table card */}
+            <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
+              <div className="border-b border-slate-200/40 dark:border-white/[0.04] px-6 py-5 bg-white/60 dark:bg-white/[0.02]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Regjistri i Arkës</p>
+                <h2 className="mt-1 text-[16px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Lëvizjet e fundit</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[14px] text-slate-700 dark:text-zinc-300">
                   <thead>
-                    <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02]">
-                      <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Data & Ora</th>
-                      <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Përshkrimi</th>
-                      <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Fatura</th>
-                      <th className="px-6 py-4 font-medium text-emerald-600">Hyrje (Debit)</th>
-                      <th className="px-6 py-4 font-medium text-rose-600">Dalje (Kredit)</th>
+                    <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.02]">
+                      <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Data & Ora</th>
+                      <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Përshkrimi</th>
+                      <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Fatura</th>
+                      <th className="px-6 py-4 font-semibold text-green-600 text-[12px] uppercase tracking-wider">Hyrje (Debit)</th>
+                      <th className="px-6 py-4 font-semibold text-rose-600 text-[12px] uppercase tracking-wider">Dalje (Kredit)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.04]">
@@ -158,32 +172,32 @@ const ArkaPage = () => {
                       </tr>
                     ) : (
                       data.entries.map((entry) => (
-                        <tr key={entry.id} className="transition-colors hover:bg-white/40 dark:hover:bg-white/[0.02]">
-                          <td className="px-6 py-4 text-slate-500 dark:text-zinc-400 whitespace-nowrap">
+                        <tr key={entry.id} className="transition-colors hover:bg-white/60 dark:hover:bg-white/[0.03]">
+                          <td className="px-6 py-4 text-slate-500 dark:text-zinc-400 font-medium whitespace-nowrap">
                             {new Date(entry.data).toLocaleString('sq-AL', { dateStyle: 'medium', timeStyle: 'short' })}
                           </td>
-                          <td className="px-6 py-4 text-slate-900 dark:text-zinc-100">
+                          <td className="px-6 py-4 font-medium text-slate-900 dark:text-zinc-100">
                             {entry.pershkrimi}
                           </td>
                           <td className="px-6 py-4">
                             {entry.numri_fatures ? (
-                              <Link to={`/fature/${entry.invoice_id}`} className="font-mono text-emerald-600 hover:underline">
+                              <Link to={`/fature/${entry.invoice_id}`} className="font-mono font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
                                 {entry.numri_fatures}
                               </Link>
                             ) : (
                               <span className="text-slate-400 dark:text-zinc-500">—</span>
                             )}
                           </td>
-                          <td className="px-6 py-4 tabular-nums">
+                          <td className="px-6 py-4 font-bold tabular-nums">
                             {entry.debit > 0 ? (
-                              <span className="font-medium text-emerald-600">+{currency.format(entry.debit)}</span>
+                              <span className="text-green-600">+{currency.format(entry.debit)}</span>
                             ) : (
                               <span className="text-slate-400 dark:text-zinc-500">—</span>
                             )}
                           </td>
-                          <td className="px-6 py-4 tabular-nums">
+                          <td className="px-6 py-4 font-bold tabular-nums">
                             {entry.kredit > 0 ? (
-                              <span className="font-medium text-rose-600">-{currency.format(entry.kredit)}</span>
+                              <span className="text-rose-600">-{currency.format(entry.kredit)}</span>
                             ) : (
                               <span className="text-slate-400 dark:text-zinc-500">—</span>
                             )}

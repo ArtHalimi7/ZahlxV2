@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, CircleDashed, Filter, RefreshCcw, Search, XCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, CircleDashed, Filter, RefreshCcw, Search, XCircle, AlertTriangle, Sparkles, FileText, DollarSign, Clock } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -10,10 +10,10 @@ const currency = new Intl.NumberFormat('de-DE', {
 });
 
 const STATUS_COLORS = {
-  paguar: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400',
+  paguar: 'border-green-500/20 bg-green-500/10 text-green-600 dark:border-green-500/15 dark:text-green-400',
   ne_pritje: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:border-amber-500/15 dark:text-amber-400',
   vonese: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400',
-  anuluar: 'border-zinc-500/20 bg-zinc-500/10 text-slate-500 dark:border-zinc-500/15 dark:text-zinc-400',
+  anuluar: 'border-slate-200/60 dark:border-white/[0.06] bg-slate-100 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400',
 };
 
 const STATUS_LABELS = {
@@ -81,46 +81,97 @@ const TransactionsPage = () => {
     });
   }, [transactions, searchQuery, statusFilter]);
 
+  const totalPeriodRevenue = useMemo(() => {
+    return transactions.reduce((s, t) => t.statusi === 'paguar' ? s + Number(t.totali) : s, 0);
+  }, [transactions]);
+
+  const pendingCount = useMemo(() => {
+    return transactions.filter(t => t.statusi === 'ne_pritje').length;
+  }, [transactions]);
+
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.08),transparent_25%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_15%)]" />
-      <div className="relative mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_25%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_15%)]" />
+      <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
+        {/* Top header section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-emerald-600/90">Regjistri i Shitjeve</p>
-            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem]">
-              Libri i Shitjes
-              {loading && <RefreshCcw size={20} className="animate-spin text-slate-400 dark:text-zinc-500" />}
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-zinc-900/40 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500 font-medium">
+              <Sparkles size={11} className="text-indigo-600 dark:text-indigo-400" />
+              Regjistri i Shitjeve
+            </div>
+            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem] leading-[1.15]">
+              Libri i <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300">Shitjes</span>
+              {loading && <RefreshCcw size={20} className="animate-spin text-slate-450 dark:text-zinc-500" />}
             </h1>
-            <p className="mt-3 max-w-2xl text-[14px] leading-7 text-slate-500 dark:text-zinc-400">
-              Pasqyrë kronologjike e çdo shitjeje. Kliko numrin e faturës për të parë detajet.
+            <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 max-w-xl">
+              Pasqyrë kronologjike e çdo shitjeje dhe fature operative. Kliko numrin e faturës për të parë detajet.
             </p>
           </div>
           <button
             onClick={fetchTransactions}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[13px] font-medium text-slate-700 dark:text-zinc-300 transition hover:border-white/[0.16] hover:bg-white/[0.06] hover:text-slate-900 dark:text-zinc-100"
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
           >
             <RefreshCcw size={16} />
             Rifresko
           </button>
         </div>
 
-        <div className="mb-6 grid grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-5 py-4">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Gjithsej Fatura</p>
-            <p className="mt-2 text-[22px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">{transactions.length}</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-5 py-4">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Totali i Të Ardhurave</p>
-            <p className="mt-2 text-[22px] font-semibold tracking-tight text-emerald-600 tabular-nums">{currency.format(transactions.reduce((s, t) => t.statusi === 'paguar' ? s + Number(t.totali) : s, 0))}</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-5 py-4">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Në Pritje</p>
-            <p className="mt-2 text-[22px] font-semibold tracking-tight text-amber-600 tabular-nums">{transactions.filter(t => t.statusi === 'ne_pritje').length}</p>
-          </div>
+        {/* Premium visual metrics row */}
+        <div className="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Gjithsej Fatura</p>
+                <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{transactions.length}</h3>
+              </div>
+              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
+                <FileText size={18} />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Të ardhura (Paguar)</p>
+                <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{currency.format(totalPeriodRevenue)}</h3>
+              </div>
+              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
+                <DollarSign size={18} />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Fatura në pritje</p>
+                <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{pendingCount}</h3>
+              </div>
+              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:border-amber-500/15 dark:text-amber-400">
+                <Clock size={18} />
+              </div>
+            </div>
+          </motion.div>
         </div>
 
+        {/* Filter Toolbar */}
         <div className="mb-6 grid gap-4 sm:grid-cols-[1fr_auto]">
           <div className="relative">
             <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
@@ -129,7 +180,7 @@ const TransactionsPage = () => {
               placeholder="Kërko me numër fature ose emër klienti..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 focus:bg-white/60 dark:bg-white/[0.03]"
+              className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             />
           </div>
           
@@ -138,12 +189,12 @@ const TransactionsPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-full min-w-[160px] appearance-none rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 focus:bg-white/60 dark:bg-white/[0.03]"
+              className="h-full min-w-[170px] appearance-none rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             >
               <option value="te_gjitha">Të Gjitha</option>
               <option value="paguar">Paguar</option>
               <option value="ne_pritje">Në Pritje</option>
-              <option value="vonese">Vonesë (Overdue)</option>
+              <option value="vonese">Vonesë</option>
               <option value="anuluar">Anuluar</option>
             </select>
           </div>
@@ -154,20 +205,20 @@ const TransactionsPage = () => {
             <p className="text-[14px] font-medium">{error}</p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+          <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[14px] text-slate-700 dark:text-zinc-300">
                 <thead>
-                  <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02]">
-                    <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Numri Faturës</th>
-                    <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Data & Ora</th>
-                    <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Klienti</th>
-                    <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Totali</th>
-                    <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Statusi</th>
-                    <th className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400">Veprime</th>
+                  <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.02]">
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Numri Faturës</th>
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Data & Ora</th>
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Klienti</th>
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Totali</th>
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Statusi</th>
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Veprime</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.06]">
+                <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.04]">
                   {filteredTransactions.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
@@ -180,24 +231,24 @@ const TransactionsPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         key={t.id} 
-                        className="transition-colors hover:bg-white/40 dark:bg-white/[0.02]"
+                        className="transition-colors hover:bg-white/60 dark:hover:bg-white/[0.03]"
                       >
                         <td className="px-6 py-4">
-                          <Link to={`/fature/${t.id}`} className="font-mono text-slate-900 dark:text-zinc-100 hover:text-emerald-600 transition-colors">
+                          <Link to={`/fature/${t.id}`} className="font-mono font-semibold text-slate-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                             {t.numri_fatures}
                           </Link>
                         </td>
-                        <td className="px-6 py-4 text-slate-500 dark:text-zinc-400">
+                        <td className="px-6 py-4 text-slate-500 dark:text-zinc-400 font-medium whitespace-nowrap">
                           {new Date(t.data_krijimit).toLocaleString('sq-AL', { dateStyle: 'medium', timeStyle: 'short' })}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 font-medium text-slate-800 dark:text-zinc-200">
                           {t.klienti}
                         </td>
-                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-zinc-100 tabular-nums">
+                        <td className="px-6 py-4 font-bold text-slate-900 dark:text-zinc-100 tabular-nums">
                           {currency.format(t.totali)}
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${STATUS_COLORS[t.statusi] || 'border-zinc-500/20 bg-zinc-500/10 text-slate-500 dark:text-zinc-400'}`}>
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${STATUS_COLORS[t.statusi] || 'border-zinc-500/20 bg-zinc-500/10 text-slate-500 dark:text-zinc-400'}`}>
                             {t.statusi === 'paguar' && <CheckCircle2 size={12} />}
                             {t.statusi === 'ne_pritje' && <CircleDashed size={12} />}
                             {t.statusi === 'vonese' && <AlertTriangle size={12} />}
@@ -213,7 +264,7 @@ const TransactionsPage = () => {
                               <select
                                 value={t.statusi === 'vonese' ? 'ne_pritje' : t.statusi}
                                 onChange={(e) => updateStatus(t.id, e.target.value)}
-                                className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-1 text-[12px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-emerald-500/30"
+                                className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-2 py-1.5 text-[12px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                               >
                                 <option value="paguar">Paguar</option>
                                 <option value="ne_pritje">Në Pritje</option>

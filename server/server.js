@@ -558,29 +558,53 @@ app.get('/api/reports', async (req, res) => {
 
     if (interval === 'monthly') {
       const [rows] = await pool.query(
-        `SELECT DATE_FORMAT(data_krijimit, '%Y-%m') as date, SUM(totali) as revenue
-         FROM invoices
-         WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-         GROUP BY DATE_FORMAT(data_krijimit, '%Y-%m')
+        `SELECT DATE_FORMAT(i.data_krijimit, '%Y-%m') as date, 
+                SUM(i.totali) as revenue,
+                COALESCE(SUM(invoice_costs.cost), 0) as cost
+         FROM invoices i
+         LEFT JOIN (
+           SELECT ii.invoice_id, SUM(ii.sasia * p.cmimi_blerjes) as cost
+           FROM invoice_items ii
+           JOIN products p ON p.id = ii.product_id
+           GROUP BY ii.invoice_id
+         ) AS invoice_costs ON i.id = invoice_costs.invoice_id
+         WHERE i.statusi = 'paguar' AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+         GROUP BY DATE_FORMAT(i.data_krijimit, '%Y-%m')
          ORDER BY date ASC`
       );
       chartDataRows = rows;
     } else if (interval === 'weekly') {
       const [rows] = await pool.query(
-        `SELECT DATE_FORMAT(data_krijimit, '%Y-W%u') as date, SUM(totali) as revenue
-         FROM invoices
-         WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
-         GROUP BY DATE_FORMAT(data_krijimit, '%Y-W%u')
+        `SELECT DATE_FORMAT(i.data_krijimit, '%Y-W%u') as date, 
+                SUM(i.totali) as revenue,
+                COALESCE(SUM(invoice_costs.cost), 0) as cost
+         FROM invoices i
+         LEFT JOIN (
+           SELECT ii.invoice_id, SUM(ii.sasia * p.cmimi_blerjes) as cost
+           FROM invoice_items ii
+           JOIN products p ON p.id = ii.product_id
+           GROUP BY ii.invoice_id
+         ) AS invoice_costs ON i.id = invoice_costs.invoice_id
+         WHERE i.statusi = 'paguar' AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+         GROUP BY DATE_FORMAT(i.data_krijimit, '%Y-W%u')
          ORDER BY date ASC`
       );
       chartDataRows = rows;
     } else {
       // Daily
       const [rows] = await pool.query(
-        `SELECT DATE(data_krijimit) as date, SUM(totali) as revenue
-         FROM invoices
-         WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-         GROUP BY DATE(data_krijimit)
+        `SELECT DATE(i.data_krijimit) as date, 
+                SUM(i.totali) as revenue,
+                COALESCE(SUM(invoice_costs.cost), 0) as cost
+         FROM invoices i
+         LEFT JOIN (
+           SELECT ii.invoice_id, SUM(ii.sasia * p.cmimi_blerjes) as cost
+           FROM invoice_items ii
+           JOIN products p ON p.id = ii.product_id
+           GROUP BY ii.invoice_id
+         ) AS invoice_costs ON i.id = invoice_costs.invoice_id
+         WHERE i.statusi = 'paguar' AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+         GROUP BY DATE(i.data_krijimit)
          ORDER BY date ASC`
       );
       chartDataRows = rows;
@@ -661,7 +685,8 @@ app.get('/api/reports', async (req, res) => {
       }
       return {
         date: formattedDate,
-        revenue: Number(row.revenue)
+        revenue: Number(row.revenue),
+        cost: Number(row.cost || 0),
       };
     });
 
