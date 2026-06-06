@@ -24,20 +24,31 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const ReportsPage = () => {
-  const [reportData, setReportData] = useState({ chartData: [], topProducts: [] });
+  const [timeframe, setTimeframe] = useState('daily');
+  const [reportData, setReportData] = useState({
+    chartData: [],
+    topProducts: [],
+    profitMargin: { revenue: 0, cost: 0, profit: 0, taxLiability: 0, netProfit: 0 },
+    monthlyComparison: { thisMonth: 0, lastMonth: 0, changePercent: 0 },
+    inventoryValue: { atSalePrice: 0, atCostPrice: 0 },
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchReports = async () => {
+      setLoading(true);
       try {
-        const response = await fetch('/api/reports');
+        const response = await fetch(`/api/reports?interval=${timeframe}`);
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Gabim gjatë leximit të raporteve');
         
         setReportData({
           chartData: Array.isArray(data.chartData) ? data.chartData : [],
           topProducts: Array.isArray(data.topProducts) ? data.topProducts : [],
+          profitMargin: data.profitMargin || { revenue: 0, cost: 0, profit: 0, taxLiability: 0, netProfit: 0 },
+          monthlyComparison: data.monthlyComparison || { thisMonth: 0, lastMonth: 0, changePercent: 0 },
+          inventoryValue: data.inventoryValue || { atSalePrice: 0, atCostPrice: 0 },
         });
       } catch (err) {
         setError(err.message);
@@ -47,9 +58,9 @@ const ReportsPage = () => {
     };
 
     fetchReports();
-  }, []);
+  }, [timeframe]);
 
-  const totalRevenue30Days = reportData.chartData.reduce((sum, item) => sum + item.revenue, 0);
+  const totalPeriodRevenue = reportData.chartData.reduce((sum, item) => sum + item.revenue, 0);
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
@@ -82,18 +93,35 @@ const ReportsPage = () => {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-[1.75rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:p-8"
             >
-              <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/40 dark:border-white/[0.04] pb-6">
                 <div>
                   <h2 className="flex items-center gap-2 text-[18px] font-semibold text-slate-900 dark:text-zinc-100">
                     <TrendingUp size={20} className="text-emerald-600" />
-                    Të ardhurat (30 Ditët e Fundit)
+                    {timeframe === 'daily' && 'Të ardhurat (30 Ditët e Fundit)'}
+                    {timeframe === 'weekly' && 'Të ardhurat (12 Javët e Fundit)'}
+                    {timeframe === 'monthly' && 'Të ardhurat (12 Muajt e Fundit)'}
                   </h2>
-                  <p className="mt-1 text-[13px] text-slate-500 dark:text-zinc-400">Trendi i shitjeve të realizuara çdo ditë.</p>
+                  <p className="mt-1 text-[13px] text-slate-500 dark:text-zinc-400">Trendi i shitjeve sipas periudhës së zgjedhur.</p>
                 </div>
+                
+                <div className="flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-[#f4f4f5] dark:bg-zinc-900/40 p-1">
+                  {['daily', 'weekly', 'monthly'].map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTimeframe(t)}
+                      className={`rounded-xl px-4 py-2 text-[12px] font-semibold transition ${timeframe === t ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100'}`}
+                    >
+                      {t === 'daily' && 'Ditore'}
+                      {t === 'weekly' && 'Javore'}
+                      {t === 'monthly' && 'Mujore'}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="text-left sm:text-right">
                   <p className="text-[11px] uppercase tracking-widest text-slate-400 dark:text-zinc-500">Totali i periudhës</p>
                   <p className="text-[28px] font-bold text-emerald-600 tabular-nums">
-                    {currency.format(totalRevenue30Days)}
+                    {currency.format(totalPeriodRevenue)}
                   </p>
                 </div>
               </div>
@@ -204,12 +232,32 @@ const ReportsPage = () => {
 
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-4">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Fitimi Bruto</p>
-                    <p className="mt-2 text-[24px] font-bold tracking-tight text-emerald-600 tabular-nums">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Fitimi Bruto (Margarina)</p>
+                    <p className="mt-2 text-[24px] font-bold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">
                       {currency.format(reportData.profitMargin?.profit || 0)}
                     </p>
                     <p className="mt-1 text-[12px] text-slate-500 dark:text-zinc-400">
-                      Të ardhura: {currency.format(reportData.profitMargin?.revenue || 0)} — Kosto: {currency.format(reportData.profitMargin?.cost || 0)}
+                      Të ardhura: {currency.format(reportData.profitMargin?.revenue || 0)} — COGS: {currency.format(reportData.profitMargin?.cost || 0)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Provizioni Tatimor (TVSH & Fitim)</p>
+                    <p className="mt-2 text-[24px] font-bold tracking-tight text-amber-600 dark:text-amber-500 tabular-nums">
+                      {currency.format(reportData.profitMargin?.taxLiability || 0)}
+                    </p>
+                    <p className="mt-1 text-[12px] text-slate-500 dark:text-zinc-400">
+                      Përfshin TVSH-në dhe tatimin e vlerësuar mbi fitimin.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-600">Fitimi Neto</p>
+                    <p className="mt-2 text-[28px] font-bold tracking-tight text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      {currency.format(reportData.profitMargin?.netProfit || 0)}
+                    </p>
+                    <p className="mt-1 text-[12px] text-emerald-600/80">
+                      Fitimi pas të gjitha zbritjeve operative dhe tatimore.
                     </p>
                   </div>
 

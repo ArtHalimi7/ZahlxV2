@@ -95,7 +95,10 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       try {
         await pool.query(statement);
       } catch (error) {
-        if (error?.code === 'ER_DUP_KEYNAME') {
+        if (
+          error?.code === 'ER_DUP_KEYNAME' ||
+          (error?.message && error.message.includes('already exists'))
+        ) {
           continue;
         }
 
@@ -103,9 +106,41 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       }
     }
 
+    // Run schema migrations for new invoice columns
+    const columnsToMigrate = [
+      { name: 'tax_rate', type: 'DECIMAL(5,2) DEFAULT 0' },
+      { name: 'tax_amount', type: 'DECIMAL(12,2) DEFAULT 0' },
+      { name: 'due_date', type: 'DATETIME DEFAULT NULL' }
+    ];
+
+    for (const col of columnsToMigrate) {
+      try {
+        await pool.query(`ALTER TABLE invoices ADD COLUMN ${col.name} ${col.type}`);
+        console.log(`✓ Added column ${col.name} to invoices table`);
+      } catch (err) {
+        if (
+          err.code === 'ER_DUP_FIELDNAME' ||
+          err.errno === 1060 ||
+          (err.message && err.message.includes('duplicate column')) ||
+          (err.message && err.message.includes('already exists'))
+        ) {
+          // Column already exists
+        } else {
+          console.warn(`Migration notice for column ${col.name}:`, err.message || err);
+        }
+      }
+    }
+
+    // Backfill due_date with data_krijimit for existing invoices
+    try {
+      await pool.query(`UPDATE invoices SET due_date = data_krijimit WHERE due_date IS NULL`);
+    } catch (err) {
+      console.warn('Migration warning backfilling due_date:', err.message || err);
+    }
+
     const ownerId = await ensureOwner();
 
-    console.log('✓ MySQL schema is ready');
+    console.log('✓ Database schema is ready');
     console.log(`✓ Owner user available with id ${ownerId}`);
   } catch (error) {
     console.error('Database initialization failed:', error?.stack || error?.message || error);

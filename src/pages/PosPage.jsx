@@ -26,6 +26,9 @@ const PosPage = () => {
   const [receiptSubmitting, setReceiptSubmitting] = useState(false);
   const [receiptResult, setReceiptResult] = useState(null);
   const [receiptError, setReceiptError] = useState('');
+  const [taxRate, setTaxRate] = useState(0);
+  const [paymentTerms, setPaymentTerms] = useState('immediate');
+  const [invoiceStatus, setInvoiceStatus] = useState('paguar');
   const barcodeRef = useRef(null);
 
   useEffect(() => {
@@ -48,9 +51,19 @@ const PosPage = () => {
     return map;
   }, [products]);
 
-  const receiptTotal = useMemo(
+  const receiptSubtotal = useMemo(
     () => receiptItems.reduce((total, item) => total + item.cmimi_shitjes * item.quantity, 0),
     [receiptItems]
+  );
+
+  const receiptTaxAmount = useMemo(
+    () => receiptSubtotal * (Number(taxRate) / 100),
+    [receiptSubtotal, taxRate]
+  );
+
+  const receiptTotal = useMemo(
+    () => receiptSubtotal + receiptTaxAmount,
+    [receiptSubtotal, receiptTaxAmount]
   );
 
   const addReceiptProduct = (barcode) => {
@@ -102,6 +115,9 @@ const PosPage = () => {
         body: JSON.stringify({
           klienti: receiptClient,
           items: receiptItems.map((item) => ({ product_id: item.id, sasia: item.quantity })),
+          tax_rate: taxRate,
+          payment_terms: paymentTerms,
+          statusi: invoiceStatus,
         }),
       });
 
@@ -116,6 +132,9 @@ const PosPage = () => {
       });
       setReceiptItems([]);
       setReceiptBarcode('');
+      setTaxRate(0);
+      setPaymentTerms('immediate');
+      setInvoiceStatus('paguar');
       
       // Focus back to barcode to be ready for next sale
       window.setTimeout(() => barcodeRef.current?.focus(), 100);
@@ -150,14 +169,54 @@ const PosPage = () => {
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Ndërto Faturën</p>
                 
                 <div className="mt-5 space-y-4">
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Klienti</label>
-                    <input
-                      value={receiptClient}
-                      onChange={(event) => setReceiptClient(event.target.value)}
-                      placeholder="Klienti (Opcionale)"
-                      className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 focus:bg-white/50 dark:bg-white/[0.04]"
-                    />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Klienti</label>
+                      <input
+                        value={receiptClient}
+                        onChange={(event) => setReceiptClient(event.target.value)}
+                        placeholder="Klienti (Opcionale)"
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 focus:bg-white/50 dark:bg-white/[0.04]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Statusi</label>
+                      <select
+                        value={invoiceStatus}
+                        onChange={(e) => setInvoiceStatus(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                      >
+                        <option value="paguar">Paguar (Paid)</option>
+                        <option value="ne_pritje">Në Pritje (Draft)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Shkalla e TVSH</label>
+                      <select
+                        value={taxRate}
+                        onChange={(e) => setTaxRate(Number(e.target.value))}
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                      >
+                        <option value={0}>0% TVSH</option>
+                        <option value={8}>8% TVSH</option>
+                        <option value={18}>18% TVSH</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Afati i Pagesës</label>
+                      <select
+                        value={paymentTerms}
+                        onChange={(e) => setPaymentTerms(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                      >
+                        <option value="immediate">Menjëherë</option>
+                        <option value="net_15">Net 15 Ditë</option>
+                        <option value="net_30">Net 30 Ditë</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="relative">
@@ -250,20 +309,32 @@ const PosPage = () => {
                   </div>
                 )}
                 
-                <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-t border-slate-200/60 dark:border-white/[0.06] pt-6">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Totali Faturës</p>
-                    <p className="mt-1 text-[32px] font-bold tracking-tight text-emerald-600 tabular-nums">{currency.format(receiptTotal)}</p>
+                <div className="mt-6 border-t border-slate-200/60 dark:border-white/[0.06] pt-6 space-y-2">
+                  <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
+                    <span>Nëntotali:</span>
+                    <span className="font-medium tabular-nums">{currency.format(receiptSubtotal)}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={submitReceipt}
-                    disabled={receiptSubmitting || receiptItems.length === 0}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-4 text-[14px] font-bold text-white shadow-[0_18px_40px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none w-full sm:w-auto"
-                  >
-                    <Save size={18} />
-                    {receiptSubmitting ? 'Duke procesuar...' : 'Regjistro & Gjenero Faturë'}
-                  </button>
+                  {receiptTaxAmount > 0 && (
+                    <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
+                      <span>TVSH ({taxRate}%):</span>
+                      <span className="font-medium tabular-nums">{currency.format(receiptTaxAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2 border-t border-slate-200/30 dark:border-white/[0.03]">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Totali Faturës</p>
+                      <p className="mt-1 text-[32px] font-bold tracking-tight text-emerald-600 tabular-nums">{currency.format(receiptTotal)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={submitReceipt}
+                      disabled={receiptSubmitting || receiptItems.length === 0}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-4 text-[14px] font-bold text-white shadow-[0_18px_40px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none w-full sm:w-auto"
+                    >
+                      <Save size={18} />
+                      {receiptSubmitting ? 'Duke procesuar...' : 'Regjistro & Gjenero Faturë'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

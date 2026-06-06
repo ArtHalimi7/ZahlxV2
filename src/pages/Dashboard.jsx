@@ -37,6 +37,11 @@ const Dashboard = () => {
     total_produkte: 0,
     stoku_total: 0,
     stoku_ulet: 0,
+    revenue_excl_tax: 0,
+    total_cost: 0,
+    tax_liability: 0,
+    net_profit: 0,
+    profit_margin: 0,
   });
   const [transactions, setTransactions] = useState([]);
   const [saleDrawerOpen, setSaleDrawerOpen] = useState(false);
@@ -67,6 +72,11 @@ const Dashboard = () => {
           total_produkte: 0,
           stoku_total: 0,
           stoku_ulet: 0,
+          revenue_excl_tax: 0,
+          total_cost: 0,
+          tax_liability: 0,
+          net_profit: 0,
+          profit_margin: 0,
         });
       }
 
@@ -112,30 +122,38 @@ const Dashboard = () => {
 
   const metricCards = useMemo(() => ([
     {
-      label: 'Fitimi Total',
+      label: 'Të Hyrat Bruto',
       value: euroFormatter.format(metrics.fitimi_total),
-      detail: 'Nga të gjitha shitjet e konfirmuara',
+      detail: 'Shitjet totale me TVSH',
       icon: TrendingUp,
-      tone: 'emerald',
-      delta: isRefreshing ? 'Duke rifreskuar' : 'Stabil',
+      tone: 'zinc',
+      delta: isRefreshing ? 'Rifreskim...' : 'Stabil',
     },
     {
-      label: 'Shitjet Sot',
-      value: euroFormatter.format(metrics.shitjet_sot_vlera),
-      detail: `${metrics.shitjet_sot_nr} fatura të lëshuara sot`,
+      label: 'Fitimi Neto',
+      value: euroFormatter.format(metrics.net_profit),
+      detail: `Margina: ${metrics.profit_margin.toFixed(1)}%`,
+      icon: TrendingUp,
+      tone: 'emerald',
+      delta: 'Neto',
+    },
+    {
+      label: 'Provizioni Tatimor',
+      value: euroFormatter.format(metrics.tax_liability),
+      detail: 'TVSH & Tatim i vlerësuar',
       icon: ReceiptText,
       tone: 'zinc',
-      delta: `${metrics.shitjet_sot_nr} transaksione`,
+      delta: 'Tatimet',
     },
     {
       label: 'Produktet në Stok',
       value: metrics.total_produkte,
-      detail: metrics.stoku_ulet > 0 ? `${metrics.stoku_ulet} produkte me stok të ulët` : 'Stoku është i shëndetshëm',
+      detail: metrics.stoku_ulet > 0 ? `${metrics.stoku_ulet} me stok të ulët` : 'Stoku i shëndetshëm',
       icon: Boxes,
       tone: 'zinc',
-      delta: metrics.stoku_ulet > 0 ? 'Kërkon vëmendje' : 'Normal',
+      delta: metrics.stoku_ulet > 0 ? 'Vëmendje' : 'Normal',
     },
-  ]), [isRefreshing, metrics.fitimi_total, metrics.shitjet_sot_nr, metrics.shitjet_sot_vlera, metrics.stoku_ulet, metrics.total_produkte]);
+  ]), [isRefreshing, metrics.fitimi_total, metrics.net_profit, metrics.profit_margin, metrics.tax_liability, metrics.total_produkte, metrics.stoku_ulet]);
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -232,7 +250,7 @@ const Dashboard = () => {
           </motion.button>
             </div>
 
-            <div className="mb-12 mt-8 grid grid-cols-1 divide-y divide-slate-200/60 dark:divide-white/[0.06] border-y border-slate-200/60 dark:border-white/[0.06] lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+            <div className="mb-12 mt-8 grid grid-cols-1 divide-y divide-slate-200/60 dark:divide-white/[0.06] border-y border-slate-200/60 dark:border-white/[0.06] lg:grid-cols-4 lg:divide-x lg:divide-y-0">
               {metricCards.map((card) => (
                 <MetricCard key={card.label} {...card} />
               ))}

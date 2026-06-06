@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, CircleDashed, Filter, RefreshCcw, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, CircleDashed, Filter, RefreshCcw, Search, XCircle, AlertTriangle } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -12,12 +12,14 @@ const currency = new Intl.NumberFormat('de-DE', {
 const STATUS_COLORS = {
   paguar: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500/15 dark:text-emerald-400',
   ne_pritje: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:border-amber-500/15 dark:text-amber-400',
-  anuluar: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400',
+  vonese: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400',
+  anuluar: 'border-zinc-500/20 bg-zinc-500/10 text-slate-500 dark:border-zinc-500/15 dark:text-zinc-400',
 };
 
 const STATUS_LABELS = {
   paguar: 'Paguar',
   ne_pritje: 'Në Pritje',
+  vonese: 'Vonesë',
   anuluar: 'Anuluar',
 };
 
@@ -141,6 +143,7 @@ const TransactionsPage = () => {
               <option value="te_gjitha">Të Gjitha</option>
               <option value="paguar">Paguar</option>
               <option value="ne_pritje">Në Pritje</option>
+              <option value="vonese">Vonesë (Overdue)</option>
               <option value="anuluar">Anuluar</option>
             </select>
           </div>
@@ -197,6 +200,7 @@ const TransactionsPage = () => {
                           <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${STATUS_COLORS[t.statusi] || 'border-zinc-500/20 bg-zinc-500/10 text-slate-500 dark:text-zinc-400'}`}>
                             {t.statusi === 'paguar' && <CheckCircle2 size={12} />}
                             {t.statusi === 'ne_pritje' && <CircleDashed size={12} />}
+                            {t.statusi === 'vonese' && <AlertTriangle size={12} />}
                             {t.statusi === 'anuluar' && <XCircle size={12} />}
                             {STATUS_LABELS[t.statusi] || t.statusi}
                           </span>
@@ -207,7 +211,7 @@ const TransactionsPage = () => {
                               <span className="text-[12px] text-slate-400 dark:text-zinc-500">Duke përditësuar...</span>
                             ) : (
                               <select
-                                value={t.statusi}
+                                value={t.statusi === 'vonese' ? 'ne_pritje' : t.statusi}
                                 onChange={(e) => updateStatus(t.id, e.target.value)}
                                 className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-1 text-[12px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-emerald-500/30"
                               >

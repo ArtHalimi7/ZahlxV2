@@ -212,6 +212,28 @@ app.get('/api/dashboard', async (req, res) => {
        WHERE stoku_aktual <= 5 AND stoku_aktual > 0`
     );
 
+    const [profitRows] = await pool.query(
+      `SELECT
+         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
+       FROM invoice_items ii
+       JOIN invoices i ON i.id = ii.invoice_id
+       JOIN products p ON p.id = ii.product_id
+       WHERE i.statusi = 'paguar'`
+    );
+
+    const [taxRows] = await pool.query(
+      `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
+       FROM invoices
+       WHERE statusi = 'paguar'`
+    );
+
+    const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
+    const total_cost = Number(profitRows[0].total_cost || 0);
+    const tax_liability = Number(taxRows[0].tax_liability || 0);
+    const net_profit = revenue_excl_tax - total_cost - (revenue_excl_tax - total_cost > 0 ? (revenue_excl_tax - total_cost) * 0.10 : 0); // 10% income tax estimate on net income
+    const profit_margin = revenue_excl_tax > 0 ? (net_profit / revenue_excl_tax) * 100 : 0;
+
     res.json({
       fitimi_total: Number(revenueRows[0].fitimi_total || 0),
       shitjet_sot_nr: Number(todayRows[0].shitjet_sot_nr || 0),
@@ -219,6 +241,11 @@ app.get('/api/dashboard', async (req, res) => {
       total_produkte: Number(productRows[0].total_produkte || 0),
       stoku_total: Number(productRows[0].stoku_total || 0),
       stoku_ulet: Number(lowStockRows[0].stoku_ulet || 0),
+      revenue_excl_tax,
+      total_cost,
+      tax_liability,
+      net_profit,
+      profit_margin,
     });
   } catch (error) {
     console.error('GET /api/dashboard error:', error?.stack || error);
@@ -230,13 +257,22 @@ app.get('/api/transactions', async (req, res) => {
   try {
     const limit = Number.parseInt(req.query.limit, 10) || 10;
     const [rows] = await pool.query(
-      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi
+      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date
        FROM invoices
        ORDER BY data_krijimit DESC
        LIMIT ?`,
       [limit]
     );
-    res.json(rows);
+
+    const now = new Date();
+    const processedRows = rows.map(row => {
+      if (row.statusi === 'ne_pritje' && row.due_date && new Date(row.due_date) < now) {
+        return { ...row, statusi: 'vonese' };
+      }
+      return row;
+    });
+
+    res.json(processedRows);
   } catch (error) {
     console.error('GET /api/transactions error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
@@ -248,7 +284,7 @@ app.post('/api/sales', async (req, res) => {
 
   try {
     const ownerId = await getOwnerId();
-    const { klienti, items } = req.body;
+    const { klienti, items, tax_rate = 0, payment_terms = 'immediate', statusi = 'paguar' } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Duhet të shtoni së paku një produkt' });
@@ -265,7 +301,7 @@ app.post('/api/sales', async (req, res) => {
     const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
     const numriFatures = `FAT-${dateStr}-${seqNum}`;
 
-    let totali = 0;
+    let subtotal = 0;
     const resolvedItems = [];
 
     for (const item of items) {
@@ -292,7 +328,7 @@ app.post('/api/sales', async (req, res) => {
       }
 
       const lineTotal = Number(product.cmimi_shitjes) * Number(item.sasia);
-      totali += lineTotal;
+      subtotal += lineTotal;
 
       resolvedItems.push({
         product_id: product.id,
@@ -303,10 +339,21 @@ app.post('/api/sales', async (req, res) => {
       });
     }
 
+    const taxRate = Number(tax_rate || 0);
+    const taxAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + taxAmount;
+
+    let daysToAdd = 0;
+    if (payment_terms === 'net_15') daysToAdd = 15;
+    else if (payment_terms === 'net_30') daysToAdd = 30;
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + daysToAdd);
+
     const [invoiceResult] = await client.query(
-      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi)
-       VALUES (?, ?, ?, ?, 'paguar')`,
-      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', totali]
+      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', grandTotal, statusi, taxRate, taxAmount, dueDate]
     );
 
     const invoiceId = invoiceResult.insertId;
@@ -322,17 +369,35 @@ app.post('/api/sales', async (req, res) => {
         `UPDATE products
          SET stoku_aktual = stoku_aktual - ?, updated_at = CURRENT_TIMESTAMP
          WHERE id = ?`,
-        [item.sasia, item.product_id]
+         [item.sasia, item.product_id]
       );
     }
 
+    // Ledger accounting rules
+    const debitAccount = statusi === 'paguar' ? 'Arka' : 'Llogari të arkëtueshme';
+
+    // 1. Debit Cash/AR
     await client.query(
       `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
-       VALUES
-         (?, ?, ?, 'Arka', ?, 0),
-         (?, ?, ?, 'Të hyrat nga shitjet', 0, ?)` ,
-      [ownerId, invoiceId, `Shitje: ${numriFatures}`, totali, ownerId, invoiceId, `Shitje: ${numriFatures}`, totali]
+       VALUES (?, ?, ?, ?, ?, 0)`,
+      [ownerId, invoiceId, `Shitje: ${numriFatures}`, debitAccount, grandTotal]
     );
+
+    // 2. Credit Sales Revenue (Subtotal)
+    await client.query(
+      `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
+       VALUES (?, ?, ?, 'Të hyrat nga shitjet', 0, ?)`,
+      [ownerId, invoiceId, `Shitje: ${numriFatures}`, subtotal]
+    );
+
+    // 3. Credit VAT Payable (if taxAmount > 0)
+    if (taxAmount > 0) {
+      await client.query(
+        `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
+         VALUES (?, ?, ?, 'Detyrimi për TVSH', 0, ?)`,
+        [ownerId, invoiceId, `TVSH nga shitja: ${numriFatures}`, taxAmount]
+      );
+    }
 
     await client.commit();
 
@@ -341,7 +406,11 @@ app.post('/api/sales', async (req, res) => {
       invoice: {
         id: invoiceId,
         numri_fatures: numriFatures,
-        totali,
+        totali: grandTotal,
+        tax_rate: taxRate,
+        tax_amount: taxAmount,
+        due_date: dueDate,
+        statusi,
         items: resolvedItems,
       },
     });
@@ -357,7 +426,7 @@ app.post('/api/sales', async (req, res) => {
 app.get('/api/invoices/:id', async (req, res) => {
   try {
     const [invoiceRows] = await pool.query(
-      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi
+      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date
        FROM invoices
        WHERE id = ?`,
       [req.params.id]
@@ -365,6 +434,12 @@ app.get('/api/invoices/:id', async (req, res) => {
 
     if (invoiceRows.length === 0) {
       return res.status(404).json({ error: 'Fatura nuk u gjet' });
+    }
+
+    const invoice = invoiceRows[0];
+    const now = new Date();
+    if (invoice.statusi === 'ne_pritje' && invoice.due_date && new Date(invoice.due_date) < now) {
+      invoice.statusi = 'vonese';
     }
 
     const [itemRows] = await pool.query(
@@ -377,7 +452,7 @@ app.get('/api/invoices/:id', async (req, res) => {
     );
 
     res.json({
-      ...invoiceRows[0],
+      ...invoice,
       items: itemRows,
     });
   } catch (error) {
@@ -392,13 +467,34 @@ app.put('/api/invoices/:id/status', async (req, res) => {
     if (!['paguar', 'ne_pritje', 'anuluar'].includes(statusi)) {
       return res.status(400).json({ error: 'Status i panjohur' });
     }
+
+    const [invoiceRows] = await pool.query(
+      `SELECT id, user_id, numri_fatures, totali, statusi FROM invoices WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (invoiceRows.length === 0) {
+      return res.status(404).json({ error: 'Fatura nuk u gjet' });
+    }
+
+    const invoice = invoiceRows[0];
+
     const [result] = await pool.query(
       `UPDATE invoices SET statusi = ? WHERE id = ?`,
       [statusi, req.params.id]
     );
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Fatura nuk u gjet' });
+
+    if (invoice.statusi === 'ne_pritje' && statusi === 'paguar') {
+      // Debit Cash (Arka), Credit Accounts Receivable (Llogari të arkëtueshme)
+      await pool.query(
+        `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
+         VALUES
+           (?, ?, ?, 'Arka', ?, 0),
+           (?, ?, ?, 'Llogari të arkëtueshme', 0, ?)`,
+        [invoice.user_id, invoice.id, `Pagesë fature: ${invoice.numri_fatures}`, invoice.totali, invoice.user_id, invoice.id, `Pagesë fature: ${invoice.numri_fatures}`, invoice.totali]
+      );
     }
+
     res.json({ message: 'Statusi u përditësua' });
   } catch (error) {
     console.error('PUT /api/invoices/:id/status error:', error?.stack || error);
@@ -457,13 +553,38 @@ app.get('/api/arka', async (req, res) => {
 
 app.get('/api/reports', async (req, res) => {
   try {
-    const [chartDataRows] = await pool.query(
-      `SELECT DATE(data_krijimit) as date, SUM(totali) as revenue
-       FROM invoices
-       WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-       GROUP BY DATE(data_krijimit)
-       ORDER BY date ASC`
-    );
+    const interval = req.query.interval || 'daily';
+    let chartDataRows = [];
+
+    if (interval === 'monthly') {
+      const [rows] = await pool.query(
+        `SELECT DATE_FORMAT(data_krijimit, '%Y-%m') as date, SUM(totali) as revenue
+         FROM invoices
+         WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+         GROUP BY DATE_FORMAT(data_krijimit, '%Y-%m')
+         ORDER BY date ASC`
+      );
+      chartDataRows = rows;
+    } else if (interval === 'weekly') {
+      const [rows] = await pool.query(
+        `SELECT DATE_FORMAT(data_krijimit, '%Y-W%u') as date, SUM(totali) as revenue
+         FROM invoices
+         WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+         GROUP BY DATE_FORMAT(data_krijimit, '%Y-W%u')
+         ORDER BY date ASC`
+      );
+      chartDataRows = rows;
+    } else {
+      // Daily
+      const [rows] = await pool.query(
+        `SELECT DATE(data_krijimit) as date, SUM(totali) as revenue
+         FROM invoices
+         WHERE statusi = 'paguar' AND data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+         GROUP BY DATE(data_krijimit)
+         ORDER BY date ASC`
+      );
+      chartDataRows = rows;
+    }
 
     const [topProductsRows] = await pool.query(
       `SELECT p.id, p.emri, SUM(ii.sasia) as total_sold, SUM(ii.sasia * ii.cmimi_per_njesi) as revenue
@@ -508,16 +629,44 @@ app.get('/api/reports', async (req, res) => {
        FROM products`
     );
 
+    const [taxRows] = await pool.query(
+      `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
+       FROM invoices
+       WHERE statusi = 'paguar'`
+    );
+
     const totalRevenue = Number(profitRows[0].total_revenue);
     const totalCost = Number(profitRows[0].total_cost);
     const thisMonth = Number(thisMonthRows[0].revenue);
     const lastMonth = Number(lastMonthRows[0].revenue);
+    const taxLiability = Number(taxRows[0].tax_liability || 0);
+
+    const formattedChartData = chartDataRows.map(row => {
+      let formattedDate = row.date;
+      try {
+        if (interval === 'monthly') {
+          const [year, month] = row.date.split('-');
+          const date = new Date(Number(year), Number(month) - 1, 1);
+          formattedDate = date.toLocaleDateString('sq-AL', { year: 'numeric', month: 'short' });
+        } else if (interval === 'weekly') {
+          const parts = row.date.split('-W');
+          if (parts.length === 2) {
+            formattedDate = `Java ${parts[1]}, ${parts[0]}`;
+          }
+        } else {
+          formattedDate = new Date(row.date).toLocaleDateString('sq-AL', { month: 'short', day: 'numeric' });
+        }
+      } catch {
+        formattedDate = row.date;
+      }
+      return {
+        date: formattedDate,
+        revenue: Number(row.revenue)
+      };
+    });
 
     res.json({
-      chartData: chartDataRows.map(row => ({
-        date: new Date(row.date).toLocaleDateString('sq-AL', { month: 'short', day: 'numeric' }),
-        revenue: Number(row.revenue)
-      })),
+      chartData: formattedChartData,
       topProducts: topProductsRows.map(row => ({
         id: row.id,
         emri: row.emri,
@@ -528,6 +677,8 @@ app.get('/api/reports', async (req, res) => {
         revenue: totalRevenue,
         cost: totalCost,
         profit: totalRevenue - totalCost,
+        taxLiability: taxLiability,
+        netProfit: totalRevenue - totalCost - taxLiability,
       },
       monthlyComparison: {
         thisMonth,

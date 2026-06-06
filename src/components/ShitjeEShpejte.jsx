@@ -27,6 +27,10 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
   const [quantity, setQuantity] = useState(1);
   const [errorMsg, setErrorMsg] = useState('');
   const [receiptData, setReceiptData] = useState(null);
+  const [taxRate, setTaxRate] = useState(0);
+  const [paymentTerms, setPaymentTerms] = useState('immediate');
+  const [invoiceStatus, setInvoiceStatus] = useState('paguar');
+  const [client, setClient] = useState('Klient i përgjithshëm');
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -41,6 +45,10 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
     setSearch('');
     setErrorMsg('');
     setReceiptData(null);
+    setTaxRate(0);
+    setPaymentTerms('immediate');
+    setInvoiceStatus('paguar');
+    setClient('Klient i përgjithshëm');
 
     document.body.style.overflow = 'hidden';
 
@@ -82,7 +90,9 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
     ));
   }, [products, search]);
 
-  const total = selected ? selected.cmimi_shitjes * quantity : 0;
+  const subtotal = selected ? selected.cmimi_shitjes * quantity : 0;
+  const taxAmount = subtotal * (taxRate / 100);
+  const total = subtotal + taxAmount;
 
   const handleSelect = (product) => {
     setSelected(product);
@@ -114,7 +124,13 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
       const response = await fetch('/api/sales', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: [{ product_id: selected.id, sasia: quantity }] }),
+        body: JSON.stringify({
+          klienti: client,
+          items: [{ product_id: selected.id, sasia: quantity }],
+          tax_rate: taxRate,
+          payment_terms: paymentTerms,
+          statusi: invoiceStatus,
+        }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -260,8 +276,70 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-[1.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-4">
-                <div className="flex items-end justify-between">
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Klienti</label>
+                  <input
+                    value={client}
+                    onChange={(e) => setClient(e.target.value)}
+                    placeholder="Klienti (Opcionale)"
+                    className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-3 py-2 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">TVSH</label>
+                    <select
+                      value={taxRate}
+                      onChange={(e) => setTaxRate(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                    >
+                      <option value={0}>0%</option>
+                      <option value={8}>8%</option>
+                      <option value={18}>18%</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Afati</label>
+                    <select
+                      value={paymentTerms}
+                      onChange={(e) => setPaymentTerms(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                    >
+                      <option value="immediate">Sot</option>
+                      <option value="net_15">Net 15</option>
+                      <option value="net_30">Net 30</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Statusi</label>
+                    <select
+                      value={invoiceStatus}
+                      onChange={(e) => setInvoiceStatus(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/30 dark:bg-zinc-900"
+                    >
+                      <option value="paguar">Paguar</option>
+                      <option value="ne_pritje">Draft</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-[1.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-4 space-y-1.5">
+                <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                  <span>Nëntotali:</span>
+                  <span className="font-semibold tabular-nums">{formatEuro(subtotal)}</span>
+                </div>
+                {taxAmount > 0 && (
+                  <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                    <span>TVSH ({taxRate}%):</span>
+                    <span className="font-semibold tabular-nums">{formatEuro(taxAmount)}</span>
+                  </div>
+                )}
+                <div className="flex items-end justify-between border-t border-slate-200/30 dark:border-white/[0.03] pt-1.5">
                   <span className="text-[13px] text-slate-400 dark:text-zinc-500">Totali</span>
                   <span className="text-[30px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">{formatEuro(total)}</span>
                 </div>

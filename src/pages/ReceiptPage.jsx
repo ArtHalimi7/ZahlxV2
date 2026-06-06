@@ -10,6 +10,13 @@ const currency = new Intl.NumberFormat('de-DE', {
   minimumFractionDigits: 2,
 });
 
+const STATUS_META = {
+  paguar: { label: 'Paguar', cls: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+  ne_pritje: { label: 'Në Pritje (Draft)', cls: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+  vonese: { label: 'Vonesë (Overdue)', cls: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+  anuluar: { label: 'Anuluar', cls: 'border-slate-500/20 bg-slate-500/10 text-slate-600 dark:text-slate-400' }
+};
+
 const ReceiptPage = () => {
   const { invoiceId } = useParams();
   const [receipt, setReceipt] = useState(null);
@@ -123,10 +130,14 @@ const ReceiptPage = () => {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 grid gap-3 sm:grid-cols-4">
                 <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Data</p>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Data e Krijimit</p>
                   <p className="mt-2 text-[13px] text-slate-900 dark:text-zinc-100">{new Date(receipt.data_krijimit).toLocaleDateString('sq-AL')}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Afati i Pagesës</p>
+                  <p className="mt-2 text-[13px] text-slate-900 dark:text-zinc-100">{receipt.due_date ? new Date(receipt.due_date).toLocaleDateString('sq-AL') : 'Sot'}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3">
                   <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Artikuj</p>
@@ -134,7 +145,11 @@ const ReceiptPage = () => {
                 </div>
                 <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3">
                   <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Statusi</p>
-                  <p className="mt-2 text-[13px] text-emerald-600">{receipt.statusi === 'paguar' ? 'Paguar' : receipt.statusi}</p>
+                  <p className="mt-1">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${(STATUS_META[receipt.statusi] || STATUS_META.paguar).cls}`}>
+                      {(STATUS_META[receipt.statusi] || STATUS_META.paguar).label}
+                    </span>
+                  </p>
                 </div>
               </div>
 
@@ -160,6 +175,22 @@ const ReceiptPage = () => {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot className="border-t border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02]">
+                    <tr className="text-[12px] text-slate-500 dark:text-zinc-400">
+                      <td colSpan="3" className="px-4 py-2 text-right">Nëntotali:</td>
+                      <td colSpan="2" className="px-4 py-2 text-right tabular-nums">{currency.format(receipt.totali - (receipt.tax_amount || 0))}</td>
+                    </tr>
+                    {Number(receipt.tax_amount) > 0 && (
+                      <tr className="text-[12px] text-slate-500 dark:text-zinc-400">
+                        <td colSpan="3" className="px-4 py-2 text-right">TVSH ({receipt.tax_rate}%):</td>
+                        <td colSpan="2" className="px-4 py-2 text-right tabular-nums">{currency.format(receipt.tax_amount)}</td>
+                      </tr>
+                    )}
+                    <tr className="text-[14px] font-bold text-slate-900 dark:text-zinc-100 border-t border-slate-200/30 dark:border-white/[0.03]">
+                      <td colSpan="3" className="px-4 py-3 text-right">Totali:</td>
+                      <td colSpan="2" className="px-4 py-3 text-right text-emerald-600 dark:text-emerald-400 tabular-nums">{currency.format(receipt.totali)}</td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             </div>
