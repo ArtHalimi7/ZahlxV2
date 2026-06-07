@@ -229,12 +229,8 @@ const InventoryPage = () => {
         {/* Header section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-zinc-900/40 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500 font-medium">
-              <Sparkles size={11} className="text-indigo-600 dark:text-indigo-400" />
-              Menaxhimi i Inventarit
-            </div>
-            <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem] leading-[1.15]">
-              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300">Produktet</span>
+            <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
+              Produktet
             </h1>
             <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 max-w-xl">
               Shto, edito dhe menaxho të gjitha produktet e katalogut tënd. Skano barkodin për të hapur ose regjistruar një produkt të ri operative.

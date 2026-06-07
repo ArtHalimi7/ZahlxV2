@@ -9,6 +9,7 @@ import PosPage from './pages/PosPage';
 import TransactionsPage from './pages/TransactionsPage';
 import ArkaPage from './pages/ArkaPage';
 import ReportsPage from './pages/ReportsPage';
+import OffersPage from './pages/OffersPage';
 import './index.css';
 
 const App = () => {
@@ -49,6 +50,7 @@ const App = () => {
               <Route path="/produktet" element={<InventoryPage />} />
               <Route path="/fature/:invoiceId" element={<ReceiptPage />} />
               <Route path="/raportet" element={<ReportsPage />} />
+              <Route path="/oferta" element={<OffersPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

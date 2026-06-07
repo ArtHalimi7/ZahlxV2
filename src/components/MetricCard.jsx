@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
+import { Info } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-const MetricCard = ({ label, value, detail, icon: Icon, tone = 'indigo', delta, className = '' }) => {
+const MetricCard = ({ label, value, detail, icon: Icon, tone = 'indigo', delta, tooltip, className = '' }) => {
   const toneMap = {
     emerald: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400',
     indigo: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400',
@@ -16,7 +17,17 @@ const MetricCard = ({ label, value, detail, icon: Icon, tone = 'indigo', delta, 
     >
       <div className="relative flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400 dark:text-zinc-500">{label}</p>
+          <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400 dark:text-zinc-500">
+            {label}
+            {tooltip && (
+              <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                  {tooltip}
+                </span>
+              </span>
+            )}
+          </p>
           <p className="mt-3 text-[1.75rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.1rem] tabular-nums">
             {value}
           </p>
@@ -49,5 +60,6 @@ MetricCard.propTypes = {
   icon: PropTypes.elementType,
   tone: PropTypes.oneOf(['emerald', 'indigo', 'zinc']),
   delta: PropTypes.string,
+  tooltip: PropTypes.string,
   className: PropTypes.string,
 };

@@ -154,8 +154,8 @@ const PosPage = () => {
         {/* Page title */}
         <div className="mb-8">
           <p className="text-[11px] uppercase tracking-[0.28em] text-indigo-600/90 font-medium">Regjistro Shitje</p>
-          <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem] leading-[1.15]">
-            Shitje e <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300">Re</span>
+          <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
+            Shitje e Re
           </h1>
           <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 max-w-xl">
             Shto produkte duke skanuar barkodin, vendos sasinë, dhe regjistro shitjen. Fatura gjenerohet automatikisht.

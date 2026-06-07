@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Boxes, Clock3, Flame, Lightbulb, Plus, ReceiptText, Sparkles, TrendingUp, BrainCircuit, ArrowRight } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Boxes, Clock3, Flame, Lightbulb, Plus, ReceiptText, Sparkles, TrendingUp, BrainCircuit, ArrowRight, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import MetricCard from '../components/MetricCard';
@@ -70,6 +70,11 @@ const Dashboard = () => {
   const [arkaBalance, setArkaBalance] = useState(0);
   const [aiTab, setAiTab] = useState('insight');
   const [isAiCalculating, setIsAiCalculating] = useState(false);
+  const [aiDailyInsight, setAiDailyInsight] = useState('');
+  const [isAiDailyLoading, setIsAiDailyLoading] = useState(false);
+  const [aiTabInsights, setAiTabInsights] = useState({ insight: '', stock: '', liquidity: '' });
+  const [isAiTabLoading, setIsAiTabLoading] = useState(false);
+  const aiTabCache = useRef({ insight: '', stock: '', liquidity: '' });
 
   const fetchData = useCallback(async ({ initial = false, silent = false } = {}) => {
     if (initial) {
@@ -145,7 +150,8 @@ const Dashboard = () => {
     return 'Mirëmbrëma';
   }, []);
 
-  const aiDailyNote = useMemo(() => {
+  // Static fallback daily note
+  const aiDailyNoteFallback = useMemo(() => {
     if (metrics.shitjet_sot_nr > 0) {
       return `Zahlx AI Autopiloti: Sot keni regjistruar ${metrics.shitjet_sot_nr} shitje me vlerë ${euroFormatter.format(metrics.shitjet_sot_vlera)}. Ecuria e sotme është e shkëlqyer. Mbani në vëmendje nivelin e stokut.`;
     }
@@ -155,6 +161,30 @@ const Dashboard = () => {
     return `Zahlx AI Autopiloti: Ecuria e biznesit është e qëndrueshme. Autopiloti është aktiv dhe po sinkronizon transaksionet në kohë reale.`;
   }, [metrics]);
 
+  const aiDailyNote = aiDailyInsight || aiDailyNoteFallback;
+
+  // Fetch real AI daily insight from Gemini
+  useEffect(() => {
+    if (isLoading) return;
+    const fetchAiDaily = async () => {
+      setIsAiDailyLoading(true);
+      try {
+        const res = await fetch('/api/ai/daily-insight');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.insight) {
+            setAiDailyInsight(`Zahlx AI Autopiloti: ${data.insight}`);
+          }
+        }
+      } catch (err) {
+        console.error('AI daily insight error:', err);
+      } finally {
+        setIsAiDailyLoading(false);
+      }
+    };
+    fetchAiDaily();
+  }, [isLoading]);
+
   const aiInsights = useMemo(() => {
     const lastTx = transactions[0];
     const stockReorderCost = metrics.stoku_ulet * 120;
@@ -163,9 +193,9 @@ const Dashboard = () => {
 
     let insightText = '';
     if (lastTx) {
-      insightText = `Sapo u regjistrua një shitje prej ${euroFormatter.format(lastTx.totali)} (${lastTx.klienti || 'POS Checkout'}). Marxhina bruto është në nivel optimal prej ${metrics.profit_margin.toFixed(0)}%. Biznesi po operon me efikasitet të lartë.`;
+      insightText = `Sapo u regjistrua një shitje prej ${euroFormatter.format(lastTx.totali)} (${lastTx.klienti || 'POS Checkout'}). Përqindja e fitimit bruto është në nivel optimal prej ${metrics.profit_margin.toFixed(0)}%. Biznesi po operon me efikasitet të lartë.`;
     } else {
-      insightText = `Nuk është regjistruar asnjë shitje për sot. Aktivitetet operative janë të qeta. Këshillë: Sigurohuni që produktet tuaja kryesore kanë të regjistruar koston (COGS) për përllogaritje të saktë të fitimit.`;
+      insightText = `Nuk është regjistruar asnjë shitje për sot. Aktivitetet operative janë të qeta. Këshillë: Sigurohuni që produktet tuaja kryesore kanë të regjistruar koston e mallit për përllogaritje të saktë të fitimit.`;
     }
 
     return {
@@ -175,37 +205,98 @@ const Dashboard = () => {
         badgeColor: metrics.shitjet_sot_nr > 0 ? 'border-green-500/20 bg-green-500/10 text-green-600' : 'border-zinc-500/20 bg-zinc-500/10 text-zinc-500',
         text: insightText,
         cta: 'Hap POS',
-        link: '/arka'
+        link: '/arka',
+        prompt: 'Analizo operacionet e sotme dhe jep rekomandime konkrete për përmirësim të shitjeve.'
       },
       stock: {
         title: 'Stoku & Furnizimi',
-        badge: metrics.stoku_ulet > 0 ? 'Rimbushje' : 'Nivel Stabil',
-        badgeColor: metrics.stoku_ulet > 0 ? 'border-amber-500/20 bg-amber-500/10 text-amber-600' : 'border-green-500/20 bg-green-500/10 text-green-600',
+        badge: metrics.stoku_ulet > 0 
+          ? 'Rimbushje' 
+          : metrics.total_produkte === 0 
+            ? 'Zbrazët' 
+            : 'Nivel Stabil',
+        badgeColor: metrics.stoku_ulet > 0 
+          ? 'border-amber-500/20 bg-amber-500/10 text-amber-600' 
+          : metrics.total_produkte === 0 
+            ? 'border-zinc-500/20 bg-zinc-500/10 text-zinc-500' 
+            : 'border-green-500/20 bg-green-500/10 text-green-600',
         text: metrics.stoku_ulet > 0
           ? `Kujdes: Sasia e ${metrics.stoku_ulet} artikujve ka rënë nën nivelin kritik. Rekomandohet një buxhet prej afërsisht ${euroFormatter.format(stockReorderCost)} për furnizim të ri përpara se sasia të shterojë plotësisht.`
-          : `Gjendja e stokut është e shëndetshme. Keni ${metrics.total_produkte} produkte aktive dhe asnjëra nuk ka rënë nën kufirin kritik. Vazhdoni kështu!`,
+          : metrics.total_produkte === 0
+            ? 'Katalogu juaj është i zbrazët. Regjistroni produktet e para për të filluar menaxhimin e stokut dhe shitjet.'
+            : `Gjendja e stokut është e shëndetshme. Keni ${metrics.total_produkte} produkte aktive dhe asnjëra nuk ka rënë nën kufirin kritik. Vazhdoni kështu!`,
         cta: 'Menaxho Stokun',
-        link: '/produktet'
+        link: '/produktet',
+        prompt: 'Analizo gjendjen e stokut dhe sugjerojmë strategji furnizimi.'
       },
       liquidity: {
         title: 'Rezerva & Likuiditeti',
         badge: isLiquiditySafe ? 'Mbulim i Plotë' : 'Deficit',
         badgeColor: isLiquiditySafe ? 'border-green-500/20 bg-green-500/10 text-green-600' : 'border-rose-500/20 bg-rose-500/10 text-rose-600',
         text: isLiquiditySafe
-          ? `Likuiditeti juaj është i sigurt. Gjendja aktuale në arkë prej ${euroFormatter.format(arkaBalance)} e mbulon plotësisht provizionin tatimor prej ${euroFormatter.format(metrics.tax_liability)}.`
-          : `Kujdes: Provizioni i vlerësuar tatimor prej ${euroFormatter.format(metrics.tax_liability)} e tejkalon gjendjen aktuale në arkë prej ${euroFormatter.format(arkaBalance)}. Deficiti është ${euroFormatter.format(liquidityGap)}. Rekomandohet të reduktoni shpenzimet.`,
+          ? `Likuiditeti juaj është i sigurt. Gjendja aktuale në arkë prej ${euroFormatter.format(arkaBalance)} e mbulon plotësisht rezervën tatimore prej ${euroFormatter.format(metrics.tax_liability)}.`
+          : `Kujdes: Rezerva e vlerësuar tatimore prej ${euroFormatter.format(metrics.tax_liability)} e tejkalon gjendjen aktuale në arkë prej ${euroFormatter.format(arkaBalance)}. Deficiti është ${euroFormatter.format(liquidityGap)}. Rekomandohet të reduktoni shpenzimet.`,
         cta: 'Hap Analitikën',
-        link: '/raportet'
+        link: '/raportet',
+        prompt: 'Analizo likuiditetin dhe rezervën tatimore, dhe sugjerojmë hapa për përmirësim.'
       }
     };
   }, [metrics, transactions, arkaBalance]);
 
-  // Trigger AI calculation typing effect simulation when tab changes
+  const aiInsightsRef = useRef(aiInsights);
+  useEffect(() => {
+    aiInsightsRef.current = aiInsights;
+  }, [aiInsights]);
+
+  // Fetch AI insight for the active tab
+  const fetchAiTabInsight = useCallback(async (tab, prompt) => {
+    // If already cached, use that
+    if (aiTabCache.current[tab]) {
+      setAiTabInsights(prev => ({ ...prev, [tab]: aiTabCache.current[tab] }));
+      setIsAiCalculating(false);
+      return;
+    }
+
+    setIsAiTabLoading(true);
+    setIsAiCalculating(true);
+    try {
+      if (!prompt) {
+        setIsAiCalculating(false);
+        setIsAiTabLoading(false);
+        return;
+      }
+
+      const res = await fetch('/api/ai/tab-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, tab }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.insight) {
+          aiTabCache.current[tab] = data.insight;
+          setAiTabInsights(prev => ({ ...prev, [tab]: data.insight }));
+        }
+      }
+    } catch (err) {
+      console.error('AI tab insight error:', err);
+    } finally {
+      setIsAiTabLoading(false);
+      setIsAiCalculating(false);
+    }
+  }, []);
+
+  // Trigger AI calculation when tab changes
   useEffect(() => {
     setIsAiCalculating(true);
-    const timer = setTimeout(() => setIsAiCalculating(false), 500);
+    const prompt = aiInsightsRef.current[aiTab]?.prompt;
+    // Small delay to show loading animation, then fetch real AI
+    const timer = setTimeout(() => {
+      fetchAiTabInsight(aiTab, prompt);
+    }, 300);
     return () => clearTimeout(timer);
-  }, [aiTab]);
+  }, [aiTab, fetchAiTabInsight]);
 
   const preparedTransactions = useMemo(() => (
     transactions.map((transaction) => {
@@ -222,36 +313,40 @@ const Dashboard = () => {
 
   const metricCards = useMemo(() => ([
     {
-      label: 'Të Hyrat Bruto',
+      label: 'Shitjet Totale',
       value: euroFormatter.format(metrics.fitimi_total),
       detail: 'Shitjet totale me TVSH',
       icon: TrendingUp,
       tone: 'zinc',
       delta: isRefreshing ? 'Rifreskim...' : 'Stabil',
+      tooltip: 'Shuma totale e të gjitha shitjeve të kryera (me TVSH të përfshirë).',
     },
     {
-      label: 'Fitimi Neto',
+      label: 'Fitimi i Pastër',
       value: euroFormatter.format(metrics.net_profit),
-      detail: `Margina: ${metrics.profit_margin.toFixed(1)}%`,
+      detail: `Përqindja e fitimit: ${metrics.profit_margin.toFixed(1)}%`,
       icon: TrendingUp,
       tone: 'indigo',
       delta: 'Neto',
+      tooltip: 'Paratë e mbetura pasi zbresim koston e mallit dhe detyrimet tatimore.',
     },
     {
-      label: 'Provizioni Tatimor',
+      label: 'Rezerva për Taksa',
       value: euroFormatter.format(metrics.tax_liability),
       detail: 'TVSH & Tatim i vlerësuar',
       icon: ReceiptText,
       tone: 'zinc',
       delta: 'Tatimet',
+      tooltip: 'Shuma e rezervuar për të paguar TVSH-në dhe tatimin mbi fitimin sipas shitjeve të kryera.',
     },
     {
-      label: 'Produktet në Stok',
+      label: 'Gjendja e Stokut',
       value: metrics.total_produkte,
       detail: metrics.stoku_ulet > 0 ? `${metrics.stoku_ulet} me stok të ulët` : 'Stoku i shëndetshëm',
       icon: Boxes,
       tone: 'zinc',
       delta: metrics.stoku_ulet > 0 ? 'Vëmendje' : 'Normal',
+      tooltip: 'Numri i produkteve unike që keni të regjistruara në katalogun tuaj.',
     },
   ]), [isRefreshing, metrics.fitimi_total, metrics.net_profit, metrics.profit_margin, metrics.tax_liability, metrics.total_produkte, metrics.stoku_ulet]);
 
@@ -278,10 +373,6 @@ const Dashboard = () => {
             <div className="relative grid grid-cols-1 gap-8 md:grid-cols-12 md:items-center">
               {/* Left Column: Text & Actions */}
               <div className="md:col-span-7 flex flex-col items-start text-left">
-                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-[#f4f4f5]/60 dark:bg-zinc-950/40 px-3 py-1.5 text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">
-                  <Sparkles size={12} className="text-indigo-600 dark:text-indigo-400" />
-                  Përmbledhje operative e ditës
-                </div>
                 
                 <h1 className="mt-5 text-[1.8rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.6rem] leading-[1.15]">
                   {greeting},
@@ -339,7 +430,7 @@ const Dashboard = () => {
                     </div>
                     
                     <div className="mt-4">
-                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 tracking-wider font-mono">BALANCA TOTAL</p>
+                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 tracking-wider font-mono">SHITJET TOTALE</p>
                       <p className="text-[18px] font-semibold text-slate-800 dark:text-zinc-100 tracking-tight font-mono">
                         {euroFormatter.format(metrics.fitimi_total)}
                       </p>
@@ -364,9 +455,24 @@ const Dashboard = () => {
                   <BrainCircuit size={18} className="animate-pulse text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500 font-semibold">Zahlx AI Autopiloti</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500 font-semibold">Zahlx AI Autopiloti</p>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-bold text-indigo-600 dark:text-indigo-400">
+                      <span className="h-1 w-1 rounded-full bg-indigo-500 animate-pulse" />
+                      Gemini
+                    </span>
+                  </div>
                   <p className="mt-2 text-[14px] leading-7 text-slate-700 dark:text-zinc-300 font-medium">
-                    {aiDailyNote}
+                    {isAiDailyLoading ? (
+                      <span className="flex items-center gap-2 text-slate-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-bounce" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.15s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.3s]" />
+                        <span className="text-[12px] ml-1">Duke gjeneruar analizën me AI...</span>
+                      </span>
+                    ) : (
+                      <TypewriterText text={aiDailyNote} />
+                    )}
                   </p>
                 </div>
               </div>
@@ -507,8 +613,14 @@ const Dashboard = () => {
                       </div>
                       
                       <p className="text-[12px] leading-relaxed text-slate-600 dark:text-zinc-400 font-medium">
-                        <TypewriterText text={aiInsights[aiTab].text} />
+                        <TypewriterText text={aiTabInsights[aiTab] || aiInsights[aiTab].text} />
                       </p>
+                      {aiTabInsights[aiTab] && (
+                        <p className="mt-2 text-[10px] text-indigo-500/60 italic flex items-center gap-1">
+                          <Sparkles size={10} />
+                          Gjeneruar nga Gemini AI
+                        </p>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

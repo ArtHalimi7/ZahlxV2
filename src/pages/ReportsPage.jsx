@@ -16,7 +16,7 @@ import {
   BrainCircuit,
   ArrowRight
 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -68,7 +68,7 @@ const CustomTooltip = ({ active, payload, label }) => {
             </span>
           </div>
           <div className="flex justify-between items-center gap-4 text-[13px] pt-1.5 border-t border-slate-200/40 dark:border-white/[0.04] mt-1.5">
-            <span className="text-slate-700 dark:text-zinc-200 font-medium">Margjina:</span>
+            <span className="text-slate-700 dark:text-zinc-200 font-medium">Fitimi i Pastër:</span>
             <span className={`font-bold tabular-nums ${profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-rose-600'}`}>
               {currency.format(profit)}
             </span>
@@ -96,6 +96,57 @@ const ReportsPage = () => {
   // AI CFO Copilot states
   const [aiTab, setAiTab] = useState('stock');
   const [isAiCalculating, setIsAiCalculating] = useState(false);
+  const [aiTabInsights, setAiTabInsights] = useState({ stock: '', profit: '', liquidity: '' });
+  const aiTabCache = useRef({ stock: '', profit: '', liquidity: '' });
+
+  // Financial calculations
+  const marginPercent = reportData.profitMargin.revenue > 0 
+    ? Math.round((reportData.profitMargin.profit / reportData.profitMargin.revenue) * 100) 
+    : 0;
+
+  const lowStockCount = useMemo(() => {
+    // If any product has low stock based on the details
+    return reportData.inventoryValue.atCostPrice > 0 ? 1 : 0; // fallback count
+  }, [reportData]);  // Generative AI CFO analysis based on actual numbers
+  const aiInsights = useMemo(() => {
+    const stockReorderCost = reportData.inventoryValue.atCostPrice * 0.12;
+    const isLiquiditySafe = arkaBalance >= reportData.profitMargin.taxLiability;
+    const liquidityGap = reportData.profitMargin.taxLiability - arkaBalance;
+
+    return {
+      stock: {
+        title: 'Parashikimi i Stokut & Furnizimit',
+        badge: reportData.inventoryValue.atCostPrice > 10000 ? 'Rimbushje e Kërkuar' : 'Stok Stabil',
+        badgeColor: reportData.inventoryValue.atCostPrice > 10000 ? 'border-amber-500/20 bg-amber-500/10 text-amber-600' : 'border-green-500/20 bg-green-500/10 text-green-600',
+        text: `Zahlx AI ka analizuar katalogun dhe vlerën e stokut prej ${currency.format(reportData.inventoryValue.atCostPrice)}. Disa artikuj kritikë kërkojnë furnizim të menjëhershëm. Bazuar në ecurinë e shitjeve, rekomandohet një buxhet prej ${currency.format(stockReorderCost)} për të shmangur mungesën e artikujve më të kërkuar gjatë javëve të ardhshme.`,
+        cta: 'Hap Inventarin',
+        link: '/produktet',
+        prompt: `Analizo gjendjen e inventarit dhe vlerën e stokut prej ${reportData.inventoryValue.atCostPrice} EUR dhe sugjero strategji furnizimi.`
+      },
+      profit: {
+        title: 'Optimizimi i Fitimit & Çmimeve',
+        badge: marginPercent >= 35 ? 'Fitim i Shkëlqyer' : 'Sugjerohet Korigjim',
+        badgeColor: marginPercent >= 35 ? 'border-green-500/20 bg-green-500/10 text-green-600' : 'border-indigo-500/20 bg-indigo-500/10 text-indigo-650',
+        text: marginPercent >= 35
+          ? `Përqindja e fitimit tuaj bruto prej ${marginPercent}% është e jashtëzakonshme. Ky raport tregon që diferenca midis çmimit të shitjes dhe kostos së mallit është optimale. Mbani këtë balancë për të maksimizuar akumulimin e kapitalit.`
+          : `Përqindja e fitimit tuaj aktual është ${marginPercent}%. Për të rritur profitabilitetin, Zahlx AI sugjeron të korigjoni çmimet e shitjes me +5% për artikujt kryesorë ose të negocioni çmime më të favorshme me furnitorët tuaj për të reduktuar koston e mallit.`,
+        cta: 'Rishiko Katalogun',
+        link: '/produktet',
+        prompt: `Analizo fitimin e pastër prej ${marginPercent}% dhe sugjero strategji për rritjen e fitimit dhe optimizimin e çmimeve.`
+      },
+      liquidity: {
+        title: 'Likuiditeti & Rezerva Tatimore',
+        badge: isLiquiditySafe ? 'Likuiditet i Sigurt' : 'Rrezik Likuiditeti',
+        badgeColor: isLiquiditySafe ? 'border-green-500/20 bg-green-500/10 text-green-600' : 'border-rose-500/20 bg-rose-500/10 text-rose-600',
+        text: isLiquiditySafe
+          ? `Gjendja aktuale në arkë prej ${currency.format(arkaBalance)} është e mjaftueshme për të mbuluar rezervën tatimore të vlerësuar prej ${currency.format(reportData.profitMargin.taxLiability)}. Kjo do të thotë se biznesi ka mbulim të plotë për TVSH-në dhe detyrimet tatimore operative.`
+          : `Kujdes: Gjendja aktuale në arkë prej ${currency.format(arkaBalance)} nuk e mbulon rezervën e vlerësuar tatimore prej ${currency.format(reportData.profitMargin.taxLiability)}. Keni një deficit likuiditeti prej ${currency.format(liquidityGap)}. Rekomandohet të arkëtoni faturat në pritje ose të kufizoni shpenzimet e reja menjëherë.`,
+        cta: 'Shiko Librin e Shitjes',
+        link: '/libri-shitjes',
+        prompt: `Analizo likuiditetin në arkë prej ${arkaBalance} EUR kundrejt rezervës tatimore prej ${reportData.profitMargin.taxLiability} EUR dhe sugjero hapa për sigurinë financiare.`
+      }
+    };
+  }, [reportData, arkaBalance, marginPercent]);
 
   const fetchData = async (isInitial = false) => {
     if (isInitial) setLoading(true);
@@ -107,6 +158,10 @@ const ReportsPage = () => {
 
       if (reportsRes.ok) {
         const data = await reportsRes.json();
+        if (isInitial) {
+          aiTabCache.current = { stock: '', profit: '', liquidity: '' };
+          setAiTabInsights({ stock: '', profit: '', liquidity: '' });
+        }
         setReportData({
           chartData: Array.isArray(data.chartData) ? data.chartData : [],
           topProducts: Array.isArray(data.topProducts) ? data.topProducts : [],
@@ -138,65 +193,59 @@ const ReportsPage = () => {
     return () => clearInterval(intervalId);
   }, [timeframe]);
 
-  // Trigger AI calculation typing effect simulation when tab changes
-  useEffect(() => {
+  // Fetch AI insight for the active tab
+  const fetchAiTabInsight = useCallback(async (tab, currentPrompt) => {
+    if (aiTabCache.current[tab]) {
+      setAiTabInsights(prev => ({ ...prev, [tab]: aiTabCache.current[tab] }));
+      setIsAiCalculating(false);
+      return;
+    }
+
     setIsAiCalculating(true);
-    const timer = setTimeout(() => setIsAiCalculating(false), 500);
+    try {
+      if (!currentPrompt) return;
+
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      const res = await fetch('/api/ai/tab-insight', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ prompt: currentPrompt, tab }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.insight) {
+          aiTabCache.current[tab] = data.insight;
+          setAiTabInsights(prev => ({ ...prev, [tab]: data.insight }));
+        }
+      }
+    } catch (err) {
+      console.error('AI tab insight error:', err);
+    } finally {
+      setIsAiCalculating(false);
+    }
+  }, []);
+
+  // Trigger AI calculation when tab, timeframe, or loading state changes
+  useEffect(() => {
+    if (loading) return;
+
+    setIsAiCalculating(true);
+    const timer = setTimeout(() => {
+      const currentPrompt = aiInsights[aiTab]?.prompt;
+      fetchAiTabInsight(aiTab, currentPrompt);
+    }, 300);
     return () => clearTimeout(timer);
-  }, [aiTab]);
+  }, [aiTab, timeframe, loading, fetchAiTabInsight]);
 
   const totalPeriodRevenue = reportData.chartData.reduce((sum, item) => sum + item.revenue, 0);
   const totalPeriodCost = reportData.chartData.reduce((sum, item) => sum + item.cost, 0);
   
   // Calculate relative top products share
   const totalTopRevenue = reportData.topProducts.reduce((sum, item) => sum + item.revenue, 0);
-
-  // Financial calculations
-  const marginPercent = reportData.profitMargin.revenue > 0 
-    ? Math.round((reportData.profitMargin.profit / reportData.profitMargin.revenue) * 100) 
-    : 0;
-
-  const lowStockCount = useMemo(() => {
-    // If any product has low stock based on the details
-    return reportData.inventoryValue.atCostPrice > 0 ? 1 : 0; // fallback count
-  }, [reportData]);
-  // Generative AI CFO analysis based on actual numbers
-  const aiInsights = useMemo(() => {
-    const stockReorderCost = reportData.inventoryValue.atCostPrice * 0.12;
-    const isLiquiditySafe = arkaBalance >= reportData.profitMargin.taxLiability;
-    const liquidityGap = reportData.profitMargin.taxLiability - arkaBalance;
-
-    return {
-      stock: {
-        title: 'Parashikimi i Stokut & Furnizimit',
-        badge: reportData.inventoryValue.atCostPrice > 10000 ? 'Rimbushje e Kërkuar' : 'Stok Stabil',
-        badgeColor: reportData.inventoryValue.atCostPrice > 10000 ? 'border-amber-500/20 bg-amber-500/10 text-amber-600' : 'border-green-500/20 bg-green-500/10 text-green-600',
-        text: `Zahlx AI ka analizuar katalogun dhe vlerën e stokut prej ${currency.format(reportData.inventoryValue.atCostPrice)}. Disa artikuj kritikë kërkojnë furnizim të menjëhershëm. Bazuar në ecurinë e shitjeve, rekomandohet një buxhet prej ${currency.format(stockReorderCost)} për të shmangur mungesën e artikujve më të kërkuar gjatë javëve të ardhshme.`,
-        cta: 'Hap Inventarin',
-        link: '/produktet'
-      },
-      profit: {
-        title: 'Optimizimi i Fitimit & Çmimeve',
-        badge: marginPercent >= 35 ? 'Marrzhë e Shkëlqyer' : 'Sugjerohet Korigjim',
-        badgeColor: marginPercent >= 35 ? 'border-green-500/20 bg-green-500/10 text-green-600' : 'border-indigo-500/20 bg-indigo-500/10 text-indigo-650',
-        text: marginPercent >= 35
-          ? `Marxhina juaj e fitimit bruto prej ${marginPercent}% është e jashtëzakonshme. Ky raport tregon që diferenca midis çmimit të shitjes dhe kostos (COGS) është optimale. Mbani këtë balancë për të maksimizuar akumulimin e kapitalit.`
-          : `Marxhina juaj aktuale është ${marginPercent}%. Për të rritur profitabilitetin, Zahlx AI sugjeron të korigjoni çmimet e shitjes me +5% për artikujt kryesorë ose të negocioni çmime më të favorshme me furnitorët tuaj për të reduktuar koston e mallrave (COGS).`,
-        cta: 'Rishiko Katalogun',
-        link: '/produktet'
-      },
-      liquidity: {
-        title: 'Likuiditeti & Rezerva Tatimore',
-        badge: isLiquiditySafe ? 'Likuiditet i Sigurt' : 'Rrezik Likuiditeti',
-        badgeColor: isLiquiditySafe ? 'border-green-500/20 bg-green-500/10 text-green-600' : 'border-rose-500/20 bg-rose-500/10 text-rose-600',
-        text: isLiquiditySafe
-          ? `Gjendja aktuale në arkë prej ${currency.format(arkaBalance)} është e mjaftueshme për të mbuluar provizionin tatimor të vlerësuar prej ${currency.format(reportData.profitMargin.taxLiability)}. Kjo do të thotë se biznesi ka mbulim të plotë për TVSH-në dhe detyrimet tatimore operative.`
-          : `Kujdes: Gjendja aktuale në arkë prej ${currency.format(arkaBalance)} nuk e mbulon provizionin e vlerësuar tatimor prej ${currency.format(reportData.profitMargin.taxLiability)}. Keni një deficit likuiditeti prej ${currency.format(liquidityGap)}. Rekomandohet të arkëtoni faturat në pritje ose të kufizoni shpenzimet e reja menjëherë.`,
-        cta: 'Shiko Librin e Shitjes',
-        link: '/libri-shitjes'
-      }
-    };
-  }, [reportData, arkaBalance, marginPercent]);
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
@@ -245,10 +294,7 @@ const ReportsPage = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            
-            {/* Top SaaS Metrics Grid */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {/* Card 1: Revenue */}
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
@@ -257,7 +303,15 @@ const ReportsPage = () => {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Të hyrat Bruto</p>
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                      Shitjet Totale
+                      <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                        <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                          Shuma totale e të gjitha shitjeve të kryera (me TVSH të përfshirë).
+                        </span>
+                      </span>
+                    </p>
                     <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">
                       {currency.format(reportData.profitMargin?.revenue || 0)}
                     </h3>
@@ -294,7 +348,15 @@ const ReportsPage = () => {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Fitimi Neto</p>
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                      Fitimi i Pastër
+                      <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                        <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                          Paratë e mbetura pasi zbresim koston e mallit dhe detyrimet tatimore.
+                        </span>
+                      </span>
+                    </p>
                     <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">
                       {currency.format(reportData.profitMargin?.netProfit || 0)}
                     </h3>
@@ -305,9 +367,9 @@ const ReportsPage = () => {
                 </div>
                 <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-white/[0.04]">
                   <span className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 text-[11px] font-semibold">
-                    {marginPercent}% marzhë
+                    {marginPercent}% e fitimit
                   </span>
-                  <span className="text-[12px] text-slate-400 dark:text-zinc-500">Marzhi neto pas COGS & Tax</span>
+                  <span className="text-[12px] text-slate-400 dark:text-zinc-500">Fitimi pas kostos së mallit & taksave</span>
                 </div>
               </motion.div>
 
@@ -320,7 +382,15 @@ const ReportsPage = () => {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Provizioni Tatimor</p>
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                      Rezerva për Taksa
+                      <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                        <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                          Shuma e rezervuar për të paguar TVSH-në dhe tatimin mbi fitimin sipas shitjeve të kryera.
+                        </span>
+                      </span>
+                    </p>
                     <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">
                       {currency.format(reportData.profitMargin?.taxLiability || 0)}
                     </h3>
@@ -331,7 +401,7 @@ const ReportsPage = () => {
                 </div>
                 <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-white/[0.04]">
                   <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="text-[12px] text-slate-400 dark:text-zinc-500">Detyrimet e vlerësuara TVSH & Fitim</span>
+                  <span className="text-[12px] text-slate-400 dark:text-zinc-500">Detyrimet e vlerësuara për taksa (TVSH & Fitim)</span>
                 </div>
               </motion.div>
 
@@ -344,7 +414,15 @@ const ReportsPage = () => {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Vlera e Stokut</p>
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                      Vlera e Stokut
+                      <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                        <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                          Vlera totale e produkteve në stok e llogaritur me çmimin e shitjes dhe të blerjes.
+                        </span>
+                      </span>
+                    </p>
                     <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">
                       {currency.format(reportData.inventoryValue?.atSalePrice || 0)}
                     </h3>
@@ -374,7 +452,7 @@ const ReportsPage = () => {
                     Analiza e Të Ardhurave & Kostove
                   </h2>
                   <p className="mt-1 text-[13px] text-slate-500 dark:text-zinc-400">
-                    Krahasimi grafik i volumit të shitjeve kundrejt kostos së mallrave të shitura (COGS).
+                    Krahasimi grafik i volumit të shitjeve kundrejt kostos së mallit.
                   </p>
                 </div>
                 
@@ -387,7 +465,7 @@ const ReportsPage = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="h-3 w-3 rounded-full bg-slate-400 dark:bg-zinc-500" />
-                      <span className="text-slate-600 dark:text-zinc-300 font-medium">Kosto (COGS)</span>
+                      <span className="text-slate-600 dark:text-zinc-300 font-medium">Kostoja e Mallit</span>
                     </div>
                   </div>
 
@@ -608,8 +686,14 @@ const ReportsPage = () => {
                         </div>
                         
                         <p className="text-[13px] leading-relaxed text-slate-500 dark:text-zinc-400 font-medium">
-                          <TypewriterText text={aiInsights[aiTab].text} />
+                          <TypewriterText text={aiTabInsights[aiTab] || aiInsights[aiTab].text} />
                         </p>
+                        {aiTabInsights[aiTab] && (
+                          <p className="mt-2 text-[10px] text-indigo-500/60 italic flex items-center gap-1">
+                            <Sparkles size={10} />
+                            Gjeneruar nga Gemini AI
+                          </p>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>

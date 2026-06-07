@@ -11,6 +11,43 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Ensure offers and offer_items tables exist at server start
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS offers (
+          id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          user_id INT UNSIGNED NOT NULL,
+          numri_ofertes VARCHAR(50) NOT NULL UNIQUE,
+          klienti VARCHAR(200) NOT NULL DEFAULT 'Klient i përgjithshëm',
+          email_klientit VARCHAR(200) DEFAULT NULL,
+          data_krijimit DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          data_skadimit DATETIME DEFAULT NULL,
+          totali DECIMAL(12,2) NOT NULL DEFAULT 0,
+          tax_rate DECIMAL(5,2) DEFAULT 0,
+          tax_amount DECIMAL(12,2) DEFAULT 0,
+          statusi ENUM('draft', 'derguar', 'pranuar', 'refuzuar', 'skaduar') NOT NULL DEFAULT 'draft',
+          shenime TEXT DEFAULT NULL,
+          CONSTRAINT fk_offers_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS offer_items (
+          id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          offer_id INT UNSIGNED NOT NULL,
+          product_id INT UNSIGNED NOT NULL,
+          sasia INT NOT NULL DEFAULT 1,
+          cmimi_per_njesi DECIMAL(12,2) NOT NULL,
+          CONSTRAINT fk_offer_items_offer FOREIGN KEY (offer_id) REFERENCES offers(id) ON DELETE CASCADE,
+          CONSTRAINT fk_offer_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✓ Offers tables verified/created');
+  } catch (err) {
+    console.error('Error creating offers tables:', err.message || err);
+  }
+})();
+
 let ownerIdPromise;
 
 const getOwnerId = async () => {
@@ -717,6 +754,751 @@ app.get('/api/reports', async (req, res) => {
     });
   } catch (error) {
     console.error('GET /api/reports error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      return res.status(400).json({ 
+        error: 'api_key_required',
+        message: 'Konfiguro çelësin e Gemini API (GEMINI_API_KEY) në skedarin .env.' 
+      });
+    }
+
+    const { history = [] } = req.body;
+
+    // 1. Gather all database metrics
+    const [revenueRows] = await pool.query(
+      `SELECT COALESCE(SUM(totali), 0) AS fitimi_total
+       FROM invoices
+       WHERE statusi = 'paguar'`
+    );
+
+    const [todayRows] = await pool.query(
+      `SELECT COUNT(*) AS shitjet_sot_nr,
+              COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
+       FROM invoices
+       WHERE statusi = 'paguar'
+         AND DATE(data_krijimit) = CURDATE()`
+    );
+
+    const [productRows] = await pool.query(
+      `SELECT COUNT(*) AS total_produkte,
+              COALESCE(SUM(stoku_aktual), 0) AS stoku_total
+       FROM products`
+    );
+
+    const [lowStockRows] = await pool.query(
+      `SELECT COUNT(*) AS stoku_ulet
+       FROM products
+       WHERE stoku_aktual <= 5 AND stoku_aktual > 0`
+    );
+
+    const [profitRows] = await pool.query(
+      `SELECT
+         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
+       FROM invoice_items ii
+       JOIN invoices i ON i.id = ii.invoice_id
+       JOIN products p ON p.id = ii.product_id
+       WHERE i.statusi = 'paguar'`
+    );
+
+    const [taxRows] = await pool.query(
+      `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
+       FROM invoices
+       WHERE statusi = 'paguar'`
+    );
+
+    const [arkaRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
+       FROM financial_ledger
+       WHERE llogaria = 'Arka'`
+    );
+
+    const [lowStockProducts] = await pool.query(
+      `SELECT emri, stoku_aktual, cmimi_shitjes, kategoria
+       FROM products
+       WHERE stoku_aktual <= 5 AND stoku_aktual >= 0
+       ORDER BY stoku_aktual ASC
+       LIMIT 10`
+    );
+
+    const [recentInvoices] = await pool.query(
+      `SELECT numri_fatures, klienti, totali, statusi, data_krijimit
+       FROM invoices
+       ORDER BY data_krijimit DESC
+       LIMIT 5`
+    );
+
+    const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
+    const total_cost = Number(profitRows[0].total_cost || 0);
+    const tax_liability = Number(taxRows[0].tax_liability || 0);
+    const net_profit = revenue_excl_tax - total_cost - (revenue_excl_tax - total_cost > 0 ? (revenue_excl_tax - total_cost) * 0.10 : 0);
+    const profit_margin = revenue_excl_tax > 0 ? (net_profit / revenue_excl_tax) * 100 : 0;
+    const arka_balance = Number(arkaRows[0].total_in || 0) - Number(arkaRows[0].total_out || 0);
+
+    // Format lists for prompt context
+    const lowStockListStr = lowStockProducts.length > 0
+      ? lowStockProducts.map(p => `- ${p.emri} (Stoku: ${p.stoku_aktual}, Çmimi: ${p.cmimi_shitjes} EUR, Kategoria: ${p.kategoria || 'Pa kategori'})`).join('\n')
+      : 'Nuk ka produkte me stok kritik.';
+
+    const recentInvoicesStr = recentInvoices.length > 0
+      ? recentInvoices.map(i => `- ${i.numri_fatures} (Klienti: ${i.klienti}, Totali: ${i.totali} EUR, Statusi: ${i.statusi}, Data: ${new Date(i.data_krijimit).toLocaleDateString('sq-AL')})`).join('\n')
+      : 'Nuk ka transaksione të fundit.';
+
+    const systemPrompt = `Ju jeni Zahlx AI CFO Copilot, një asistent financiar dhe menaxhues inteligjent për platformën e menaxhimit të biznesit Zahlx.
+Ju komunikoni në gjuhën shqipe (ose në gjuhën e përdoruesit nëse ju pyet në gjuhë tjetër), në mënyrë profesionale, miqësore, të qartë dhe të shkurtër.
+
+Këtu janë të dhënat aktuale të biznesit në kohë reale nga baza e të dhënave:
+- Bilanci në Arkë: ${arka_balance.toFixed(2)} EUR
+- Totali i Produkteve: ${productRows[0].total_produkte} produkte aktive
+- Produkte me Stok të Ulët (sasia <= 5): ${lowStockRows[0].stoku_ulet} produkte
+- Lista e Produkteve me Stok të Ulët:
+${lowStockListStr}
+- Shitjet e Sotme: ${todayRows[0].shitjet_sot_nr} shitje me vlerë totali ${Number(todayRows[0].shitjet_sot_vlera).toFixed(2)} EUR
+- Të hyrat Bruto (totale të paguara): ${Number(revenueRows[0].fitimi_total).toFixed(2)} EUR
+- Fitimi Neto: ${net_profit.toFixed(2)} EUR
+- Provizioni Tatimor (TVSH & Tatimet e vlerësuara): ${tax_liability.toFixed(2)} EUR
+- Margjina e Fitimit: ${profit_margin.toFixed(1)}%
+
+Transaksionet e fundit:
+${recentInvoicesStr}
+
+Përdorni këto të dhëna për t'u përgjigjur saktësisht pyetjeve të përdoruesit. Mos shpikni shifra nëse ato nuk janë të pranishme këtu. Nëse përdoruesi kërkon detaje që nuk janë në dispozicion, thuani me mirësjellje që nuk keni qasje në ato të dhëna ose sugjeroni faqet përkatëse të aplikacionit.`;
+
+    // Map frontend messages to Gemini format (filter out initial bot greeting id=1)
+    const formattedHistory = history
+      .filter(msg => msg.id !== 1)
+      .map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.text }]
+      }));
+
+    if (formattedHistory.length === 0) {
+      return res.status(400).json({ error: 'invalid_history', message: 'History is empty.' });
+    }
+
+    // Call Gemini API REST endpoint using native fetch
+    const model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents: formattedHistory
+      })
+    });
+
+    if (!response.ok) {
+      const errDetails = await response.text();
+      console.error('Gemini API error response:', errDetails);
+      return res.status(response.status).json({ 
+        error: 'gemini_api_error', 
+        message: 'Gabim gjatë komunikimit me Gemini API. Sigurohuni që çelësi juaj i API është i saktë.' 
+      });
+    }
+
+    const data = await response.json();
+    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!replyText) {
+      return res.status(502).json({ 
+        error: 'empty_response', 
+        message: 'Mori një përgjigje bosh nga modeli i inteligjencës artificiale.' 
+      });
+    }
+
+    res.json({ reply: replyText });
+
+  } catch (error) {
+    console.error('POST /api/chat error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// ─── AI Daily Insight Endpoint (Dashboard autopilot) ───
+app.get('/api/ai/daily-insight', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(400).json({ error: 'No API key configured' });
+    }
+
+    // Gather business context
+    const [todayRows] = await pool.query(
+      `SELECT COUNT(*) AS shitjet_sot_nr,
+              COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
+       FROM invoices
+       WHERE statusi = 'paguar'
+         AND DATE(data_krijimit) = CURDATE()`
+    );
+
+    const [productRows] = await pool.query(
+      `SELECT COUNT(*) AS total_produkte FROM products`
+    );
+
+    const [lowStockRows] = await pool.query(
+      `SELECT COUNT(*) AS stoku_ulet
+       FROM products
+       WHERE stoku_aktual <= 5 AND stoku_aktual > 0`
+    );
+
+    const [profitRows] = await pool.query(
+      `SELECT
+         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
+       FROM invoice_items ii
+       JOIN invoices i ON i.id = ii.invoice_id
+       JOIN products p ON p.id = ii.product_id
+       WHERE i.statusi = 'paguar'`
+    );
+
+    const [arkaRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
+       FROM financial_ledger
+       WHERE llogaria = 'Arka'`
+    );
+
+    const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
+    const total_cost = Number(profitRows[0].total_cost || 0);
+    const net_profit = revenue_excl_tax - total_cost;
+    const arka_balance = Number(arkaRows[0].total_in || 0) - Number(arkaRows[0].total_out || 0);
+
+    const prompt = `Ti je Zahlx AI Autopiloti, asistent financiar CFO për një biznes të vogël. Bazuar në të dhënat e sotme:
+- Shitjet e Sotme: ${todayRows[0].shitjet_sot_nr} shitje me vlerë ${Number(todayRows[0].shitjet_sot_vlera).toFixed(2)} EUR
+- Produktet Totale: ${productRows[0].total_produkte}
+- Artikuj me Stok të Ulët: ${lowStockRows[0].stoku_ulet}
+- Fitimi Neto: ${net_profit.toFixed(2)} EUR
+- Bilanci në Arkë: ${arka_balance.toFixed(2)} EUR
+
+Jep një përmbledhje operative të ditës në 2-3 fjali. Bëhu profesional, konciz dhe në shqip. Mos përdor emoji. Fillo direkt me analizën pa thënë "Zahlx AI" ose "Autopiloti" në fillim.`;
+
+    const model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 200, temperature: 0.7 }
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Gemini daily insight error:', await response.text());
+      return res.status(502).json({ error: 'Gemini API error' });
+    }
+
+    const data = await response.json();
+    const insight = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    res.json({ insight: insight || '' });
+  } catch (error) {
+    console.error('GET /api/ai/daily-insight error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// ─── AI Tab Insight Endpoint (CFO Copilot tabs) ───
+app.post('/api/ai/tab-insight', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(400).json({ error: 'No API key configured' });
+    }
+
+    const { prompt: userPrompt, tab } = req.body;
+    if (!userPrompt || !tab) {
+      return res.status(400).json({ error: 'Missing prompt or tab' });
+    }
+
+    // Gather relevant data based on tab
+    const [todayRows] = await pool.query(
+      `SELECT COUNT(*) AS shitjet_sot_nr,
+              COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
+       FROM invoices
+       WHERE statusi = 'paguar'
+         AND DATE(data_krijimit) = CURDATE()`
+    );
+
+    const [productRows] = await pool.query(
+      `SELECT COUNT(*) AS total_produkte,
+              COALESCE(SUM(stoku_aktual), 0) AS stoku_total
+       FROM products`
+    );
+
+    const [lowStockProducts] = await pool.query(
+      `SELECT emri, stoku_aktual, cmimi_shitjes, kategoria
+       FROM products
+       WHERE stoku_aktual <= 5 AND stoku_aktual >= 0
+       ORDER BY stoku_aktual ASC
+       LIMIT 10`
+    );
+
+    const [profitRows] = await pool.query(
+      `SELECT
+         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
+       FROM invoice_items ii
+       JOIN invoices i ON i.id = ii.invoice_id
+       JOIN products p ON p.id = ii.product_id
+       WHERE i.statusi = 'paguar'`
+    );
+
+    const [taxRows] = await pool.query(
+      `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
+       FROM invoices
+       WHERE statusi = 'paguar'`
+    );
+
+    const [arkaRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
+       FROM financial_ledger
+       WHERE llogaria = 'Arka'`
+    );
+
+    const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
+    const total_cost = Number(profitRows[0].total_cost || 0);
+    const net_profit = revenue_excl_tax - total_cost;
+    const profit_margin = revenue_excl_tax > 0 ? (net_profit / revenue_excl_tax) * 100 : 0;
+    const tax_liability = Number(taxRows[0].tax_liability || 0);
+    const arka_balance = Number(arkaRows[0].total_in || 0) - Number(arkaRows[0].total_out || 0);
+
+    const lowStockListStr = lowStockProducts.length > 0
+      ? lowStockProducts.map(p => `- ${p.emri} (Stoku: ${p.stoku_aktual}, Çmimi: ${p.cmimi_shitjes} EUR)`).join('\n')
+      : 'Nuk ka produkte me stok kritik.';
+
+    const systemContext = `Ti je Zahlx AI CFO Copilot. Të dhënat aktuale:
+- Shitjet Sot: ${todayRows[0].shitjet_sot_nr} me vlerë ${Number(todayRows[0].shitjet_sot_vlera).toFixed(2)} EUR
+- Produkte: ${productRows[0].total_produkte} (Stoku total: ${Number(productRows[0].stoku_total)})
+- Stok i ulët: ${lowStockProducts.length} produkte
+${lowStockListStr}
+- Fitimi Neto: ${net_profit.toFixed(2)} EUR (Margjina: ${profit_margin.toFixed(1)}%)
+- Taksat: ${tax_liability.toFixed(2)} EUR
+- Bilanci Arkës: ${arka_balance.toFixed(2)} EUR
+
+Përgjigju në shqip, profesionalisht, në 3-4 fjali. Mos përdor emoji. Jep rekomandime konkrete dhe strategjike.
+
+Pyetja: ${userPrompt}`;
+
+    const model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: systemContext }] }],
+        generationConfig: { maxOutputTokens: 250, temperature: 0.7 }
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Gemini tab insight error:', await response.text());
+      return res.status(502).json({ error: 'Gemini API error' });
+    }
+
+    const data = await response.json();
+    const insight = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    res.json({ insight: insight || '' });
+  } catch (error) {
+    console.error('POST /api/ai/tab-insight error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.get('/api/offers', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, numri_ofertes, klienti, email_klientit, data_krijimit, data_skadimit, totali, statusi, tax_rate, tax_amount, shenime
+       FROM offers
+       ORDER BY data_krijimit DESC`
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('GET /api/offers error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.get('/api/offers/:id', async (req, res) => {
+  try {
+    const [offerRows] = await pool.query(
+      `SELECT id, numri_ofertes, klienti, email_klientit, data_krijimit, data_skadimit, totali, statusi, tax_rate, tax_amount, shenime
+       FROM offers
+       WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (offerRows.length === 0) {
+      return res.status(404).json({ error: 'Oferta nuk u gjet' });
+    }
+
+    const [itemRows] = await pool.query(
+      `SELECT oi.id, oi.product_id, oi.sasia, oi.cmimi_per_njesi, p.emri, p.kodi_bar
+       FROM offer_items oi
+       JOIN products p ON p.id = oi.product_id
+       WHERE oi.offer_id = ?
+       ORDER BY oi.id ASC`,
+      [req.params.id]
+    );
+
+    res.json({
+      ...offerRows[0],
+      items: itemRows,
+    });
+  } catch (error) {
+    console.error('GET /api/offers/:id error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.post('/api/offers', async (req, res) => {
+  const client = await pool.getConnection();
+  try {
+    const ownerId = await getOwnerId();
+    const { klienti, email_klientit = null, items, tax_rate = 0, data_skadimit = null, shenime = null, statusi = 'draft' } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Duhet të shtoni së paku një produkt' });
+    }
+
+    await client.beginTransaction();
+
+    const [countRows] = await client.query(
+      `SELECT COUNT(*) AS c
+       FROM offers
+       WHERE DATE(data_krijimit) = CURDATE()`
+    );
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
+    const numriOfertes = `OFR-${dateStr}-${seqNum}`;
+
+    let subtotal = 0;
+    const resolvedItems = [];
+
+    for (const item of items) {
+      const [productRows] = await client.query(
+        `SELECT id, emri, cmimi_shitjes
+         FROM products
+         WHERE id = ?`,
+        [item.product_id]
+      );
+
+      if (productRows.length === 0) {
+        await client.rollback();
+        return res.status(400).json({ error: `Produkti me ID ${item.product_id} nuk ekziston` });
+      }
+
+      const product = productRows[0];
+      const lineTotal = Number(product.cmimi_shitjes) * Number(item.sasia);
+      subtotal += lineTotal;
+
+      resolvedItems.push({
+        product_id: product.id,
+        emri: product.emri,
+        sasia: Number(item.sasia),
+        cmimi_per_njesi: Number(product.cmimi_shitjes),
+      });
+    }
+
+    const taxRate = Number(tax_rate || 0);
+    const taxAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + taxAmount;
+
+    const [offerResult] = await client.query(
+      `INSERT INTO offers (user_id, numri_ofertes, klienti, email_klientit, totali, tax_rate, tax_amount, data_skadimit, shenime, statusi)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, numriOfertes, klienti || 'Klient i përgjithshëm', email_klientit, grandTotal, taxRate, taxAmount, data_skadimit, shenime, statusi]
+    );
+
+    const offerId = offerResult.insertId;
+
+    for (const item of resolvedItems) {
+      await client.query(
+        `INSERT INTO offer_items (offer_id, product_id, sasia, cmimi_per_njesi)
+         VALUES (?, ?, ?, ?)`,
+        [offerId, item.product_id, item.sasia, item.cmimi_per_njesi]
+      );
+    }
+
+    await client.commit();
+
+    res.status(201).json({
+      message: 'Oferta u krijua me sukses',
+      id: offerId,
+      numri_ofertes: numriOfertes,
+      totali: grandTotal,
+    });
+  } catch (error) {
+    await client.rollback();
+    console.error('POST /api/offers error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim gjatë krijimit të ofertës' });
+  } finally {
+    client.release();
+  }
+});
+
+app.put('/api/offers/:id/status', async (req, res) => {
+  try {
+    const { statusi } = req.body;
+    if (!['draft', 'derguar', 'pranuar', 'refuzuar', 'skaduar'].includes(statusi)) {
+      return res.status(400).json({ error: 'Status i panjohur' });
+    }
+
+    const [result] = await pool.query(
+      `UPDATE offers SET statusi = ? WHERE id = ?`,
+      [statusi, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Oferta nuk u gjet' });
+    }
+
+    res.json({ message: 'Statusi i ofertës u përditësua' });
+  } catch (error) {
+    console.error('PUT /api/offers/:id/status error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.post('/api/offers/:id/convert', async (req, res) => {
+  const client = await pool.getConnection();
+  try {
+    const ownerId = await getOwnerId();
+    
+    // 1. Fetch offer
+    const [offerRows] = await client.query(
+      `SELECT id, klienti, totali, tax_rate, tax_amount FROM offers WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (offerRows.length === 0) {
+      return res.status(404).json({ error: 'Oferta nuk u gjet' });
+    }
+
+    const offer = offerRows[0];
+
+    // 2. Fetch offer items
+    const [itemRows] = await client.query(
+      `SELECT product_id, sasia, cmimi_per_njesi FROM offer_items WHERE offer_id = ?`,
+      [req.params.id]
+    );
+
+    if (itemRows.length === 0) {
+      return res.status(400).json({ error: 'Oferta nuk ka artikuj' });
+    }
+
+    await client.beginTransaction();
+
+    // 3. Generate Invoice Number
+    const [countRows] = await client.query(
+      `SELECT COUNT(*) AS c
+       FROM invoices
+       WHERE DATE(data_krijimit) = CURDATE()`
+    );
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
+    const numriFatures = `FAT-${dateStr}-${seqNum}`;
+
+    // 4. Verify stock and lock items
+    const resolvedItems = [];
+    let subtotal = 0;
+
+    for (const item of itemRows) {
+      const [productRows] = await client.query(
+        `SELECT id, emri, cmimi_shitjes, stoku_aktual
+         FROM products
+         WHERE id = ?
+         FOR UPDATE`,
+        [item.product_id]
+      );
+
+      if (productRows.length === 0) {
+        await client.rollback();
+        return res.status(400).json({ error: `Produkti me ID ${item.product_id} nuk ekziston` });
+      }
+
+      const product = productRows[0];
+
+      if (Number(product.stoku_aktual) < Number(item.sasia)) {
+        await client.rollback();
+        return res.status(400).json({
+          error: `Stoku i pamjaftueshëm për "${product.emri}". Në stok: ${product.stoku_aktual}`,
+        });
+      }
+
+      const lineTotal = Number(item.cmimi_per_njesi) * Number(item.sasia);
+      subtotal += lineTotal;
+
+      resolvedItems.push({
+        product_id: product.id,
+        emri: product.emri,
+        sasia: Number(item.sasia),
+        cmimi_per_njesi: Number(item.cmimi_per_njesi),
+      });
+    }
+
+    const taxRate = Number(offer.tax_rate || 0);
+    const taxAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + taxAmount;
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 15);
+
+    const [invoiceResult] = await client.query(
+      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date)
+       VALUES (?, ?, ?, ?, 'ne_pritje', ?, ?, ?)`,
+      [ownerId, numriFatures, offer.klienti, grandTotal, taxRate, taxAmount, dueDate]
+    );
+
+    const invoiceId = invoiceResult.insertId;
+
+    for (const item of resolvedItems) {
+      await client.query(
+        `INSERT INTO invoice_items (invoice_id, product_id, sasia, cmimi_per_njesi)
+         VALUES (?, ?, ?, ?)`,
+        [invoiceId, item.product_id, item.sasia, item.cmimi_per_njesi]
+      );
+
+      await client.query(
+        `UPDATE products
+         SET stoku_aktual = stoku_aktual - ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+         [item.sasia, item.product_id]
+      );
+    }
+
+    // Ledger Entries
+    await client.query(
+      `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
+       VALUES (?, ?, ?, 'Llogari të arkëtueshme', ?, 0)`,
+      [ownerId, invoiceId, `Shitje (nga Ofertë): ${numriFatures}`, grandTotal]
+    );
+
+    await client.query(
+      `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
+       VALUES (?, ?, ?, 'Të hyrat nga shitjet', 0, ?)`,
+      [ownerId, invoiceId, `Shitje (nga Ofertë): ${numriFatures}`, subtotal]
+    );
+
+    if (taxAmount > 0) {
+      await client.query(
+        `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
+         VALUES (?, ?, ?, 'Detyrimi për TVSH', 0, ?)`,
+        [ownerId, invoiceId, `TVSH nga shitja: ${numriFatures}`, taxAmount]
+      );
+    }
+
+    await client.query(
+      `UPDATE offers SET statusi = 'pranuar' WHERE id = ?`,
+      [req.params.id]
+    );
+
+    await client.commit();
+
+    res.json({
+      message: 'Oferta u konvertua me sukses në faturë',
+      invoiceId,
+      numri_fatures: numriFatures,
+    });
+  } catch (error) {
+    await client.rollback();
+    console.error('POST /api/offers/:id/convert error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim gjatë konvertimit të ofertës në faturë' });
+  } finally {
+    client.release();
+  }
+});
+
+app.delete('/api/offers/:id', async (req, res) => {
+  try {
+    const [result] = await pool.query(
+      `DELETE FROM offers WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Oferta nuk u gjet' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('DELETE /api/offers/:id error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.post('/api/offers/:id/ai-pitch', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(400).json({ error: 'No API key configured' });
+    }
+
+    const [offerRows] = await pool.query(
+      `SELECT numri_ofertes, klienti, totali, tax_rate, tax_amount, shenime FROM offers WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (offerRows.length === 0) {
+      return res.status(404).json({ error: 'Oferta nuk u gjet' });
+    }
+
+    const offer = offerRows[0];
+
+    const [itemRows] = await pool.query(
+      `SELECT oi.sasia, oi.cmimi_per_njesi, p.emri
+       FROM offer_items oi
+       JOIN products p ON p.id = oi.product_id
+       WHERE oi.offer_id = ?`,
+      [req.params.id]
+    );
+
+    const itemsList = itemRows.map(i => `- ${i.emri} (Sasia: ${i.sasia}, Çmimi: ${i.cmimi_per_njesi} EUR)`).join('\n');
+
+    const prompt = `Ti je një agjent profesional i shitjeve për një biznes modern.
+Shkruaj një email të shkurtër, bindës dhe shumë profesional në gjuhën shqipe për t'i dërguar këtë ofertë klientit.
+Email-i duhet të jetë i strukturuar mirë (të ketë subjekt, përshëndetje, trupin e email-it me pikat kryesore të ofertës, dhe mbyllje).
+
+Detajet e Ofertës:
+- Numri i Ofertës: ${offer.numri_ofertes}
+- Klienti: ${offer.klienti}
+- Totali: ${Number(offer.totali).toFixed(2)} EUR
+- Artikujt në ofertë:
+${itemsList}
+
+Nëse ka shënime shtesë nga biznesi, përfshiji me kujdes: "${offer.shenime || ''}".
+Mos përdor emoji. Mbaje tonin miqësor por korporativ e formal.`;
+
+    const model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 400, temperature: 0.7 }
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Gemini offer pitch error:', await response.text());
+      return res.status(502).json({ error: 'Gemini API error' });
+    }
+
+    const data = await response.json();
+    const pitch = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    res.json({ pitch: pitch || '' });
+  } catch (error) {
+    console.error('POST /api/offers/:id/ai-pitch error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });

@@ -13,6 +13,7 @@ import {
   X,
   Moon,
   Sun,
+  FileText,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -22,6 +23,7 @@ const navItems = [
   { to: '/libri-shitjes', label: 'Libri i Shitjes', hint: 'Historiku', icon: BookOpen },
   { to: '/arka', label: 'Arka', hint: 'Paraja', icon: Wallet },
   { to: '/produktet', label: 'Produktet', hint: 'Stoku', icon: Package },
+  { to: '/oferta', label: 'Oferta', hint: 'Kalkulime', icon: FileText },
   { to: '/raportet', label: 'Raportet', hint: 'Analitika', icon: ChartColumnIncreasing },
 ];
 

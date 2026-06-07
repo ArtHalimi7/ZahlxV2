@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, CircleDashed, Filter, RefreshCcw, Search, XCircle, AlertTriangle, Sparkles, FileText, DollarSign, Clock } from 'lucide-react';
+import { CheckCircle2, CircleDashed, Filter, RefreshCcw, Search, XCircle, AlertTriangle, Sparkles, FileText, DollarSign, Clock, Info } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -97,12 +97,8 @@ const TransactionsPage = () => {
         {/* Top header section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-zinc-900/40 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500 font-medium">
-              <Sparkles size={11} className="text-indigo-600 dark:text-indigo-400" />
-              Regjistri i Shitjeve
-            </div>
-            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem] leading-[1.15]">
-              Libri i <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300">Shitjes</span>
+            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
+              Libri i Shitjes
               {loading && <RefreshCcw size={20} className="animate-spin text-slate-450 dark:text-zinc-500" />}
             </h1>
             <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 max-w-xl">
@@ -127,7 +123,15 @@ const TransactionsPage = () => {
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Gjithsej Fatura</p>
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                  Gjithsej Fatura
+                  <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                    <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                      Numri total i faturave të lëshuara nga ky biznes.
+                    </span>
+                  </span>
+                </p>
                 <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{transactions.length}</h3>
               </div>
               <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
@@ -144,7 +148,15 @@ const TransactionsPage = () => {
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Të ardhura (Paguar)</p>
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                  Shitjet e Paguara
+                  <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                    <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                      Shuma totale e parave të pranuara nga faturat e paguara.
+                    </span>
+                  </span>
+                </p>
                 <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{currency.format(totalPeriodRevenue)}</h3>
               </div>
               <div className="grid h-10 w-10 place-items-center rounded-2xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
@@ -161,7 +173,15 @@ const TransactionsPage = () => {
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">Fatura në pritje</p>
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                  Fatura në pritje
+                  <span className="group/tooltip relative inline-block cursor-help print:hidden">
+                    <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                      Numri i faturave që janë lëshuar por ende nuk janë paguar nga klientët.
+                    </span>
+                  </span>
+                </p>
                 <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{pendingCount}</h3>
               </div>
               <div className="grid h-10 w-10 place-items-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:border-amber-500/15 dark:text-amber-400">
