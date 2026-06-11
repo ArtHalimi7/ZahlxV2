@@ -28,18 +28,18 @@ const App = () => {
         />
 
         <div className={`flex min-w-0 flex-1 flex-col ${sidebarCollapsed ? 'lg:pl-24' : 'lg:pl-72'}`}>
-          <header className="flex items-center justify-between border-b border-slate-200/60 dark:border-transparent bg-white/80 dark:bg-zinc-950/80 px-4 py-3 backdrop-blur-xl lg:hidden">
+          <header className="flex items-center justify-between border-b border-zinc-900 dark:border-white/[0.06] bg-zinc-950 px-4 py-3 lg:hidden text-white">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 p-2 text-zinc-400 transition hover:border-zinc-700 hover:text-white"
               aria-label="Hap menunë"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
-            <img src={Logo} alt="Zahlx Logo" className="h-6 w-auto object-contain dark:brightness-0 dark:invert" />
-            <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[11px] font-medium text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">Live</span>
+            <img src={Logo} alt="Zahlx Logo" className="h-14 w-auto object-contain brightness-0 invert" />
+            <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[11px] font-medium text-indigo-400">Live</span>
           </header>
 
           <main className="flex-1 overflow-y-auto">

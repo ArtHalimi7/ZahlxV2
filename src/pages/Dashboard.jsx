@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Boxes, Plus, ReceiptText, TrendingUp, ArrowRight, Bot } from 'lucide-react';
+import { Plus, TrendingUp, ArrowRight, Bot, ShoppingCart, Percent, Package, Activity, AlertTriangle, CheckCircle2, ReceiptText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Logo from '../assets/Logo.png';
@@ -239,9 +239,10 @@ const Dashboard = () => {
       label: 'Shitjet Totale',
       value: euroFormatter.format(metrics.fitimi_total),
       detail: 'Shitjet totale me TVSH',
-      icon: TrendingUp,
-      tone: 'zinc',
+      icon: ShoppingCart,
+      tone: 'indigo',
       delta: isRefreshing ? 'Rifreskim...' : 'Stabil',
+      deltaIcon: Activity,
       tooltip: 'Shuma totale e të gjitha shitjeve të kryera (me TVSH të përfshirë).',
     },
     {
@@ -249,26 +250,29 @@ const Dashboard = () => {
       value: euroFormatter.format(metrics.net_profit),
       detail: `Përqindja e fitimit: ${metrics.profit_margin.toFixed(1)}%`,
       icon: TrendingUp,
-      tone: 'indigo',
+      tone: 'emerald',
       delta: 'Neto',
+      deltaIcon: TrendingUp,
       tooltip: 'Paratë e mbetura pasi zbresim koston e mallit dhe detyrimet tatimore.',
     },
     {
       label: 'Rezerva për Taksa',
       value: euroFormatter.format(metrics.tax_liability),
       detail: 'TVSH & Tatim i vlerësuar',
-      icon: ReceiptText,
-      tone: 'zinc',
+      icon: Percent,
+      tone: 'rose',
       delta: 'Tatimet',
+      deltaIcon: ReceiptText,
       tooltip: 'Shuma e rezervuar për të paguar TVSH-në dhe tatimin mbi fitimin sipas shitjeve të kryera.',
     },
     {
       label: 'Gjendja e Stokut',
       value: metrics.total_produkte,
       detail: metrics.stoku_ulet > 0 ? `${metrics.stoku_ulet} me stok të ulët` : 'Stoku i shëndetshëm',
-      icon: Boxes,
-      tone: 'zinc',
+      icon: Package,
+      tone: 'amber',
       delta: metrics.stoku_ulet > 0 ? 'Vëmendje' : 'Normal',
+      deltaIcon: metrics.stoku_ulet > 0 ? AlertTriangle : CheckCircle2,
       tooltip: 'Numri i produkteve unike që keni të regjistruara në katalogun tuaj.',
     },
   ]), [isRefreshing, metrics.fitimi_total, metrics.net_profit, metrics.profit_margin, metrics.tax_liability, metrics.total_produkte, metrics.stoku_ulet]);
@@ -297,8 +301,8 @@ const Dashboard = () => {
                     
                     <h1 className="mt-5 text-[1.8rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.6rem] leading-[1.15]">
                       {greeting},
-                      <span className="block bg-gradient-to-r from-zinc-950 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-550 dark:to-zinc-400">
-                        panoramë e qartë e biznesit.
+                      <span className="block bg-gradient-to-r from-zinc-950 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-400">
+                        pasqyra e qartë e biznesit tënd.
                       </span>
                     </h1>
                     
@@ -328,39 +332,45 @@ const Dashboard = () => {
                   </div>
 
                   {/* Right Column: Floating CSS cards decoration (Hidden on mobile) */}
-                  <div className="hidden md:col-span-5 md:flex items-center justify-center relative min-h-[200px]">
+                  <div className="hidden md:col-span-5 md:flex items-center justify-center relative min-h-[220px]">
                     {/* Visual Glow Layer */}
-                    <div className="pointer-events-none absolute -inset-4 rounded-full bg-zinc-500/10 dark:bg-zinc-500/5 blur-3xl" />
+                    <div className="pointer-events-none absolute -inset-10 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 blur-[60px]" />
                     
                     {/* The Tilted Card Stack */}
-                    <div className="relative w-64 h-40">
-                      {/* Underlay / Back Card */}
-                      <div className="absolute inset-0 rounded-2xl border border-slate-200/30 dark:border-white/5 bg-slate-100/10 dark:bg-white/[0.01] shadow-lg transform -rotate-12 -translate-x-3 -translate-y-2 scale-95 backdrop-blur-md transition-all duration-500 hover:-translate-x-4 hover:-translate-y-3 hover:-rotate-6" />
+                    <div className="relative w-72 h-44">
+                      {/* Underlay / Back Card (Subtle indigo/violet card) */}
+                      <div className="absolute inset-0 rounded-[24px] border border-indigo-500/10 bg-gradient-to-br from-indigo-500/10 to-violet-500/5 shadow-lg transform -rotate-12 -translate-x-4 -translate-y-3 scale-95 backdrop-blur-sm transition-all duration-500 hover:-translate-x-5 hover:-translate-y-4 hover:-rotate-8" />
                       
-                      {/* Middle Card */}
-                      <div className="absolute inset-0 rounded-2xl border border-zinc-500/20 dark:border-zinc-500/10 bg-zinc-500/[0.04] shadow-xl transform -rotate-6 -translate-x-1 -translate-y-1 scale-98 backdrop-blur-md transition-all duration-500 hover:-translate-x-2 hover:-translate-y-1.5 hover:-rotate-3" />
+                      {/* Middle Card (Violet accent glass card) */}
+                      <div className="absolute inset-0 rounded-[24px] border border-violet-500/15 bg-gradient-to-br from-violet-500/15 to-fuchsia-500/5 shadow-xl transform -rotate-6 -translate-x-2 -translate-y-1.5 scale-98 backdrop-blur-md transition-all duration-500 hover:-translate-x-3 hover:-translate-y-2 hover:-rotate-4" />
                       
-                      {/* Foreground / Active Glass Card */}
-                      <div className="absolute inset-0 rounded-2xl border border-white/20 dark:border-transparent bg-gradient-to-br from-white/30 to-white/5 dark:from-white/[0.06] dark:to-white/[0.01] shadow-2xl p-5 flex flex-col justify-between backdrop-blur-lg transition-all duration-500 hover:-translate-y-2 hover:rotate-2 hover:shadow-zinc-500/10 dark:hover:shadow-zinc-500/5">
-                        <div className="flex justify-between items-start">
-                          <div className="h-8 w-8 flex items-center justify-center">
-                            <img src={Logo} alt="Logo" className="h-6 w-auto object-contain dark:brightness-0 dark:invert opacity-80" />
+                      {/* Foreground / Active Glass Card (Vibrant Indigo-Violet premium mesh glassmorphism) */}
+                      <div className="absolute inset-0 rounded-[24px] border border-white/20 dark:border-white/[0.08] bg-gradient-to-br from-zinc-900/95 via-indigo-950/80 to-zinc-950/95 dark:from-black/90 dark:via-indigo-950/40 dark:to-zinc-950/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-6 flex flex-col justify-between backdrop-blur-xl transition-all duration-500 hover:-translate-y-2.5 hover:rotate-2 hover:shadow-indigo-500/10">
+                        {/* Mesh gradient overlay for high-end look */}
+                        <div className="pointer-events-none absolute inset-0 rounded-[24px] bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.15),transparent_60%)]" />
+
+                        <div className="flex justify-between items-start relative z-10">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-white/10 dark:bg-white/[0.04] backdrop-blur-sm border border-white/10">
+                              <img src={Logo} alt="Logo" className="h-6 w-auto object-contain dark:brightness-0 dark:invert" />
+                            </div>
+                            <span className="text-[12px] font-bold tracking-tight text-white">Zahlx</span>
                           </div>
-                          <span className="text-[9px] uppercase tracking-widest text-slate-400 dark:text-zinc-500 font-mono">Zahlx Premium</span>
+                          <span className="text-[8px] uppercase tracking-[0.25em] text-indigo-300 dark:text-indigo-400 font-bold bg-indigo-500/10 dark:bg-indigo-400/10 px-2 py-0.5 rounded-full">Premium</span>
                         </div>
                         
-                        <div className="mt-4">
-                          <p className="text-[10px] text-slate-400 dark:text-zinc-500 tracking-wider font-mono">SHITJET TOTALE</p>
-                          <p className="text-[18px] font-semibold text-slate-800 dark:text-zinc-100 tracking-tight font-mono">
+                        <div className="mt-4 relative z-10">
+                          <p className="text-[9px] text-zinc-400 dark:text-zinc-500 tracking-[0.2em] font-mono">XHIRO TOTAL</p>
+                          <p className="text-[24px] font-bold text-white tracking-tight font-mono mt-0.5">
                             {euroFormatter.format(metrics.fitimi_total)}
                           </p>
                         </div>
 
-                        <div className="flex justify-between items-end mt-2 pt-2 border-t border-slate-200/40 dark:border-transparent">
-                          <div className="text-[9px] text-slate-400 dark:text-zinc-500 font-mono">
-                            SHITJET SOT: {metrics.shitjet_sot_nr}
+                        <div className="flex justify-between items-end mt-2 pt-2 border-t border-white/10 relative z-10">
+                          <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono tracking-tight">
+                            SOT: <span className="text-white font-bold">{metrics.shitjet_sot_nr} transaksione</span>
                           </div>
-                          <div className="h-4 w-6 rounded-md bg-gradient-to-r from-zinc-500/30 to-zinc-700/30" />
+                          <div className="h-5 w-8 rounded-md bg-gradient-to-r from-indigo-500/20 to-violet-500/20 border border-white/10" />
                         </div>
                       </div>
                     </div>
@@ -369,7 +379,7 @@ const Dashboard = () => {
               </motion.section>
             </div>
 
-            <div className="mb-12 mt-8 grid grid-cols-1 divide-y divide-zinc-200/50 dark:divide-transparent border-y border-zinc-200/50 dark:border-transparent lg:grid-cols-4 lg:divide-x lg:divide-y-0">
+            <div className="mb-12 mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-0 divide-y sm:divide-y-0 xl:divide-x divide-zinc-200/50 dark:divide-white/[0.06] border-y border-zinc-200/50 dark:border-white/[0.06] py-2 sm:py-0">
               {metricCards.map((card) => (
                 <MetricCard key={card.label} {...card} />
               ))}

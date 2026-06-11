@@ -1,16 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { 
-  ArrowRight, 
-  BrainCircuit, 
-  Calendar, 
-  CheckCircle2, 
-  Copy, 
-  FileText, 
-  Plus, 
-  Printer, 
-  Search, 
-  Sparkles, 
-  Trash2, 
+import {
+  ArrowRight,
+  BrainCircuit,
+  Calendar,
+  CheckCircle2,
+  Copy,
+  FileText,
+  Plus,
+  Printer,
+  Search,
+  Sparkles,
+  Trash2,
   X,
   FileCheck2,
   Clock,
@@ -54,11 +54,11 @@ const OffersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('te_gjitha'); // te_gjitha, draft, derguar, pranuar, refuzuar, skaduar
   const [loading, setLoading] = useState(true);
-  
+
   // Modals/Drawers toggle state
   const [builderOpen, setBuilderOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
-  
+
 
   // Quote Creator state
   const [clientName, setClientName] = useState('');
@@ -114,8 +114,8 @@ const OffersPage = () => {
     const pendingValue = pendingOffers.reduce((sum, o) => sum + Number(o.totali), 0);
     const expiredDeclinedCount = offers.filter(o => o.statusi === 'refuzuar' || o.statusi === 'skaduar').length;
 
-    const acceptedRate = offers.length > 0 
-      ? Math.round((acceptedOffers.length / offers.length) * 100) 
+    const acceptedRate = offers.length > 0
+      ? Math.round((acceptedOffers.length / offers.length) * 100)
       : 0;
 
     return {
@@ -131,7 +131,7 @@ const OffersPage = () => {
   const filteredOffers = useMemo(() => {
     return offers.filter(o => {
       const matchesTab = statusFilter === 'te_gjitha' || o.statusi === statusFilter;
-      const matchesSearch = 
+      const matchesSearch =
         o.numri_ofertes.toLowerCase().includes(searchQuery.toLowerCase()) ||
         o.klienti.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (o.email_klientit && o.email_klientit.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -327,7 +327,7 @@ const OffersPage = () => {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(var(--accent-rgb),0.08),transparent_50%)] print:hidden" />
 
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:p-0">
-        
+
         {/* Top Header Section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between print:hidden">
           <div>
@@ -483,7 +483,7 @@ const OffersPage = () => {
               className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             />
           </div>
-          
+
           <div className="relative">
             <Filter size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
             <select
@@ -535,10 +535,10 @@ const OffersPage = () => {
                         </tr>
                       ) : (
                         filteredOffers.map((o) => (
-                          <motion.tr 
+                          <motion.tr
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            key={o.id} 
+                            key={o.id}
                             onClick={() => handleOpenDetails(o.id)}
                             className={`cursor-pointer transition-colors hover:bg-white/60 dark:hover:bg-white/[0.03] ${selectedOffer?.id === o.id ? 'bg-indigo-500/[0.05] dark:bg-indigo-500/[0.03]' : ''}`}
                           >
@@ -597,7 +597,7 @@ const OffersPage = () => {
             {/* Right Hand: Detailed View & Print Format */}
             {selectedOffer && (
               <div className="lg:col-span-4 print:col-span-full print:block">
-                <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl p-6 relative overflow-hidden print:border-none print:bg-white print:p-0 print:shadow-none">
+                <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-zinc-900 shadow-sm backdrop-blur-xl p-6 relative overflow-hidden print:border-none print:bg-white print:p-0 print:shadow-none">
                   {/* Actions Header (Hidden on print) */}
                   <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-transparent pb-4 mb-6 print:hidden">
                     <h3 className="text-[15px] font-bold text-slate-900 dark:text-zinc-100">Detajet e Ofertës</h3>
@@ -623,8 +623,8 @@ const OffersPage = () => {
                     {/* Invoice/Offer Top Bar */}
                     <div className="flex justify-between items-start mb-6">
                       <div>
-                        <img src={Logo} alt="Zahlx Logo" className="h-9 w-auto object-contain dark:brightness-0 dark:invert print:brightness-0 print:invert-0" />
-                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-widest font-mono">Oferta Profesionale</p>
+                        <img src={Logo} alt="Zahlx Logo" className="h-14 w-auto object-contain dark:brightness-0 dark:invert print:brightness-0 print:invert-0" />
+                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-widest font-mono mt-1.5">Oferta Profesionale</p>
                       </div>
                       <div className="text-right">
                         <span className="text-[12px] font-bold font-mono text-slate-900 dark:text-white print:text-black">{selectedOffer.numri_ofertes}</span>
@@ -635,7 +635,7 @@ const OffersPage = () => {
                     </div>
 
                     {/* Client Information */}
-                    <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-white/[0.01] p-4 mb-6 print:border-neutral-200">
+                    <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 mb-6 print:border-neutral-200">
                       <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-1">OFRUAR PËR:</p>
                       <p className="text-[14px] font-bold text-slate-900 dark:text-white print:text-black">{selectedOffer.klienti}</p>
                       {selectedOffer.email_klientit && (
@@ -698,7 +698,7 @@ const OffersPage = () => {
 
                     {/* Notes & Terms */}
                     {selectedOffer.shenime && (
-                      <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-white/[0.01] p-4 text-[11px] leading-5 text-slate-550 dark:text-zinc-400 print:border-neutral-100 print:text-neutral-550">
+                      <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 text-[11px] leading-5 text-slate-550 dark:text-zinc-400 print:border-neutral-100 print:text-neutral-550">
                         <p className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-550 mb-1">Kushtet e Ofertës:</p>
                         {selectedOffer.shenime}
                       </div>
@@ -832,7 +832,7 @@ const OffersPage = () => {
               {/* Items Builder */}
               <div className="border-t border-slate-200/60 dark:border-transparent pt-6 mb-6">
                 <h4 className="text-[13px] font-bold text-slate-900 dark:text-zinc-200 mb-3">Shto Produkte në Kalkulim</h4>
-                
+
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-end">
                   <div className="sm:col-span-8">
                     <label className="block text-[11px] uppercase tracking-wider text-slate-400 dark:text-zinc-550 font-bold mb-1">Zgjidh Produktin</label>
