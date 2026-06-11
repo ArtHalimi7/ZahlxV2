@@ -24,6 +24,7 @@ import {
   Info
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Logo from '../assets/Logo.png';
 
 const currencyFormatter = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -341,7 +342,7 @@ const OffersPage = () => {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={initPage}
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
             >
               <RefreshCcw size={16} />
               Rifresko
@@ -362,7 +363,7 @@ const OffersPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+            className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -370,7 +371,7 @@ const OffersPage = () => {
                   Vlera e Ofertave
                   <span className="group/tooltip relative inline-block cursor-help print:hidden">
                     <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                       Vlera totale e të gjitha ofertave të gjeneruara (me TVSH).
                     </span>
                   </span>
@@ -379,7 +380,7 @@ const OffersPage = () => {
                   {currencyFormatter.format(statistics.totalOfferedValue)}
                 </h3>
               </div>
-              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
                 <FileSpreadsheet size={18} />
               </div>
             </div>
@@ -390,7 +391,7 @@ const OffersPage = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+            className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -398,7 +399,7 @@ const OffersPage = () => {
                   Shkalla e Pranimit
                   <span className="group/tooltip relative inline-block cursor-help print:hidden">
                     <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                       Përqindja e ofertave që janë pranuar dhe shndërruar në faturë.
                     </span>
                   </span>
@@ -418,7 +419,7 @@ const OffersPage = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+            className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -426,7 +427,7 @@ const OffersPage = () => {
                   Në Negocim / Draft
                   <span className="group/tooltip relative inline-block cursor-help print:hidden">
                     <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                       Vlera e ofertave që janë ende në fazë negocimi ose si draft.
                     </span>
                   </span>
@@ -446,7 +447,7 @@ const OffersPage = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+            className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -454,7 +455,7 @@ const OffersPage = () => {
                   Refuzuar / Skaduar
                   <span className="group/tooltip relative inline-block cursor-help print:hidden">
                     <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                       Numri i ofertave të refuzuara ose që u ka kaluar afati i vlefshmërisë.
                     </span>
                   </span>
@@ -479,7 +480,7 @@ const OffersPage = () => {
               placeholder="Kërko me numër oferte ose emër klienti..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+              className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             />
           </div>
           
@@ -488,7 +489,7 @@ const OffersPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-full min-w-[180px] appearance-none rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+              className="h-full min-w-[180px] appearance-none rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             >
               <option value="te_gjitha">Të Gjitha Statuset</option>
               <option value="draft">Draft</option>
@@ -502,7 +503,7 @@ const OffersPage = () => {
 
         {/* Content Body */}
         {loading ? (
-          <div className="flex h-[300px] items-center justify-center rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] backdrop-blur-xl print:hidden">
+          <div className="flex h-[300px] items-center justify-center rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] backdrop-blur-xl print:hidden">
             <div className="flex flex-col items-center gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-650 border-t-transparent" />
               <p className="text-[13px] text-slate-400 dark:text-zinc-500 font-medium">Duke ngarkuar të dhënat e ofertave...</p>
@@ -512,11 +513,11 @@ const OffersPage = () => {
           <div className="grid gap-8 lg:grid-cols-12 print:block">
             {/* Left Hand: Historical List */}
             <div className={`lg:col-span-8 print:hidden ${selectedOffer ? 'hidden md:block' : 'col-span-full'}`}>
-              <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
+              <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[14px] text-slate-700 dark:text-zinc-300">
                     <thead>
-                      <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.02]">
+                      <tr className="border-b border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.02]">
                         <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Numri Ofertës</th>
                         <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Data Krijimit</th>
                         <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Klienti</th>
@@ -525,7 +526,7 @@ const OffersPage = () => {
                         <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider text-right">Veprime</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.04]">
+                    <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                       {filteredOffers.length === 0 ? (
                         <tr>
                           <td colSpan="6" className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
@@ -570,14 +571,14 @@ const OffersPage = () => {
                               <div className="flex items-center justify-end gap-2">
                                 <button
                                   onClick={() => handleOpenDetails(o.id)}
-                                  className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-2 text-slate-550 dark:text-zinc-400 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.04]"
+                                  className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-2 text-slate-550 dark:text-zinc-400 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.04]"
                                   title="Detajet"
                                 >
                                   <ArrowRight size={14} />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteOffer(o.id)}
-                                  className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-2 text-slate-550 dark:text-zinc-400 transition hover:border-rose-500/20 hover:text-rose-600 hover:bg-rose-500/10"
+                                  className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-2 text-slate-550 dark:text-zinc-400 transition hover:border-rose-500/20 hover:text-rose-600 hover:bg-rose-500/10"
                                   title="Fshi"
                                 >
                                   <Trash2 size={14} />
@@ -596,21 +597,21 @@ const OffersPage = () => {
             {/* Right Hand: Detailed View & Print Format */}
             {selectedOffer && (
               <div className="lg:col-span-4 print:col-span-full print:block">
-                <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl p-6 relative overflow-hidden print:border-none print:bg-white print:p-0 print:shadow-none">
+                <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl p-6 relative overflow-hidden print:border-none print:bg-white print:p-0 print:shadow-none">
                   {/* Actions Header (Hidden on print) */}
-                  <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/[0.06] pb-4 mb-6 print:hidden">
+                  <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-transparent pb-4 mb-6 print:hidden">
                     <h3 className="text-[15px] font-bold text-slate-900 dark:text-zinc-100">Detajet e Ofertës</h3>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => window.print()}
-                        className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-2 text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100"
+                        className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-2 text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100"
                         title="Printo Ofertën"
                       >
                         <Printer size={15} />
                       </button>
                       <button
                         onClick={() => setSelectedOffer(null)}
-                        className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-2 text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100"
+                        className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-2 text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100"
                       >
                         <X size={15} />
                       </button>
@@ -622,7 +623,7 @@ const OffersPage = () => {
                     {/* Invoice/Offer Top Bar */}
                     <div className="flex justify-between items-start mb-6">
                       <div>
-                        <h2 className="text-[20px] font-extrabold text-slate-900 dark:text-white print:text-black">ZAHLX</h2>
+                        <img src={Logo} alt="Zahlx Logo" className="h-9 w-auto object-contain dark:brightness-0 dark:invert print:brightness-0 print:invert-0" />
                         <p className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-widest font-mono">Oferta Profesionale</p>
                       </div>
                       <div className="text-right">
@@ -634,7 +635,7 @@ const OffersPage = () => {
                     </div>
 
                     {/* Client Information */}
-                    <div className="rounded-2xl border border-slate-200/40 dark:border-white/[0.03] bg-white/30 dark:bg-white/[0.01] p-4 mb-6 print:border-neutral-200">
+                    <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-white/[0.01] p-4 mb-6 print:border-neutral-200">
                       <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-1">OFRUAR PËR:</p>
                       <p className="text-[14px] font-bold text-slate-900 dark:text-white print:text-black">{selectedOffer.klienti}</p>
                       {selectedOffer.email_klientit && (
@@ -650,14 +651,14 @@ const OffersPage = () => {
                     {/* Items List Table */}
                     <table className="w-full text-left mb-6 text-[12px] border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200/60 dark:border-white/[0.06] text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-semibold print:border-neutral-300">
+                        <tr className="border-b border-slate-200/60 dark:border-transparent text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-semibold print:border-neutral-300">
                           <th className="py-2">Përshkrimi</th>
                           <th className="py-2 text-center">Sasia</th>
                           <th className="py-2 text-right">Çmimi</th>
                           <th className="py-2 text-right">Totali</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.03] print:divide-neutral-100">
+                      <tbody className="divide-y divide-slate-200/40 dark:divide-transparent print:divide-neutral-100">
                         {selectedOffer.items && selectedOffer.items.map((item) => (
                           <tr key={item.id}>
                             <td className="py-3 font-semibold text-slate-800 dark:text-zinc-200 print:text-black">{item.emri}</td>
@@ -672,7 +673,7 @@ const OffersPage = () => {
                     </table>
 
                     {/* Totals Section */}
-                    <div className="border-t border-slate-200/60 dark:border-white/[0.06] pt-4 mb-6 print:border-neutral-300">
+                    <div className="border-t border-slate-200/60 dark:border-transparent pt-4 mb-6 print:border-neutral-300">
                       <div className="space-y-1.5 text-[13px] max-w-xs ml-auto font-mono">
                         <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
                           <span>Nëntotali:</span>
@@ -686,7 +687,7 @@ const OffersPage = () => {
                             {currencyFormatter.format(selectedOffer.tax_amount)}
                           </span>
                         </div>
-                        <div className="flex justify-between text-[15px] font-bold border-t border-slate-200/40 dark:border-white/[0.04] pt-2">
+                        <div className="flex justify-between text-[15px] font-bold border-t border-slate-200/40 dark:border-transparent pt-2">
                           <span className="text-slate-700 dark:text-zinc-200 print:text-black">Totali:</span>
                           <span className="text-indigo-600 dark:text-indigo-400 print:text-black">
                             {currencyFormatter.format(selectedOffer.totali)}
@@ -697,7 +698,7 @@ const OffersPage = () => {
 
                     {/* Notes & Terms */}
                     {selectedOffer.shenime && (
-                      <div className="rounded-2xl border border-slate-200/40 dark:border-white/[0.03] bg-white/30 dark:bg-white/[0.01] p-4 text-[11px] leading-5 text-slate-550 dark:text-zinc-400 print:border-neutral-100 print:text-neutral-550">
+                      <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-white/[0.01] p-4 text-[11px] leading-5 text-slate-550 dark:text-zinc-400 print:border-neutral-100 print:text-neutral-550">
                         <p className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-550 mb-1">Kushtet e Ofertës:</p>
                         {selectedOffer.shenime}
                       </div>
@@ -705,14 +706,14 @@ const OffersPage = () => {
                   </div>
 
                   {/* Actions (Hidden on print) */}
-                  <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/[0.06] space-y-4 print:hidden">
+                  <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-transparent space-y-4 print:hidden">
                     {/* Status Update Trigger */}
                     <div className="flex gap-2 items-center justify-between text-[12px] font-medium text-slate-500 dark:text-zinc-400">
                       <span>Përditëso statusin:</span>
                       <select
                         value={selectedOffer.statusi}
                         onChange={(e) => handleUpdateStatus(selectedOffer.id, e.target.value)}
-                        className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-zinc-900 px-3 py-1.5 text-[12px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-indigo-500/30"
+                        className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-zinc-900 px-3 py-1.5 text-[12px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-indigo-500/30"
                       >
                         <option value="draft">Draft</option>
                         <option value="derguar">Dërguar</option>
@@ -763,16 +764,16 @@ const OffersPage = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-              className="fixed inset-y-0 right-0 z-[160] w-full max-w-xl bg-white dark:bg-zinc-950 shadow-2xl border-l border-slate-200/60 dark:border-white/[0.06] p-6 overflow-y-auto print:hidden"
+              className="fixed inset-y-0 right-0 z-[160] w-full max-w-xl bg-white dark:bg-zinc-950 shadow-2xl border-l border-slate-200/60 dark:border-transparent p-6 overflow-y-auto print:hidden"
             >
-              <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/[0.06] pb-4 mb-6">
+              <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-transparent pb-4 mb-6">
                 <div>
                   <h3 className="text-[16px] font-bold text-slate-900 dark:text-zinc-100">Krijo Ofertë / Quote</h3>
                   <p className="text-[11px] text-slate-400 dark:text-zinc-500">Ndërto kalkulimin dhe zgjidh vlefshmërinë e ofertës.</p>
                 </div>
                 <button
                   onClick={() => setBuilderOpen(false)}
-                  className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100"
+                  className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100"
                 >
                   <X size={16} />
                 </button>
@@ -787,7 +788,7 @@ const OffersPage = () => {
                     placeholder="Psh. Ahmet Halimi"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/60 dark:bg-zinc-900/60 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
+                    className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
                   />
                 </div>
 
@@ -798,7 +799,7 @@ const OffersPage = () => {
                     placeholder="ahmet@shembull.com"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/60 dark:bg-zinc-900/60 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
+                    className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
                   />
                 </div>
 
@@ -810,7 +811,7 @@ const OffersPage = () => {
                       value={expiryDays}
                       min="1"
                       onChange={(e) => setExpiryDays(Math.max(1, parseInt(e.target.value) || 15))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/60 dark:bg-zinc-900/60 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
                     />
                   </div>
                   <div>
@@ -818,7 +819,7 @@ const OffersPage = () => {
                     <select
                       value={taxRate}
                       onChange={(e) => setTaxRate(Number(e.target.value))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/60 dark:bg-zinc-900/60 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
                     >
                       <option value="18">18% (Standard)</option>
                       <option value="8">8% (Uluar)</option>
@@ -829,7 +830,7 @@ const OffersPage = () => {
               </div>
 
               {/* Items Builder */}
-              <div className="border-t border-slate-200/60 dark:border-white/[0.06] pt-6 mb-6">
+              <div className="border-t border-slate-200/60 dark:border-transparent pt-6 mb-6">
                 <h4 className="text-[13px] font-bold text-slate-900 dark:text-zinc-200 mb-3">Shto Produkte në Kalkulim</h4>
                 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-end">
@@ -838,7 +839,7 @@ const OffersPage = () => {
                     <select
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/60 dark:bg-zinc-900/60 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
                     >
                       <option value="">-- Zgjidh produkt --</option>
                       {products.map(p => (
@@ -856,7 +857,7 @@ const OffersPage = () => {
                       value={selectedQty}
                       min="1"
                       onChange={(e) => setSelectedQty(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/60 dark:bg-zinc-900/60 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
                     />
                   </div>
 
@@ -873,10 +874,10 @@ const OffersPage = () => {
                 </div>
 
                 {/* Added Items table */}
-                <div className="mt-4 rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/20 dark:bg-white/[0.01] overflow-hidden">
+                <div className="mt-4 rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/20 dark:bg-white/[0.01] overflow-hidden">
                   <table className="w-full text-left text-[12px] border-collapse">
                     <thead>
-                      <tr className="bg-slate-100/60 dark:bg-zinc-900/40 text-[10px] uppercase tracking-wider text-slate-450 dark:text-zinc-500 font-bold border-b border-slate-200/40 dark:border-white/[0.04]">
+                      <tr className="bg-slate-100/60 dark:bg-zinc-900/40 text-[10px] uppercase tracking-wider text-slate-450 dark:text-zinc-500 font-bold border-b border-slate-200/40 dark:border-transparent">
                         <th className="px-4 py-2.5">Produkti</th>
                         <th className="px-4 py-2.5 text-center">Sasia</th>
                         <th className="px-4 py-2.5 text-right">Çmimi</th>
@@ -884,7 +885,7 @@ const OffersPage = () => {
                         <th className="px-4 py-2.5 text-center">Fshi</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.03]">
+                    <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                       {addedItems.length === 0 ? (
                         <tr>
                           <td colSpan="5" className="px-4 py-6 text-center text-slate-400 dark:text-zinc-500">
@@ -923,12 +924,12 @@ const OffersPage = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/60 dark:bg-zinc-900/60 p-3 text-[12px] leading-5 outline-none transition focus:border-indigo-500/30"
+                  className="w-full resize-none rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 p-3 text-[12px] leading-5 outline-none transition focus:border-indigo-500/30"
                 />
               </div>
 
               {/* Live Builder Totals */}
-              <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-50/30 dark:bg-zinc-900/30 p-4 mb-6">
+              <div className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-slate-50/30 dark:bg-white/[0.03] p-4 mb-6">
                 <div className="space-y-1.5 text-[12px]">
                   <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
                     <span>Nëntotali:</span>
@@ -938,7 +939,7 @@ const OffersPage = () => {
                     <span>TVSH ({taxRate}%):</span>
                     <span className="font-mono text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.taxAmount)}</span>
                   </div>
-                  <div className="flex justify-between text-[14px] font-bold border-t border-slate-200/40 dark:border-white/[0.04] pt-2">
+                  <div className="flex justify-between text-[14px] font-bold border-t border-slate-200/40 dark:border-transparent pt-2">
                     <span className="text-slate-800 dark:text-zinc-200">Totali i Ofertës:</span>
                     <span className="font-mono text-indigo-650 dark:text-indigo-400">{currencyFormatter.format(builderTotals.total)}</span>
                   </div>
@@ -949,7 +950,7 @@ const OffersPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => handleCreateOffer('draft')}
-                  className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-700 dark:text-zinc-350 hover:bg-slate-100 dark:hover:bg-white/[0.02] py-3 text-[13px] font-bold transition"
+                  className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-700 dark:text-zinc-350 hover:bg-slate-100 dark:hover:bg-white/[0.02] py-3 text-[13px] font-bold transition"
                 >
                   Ruaj si Draft
                 </button>

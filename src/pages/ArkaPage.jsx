@@ -51,7 +51,7 @@ const ArkaPage = () => {
           </div>
           <button
             onClick={fetchArka}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
           >
             <RefreshCcw size={16} />
             Rifresko
@@ -69,7 +69,7 @@ const ArkaPage = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -88,7 +88,7 @@ const ArkaPage = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -107,7 +107,7 @@ const ArkaPage = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -126,7 +126,7 @@ const ArkaPage = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -135,7 +135,7 @@ const ArkaPage = () => {
                       {currency.format(data.totalIn)}
                     </h3>
                   </div>
-                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-405">
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-405">
                     <ArrowDownLeft size={18} />
                   </div>
                 </div>
@@ -143,15 +143,15 @@ const ArkaPage = () => {
             </div>
 
             {/* Ledger table card */}
-            <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
-              <div className="border-b border-slate-200/40 dark:border-white/[0.04] px-6 py-5 bg-white/60 dark:bg-white/[0.02]">
+            <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
+              <div className="border-b border-slate-200/40 dark:border-transparent px-6 py-5 bg-white/60 dark:bg-white/[0.02]">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Regjistri i Arkës</p>
                 <h2 className="mt-1 text-[16px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Lëvizjet e fundit</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[14px] text-slate-700 dark:text-zinc-300">
                   <thead>
-                    <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.02]">
+                    <tr className="border-b border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.02]">
                       <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Data & Ora</th>
                       <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Përshkrimi</th>
                       <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Fatura</th>
@@ -159,7 +159,7 @@ const ArkaPage = () => {
                       <th className="px-6 py-4 font-semibold text-rose-600 text-[12px] uppercase tracking-wider">Dalje (-)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.04]">
+                  <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                     {data.entries.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">

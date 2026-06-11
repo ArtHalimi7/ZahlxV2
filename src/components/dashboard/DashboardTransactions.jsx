@@ -19,7 +19,7 @@ const STATUS_META = {
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-    <div className="grid h-14 w-14 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
+    <div className="grid h-14 w-14 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
       <FileText size={22} />
     </div>
     <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Nuk ka transaksione ende</h3>
@@ -32,8 +32,8 @@ const EmptyState = () => (
 const DashboardTransactions = ({ transactions }) => {
   if (!transactions.length) {
     return (
-      <section className="rounded-[1.8rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] backdrop-blur-xl">
-        <div className="border-b border-slate-200/60 dark:border-white/[0.06] px-5 py-4 sm:px-6">
+      <section className="rounded-[1.8rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] backdrop-blur-xl">
+        <div className="border-b border-slate-200/60 dark:border-transparent px-5 py-4 sm:px-6">
           <h2 className="text-[14px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Transaksionet e Fundit</h2>
         </div>
         <EmptyState />
@@ -42,13 +42,13 @@ const DashboardTransactions = ({ transactions }) => {
   }
 
   return (
-    <section className="rounded-[1.8rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] shadow-[0_22px_70px_rgba(0,0,0,0.06)] dark:shadow-[0_22px_70px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-      <div className="flex flex-col gap-4 border-b border-slate-200/60 dark:border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <section className="rounded-[1.8rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] shadow-[0_22px_70px_rgba(0,0,0,0.06)] dark:shadow-[0_22px_70px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+      <div className="flex flex-col gap-4 border-b border-slate-200/60 dark:border-transparent px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <h2 className="text-[14px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Transaksionet e Fundit</h2>
           <p className="mt-1 text-[12px] text-slate-400 dark:text-zinc-500">Pamje e strukturuar për kontroll të shpejtë dhe pa mbingarkesë vizuale.</p>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-1.5 px-3 py-2 text-[12px] text-slate-500 dark:text-zinc-400">
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-1.5 px-3 py-2 text-[12px] text-slate-500 dark:text-zinc-400">
           <ArrowUpRight size={14} className="text-indigo-600 dark:text-indigo-400" />
           <span>{transactions.length} regjistrime</span>
         </div>
@@ -57,7 +57,7 @@ const DashboardTransactions = ({ transactions }) => {
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full min-w-[760px]">
           <thead>
-            <tr className="border-b border-slate-200/60 dark:border-white/[0.06] text-left text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">
+            <tr className="border-b border-slate-200/60 dark:border-transparent text-left text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">
               <th className="px-6 py-4 font-medium">Fatura</th>
               <th className="px-6 py-4 font-medium">Klienti</th>
               <th className="px-6 py-4 font-medium">Data</th>
@@ -80,7 +80,7 @@ const DashboardTransactions = ({ transactions }) => {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
+                      <span className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
                         <FileText size={14} />
                       </span>
                       <div className="min-w-0">
@@ -126,7 +126,7 @@ const DashboardTransactions = ({ transactions }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.28, delay: index * 0.04 }}
-              className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-4"
+              className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-4"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -142,7 +142,7 @@ const DashboardTransactions = ({ transactions }) => {
                 </div>
               </div>
 
-              <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-200/60 dark:border-white/[0.06] pt-3 text-[11px] text-slate-400 dark:text-zinc-500">
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-200/60 dark:border-transparent pt-3 text-[11px] text-slate-400 dark:text-zinc-500">
                 <span>{tx.dateLabel}</span>
                 <span>{tx.timeLabel}</span>
               </div>

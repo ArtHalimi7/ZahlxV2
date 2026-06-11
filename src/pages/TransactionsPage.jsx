@@ -13,7 +13,7 @@ const STATUS_COLORS = {
   paguar: 'border-green-500/20 bg-green-500/10 text-green-600 dark:border-green-500/15 dark:text-green-400',
   ne_pritje: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:border-amber-500/15 dark:text-amber-400',
   vonese: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400',
-  anuluar: 'border-slate-200/60 dark:border-white/[0.06] bg-slate-100 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400',
+  anuluar: 'border-slate-200/60 dark:border-transparent bg-slate-100 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400',
 };
 
 const STATUS_LABELS = {
@@ -107,7 +107,7 @@ const TransactionsPage = () => {
           </div>
           <button
             onClick={fetchTransactions}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
           >
             <RefreshCcw size={16} />
             Rifresko
@@ -119,7 +119,7 @@ const TransactionsPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+            className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -127,14 +127,14 @@ const TransactionsPage = () => {
                   Gjithsej Fatura
                   <span className="group/tooltip relative inline-block cursor-help print:hidden">
                     <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                       Numri total i faturave të lëshuara nga ky biznes.
                     </span>
                   </span>
                 </p>
                 <h3 className="mt-2 text-[26px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{transactions.length}</h3>
               </div>
-              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
                 <FileText size={18} />
               </div>
             </div>
@@ -144,7 +144,7 @@ const TransactionsPage = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+            className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -152,7 +152,7 @@ const TransactionsPage = () => {
                   Shitjet e Paguara
                   <span className="group/tooltip relative inline-block cursor-help print:hidden">
                     <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                       Shuma totale e parave të pranuara nga faturat e paguara.
                     </span>
                   </span>
@@ -169,7 +169,7 @@ const TransactionsPage = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+            className="rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -177,7 +177,7 @@ const TransactionsPage = () => {
                   Fatura në pritje
                   <span className="group/tooltip relative inline-block cursor-help print:hidden">
                     <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                    <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                       Numri i faturave që janë lëshuar por ende nuk janë paguar nga klientët.
                     </span>
                   </span>
@@ -200,7 +200,7 @@ const TransactionsPage = () => {
               placeholder="Kërko me numër fature ose emër klienti..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+              className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             />
           </div>
           
@@ -209,7 +209,7 @@ const TransactionsPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-full min-w-[170px] appearance-none rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+              className="h-full min-w-[170px] appearance-none rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             >
               <option value="te_gjitha">Të Gjitha</option>
               <option value="paguar">Paguar</option>
@@ -225,11 +225,11 @@ const TransactionsPage = () => {
             <p className="text-[14px] font-medium">{error}</p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
+          <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[14px] text-slate-700 dark:text-zinc-300">
                 <thead>
-                  <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.02]">
+                  <tr className="border-b border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.02]">
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Numri Faturës</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Data & Ora</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Klienti</th>
@@ -238,7 +238,7 @@ const TransactionsPage = () => {
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Veprime</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.04]">
+                <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                   {filteredTransactions.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
@@ -284,7 +284,7 @@ const TransactionsPage = () => {
                               <select
                                 value={t.statusi === 'vonese' ? 'ne_pritje' : t.statusi}
                                 onChange={(e) => updateStatus(t.id, e.target.value)}
-                                className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-2 py-1.5 text-[12px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                                className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-2 py-1.5 text-[12px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                               >
                                 <option value="paguar">Paguar</option>
                                 <option value="ne_pritje">Në Pritje</option>

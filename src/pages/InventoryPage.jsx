@@ -247,13 +247,13 @@ const InventoryPage = () => {
         </div>
 
         <div className="grid gap-6">
-          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 sm:p-8 shadow-sm backdrop-blur-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/40 dark:border-white/[0.04] pb-5">
+          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 sm:p-8 shadow-sm backdrop-blur-xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/40 dark:border-transparent pb-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Scanner hyrës (Lidhur)</p>
                 <h2 className="mt-1 text-[16px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Skano, hap, regjistro</h2>
               </div>
-              <div className="rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-3 py-1.5 text-[11px] text-slate-500 dark:text-zinc-400">
+              <div className="rounded-full border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-3 py-1.5 text-[11px] text-slate-500 dark:text-zinc-400">
                 Hardware scanner apo globalisht nga ekrani
               </div>
             </div>
@@ -272,13 +272,13 @@ const InventoryPage = () => {
                     }
                   }}
                   placeholder="Skano barkodin këtu ose skano globalisht..."
-                  className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                  className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-4 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                 />
               </div>
               <button
                 type="button"
                 onClick={() => handleScannerSubmit(scannerValue)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-6 py-3.5 text-[13px] font-semibold text-slate-800 dark:text-zinc-200 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-6 py-3.5 text-[13px] font-semibold text-slate-800 dark:text-zinc-200 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03]"
               >
                 <Barcode size={16} />
                 Hap produktin
@@ -292,16 +292,16 @@ const InventoryPage = () => {
             )}
 
             {/* Quick Metrics */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-3 pt-6 border-t border-slate-200/40 dark:border-white/[0.04]">
-              <div className="rounded-2xl border border-slate-200/40 dark:border-white/[0.03] bg-white/40 dark:bg-white/[0.01] px-5 py-4">
+            <div className="mt-6 grid gap-4 sm:grid-cols-3 pt-6 border-t border-slate-200/40 dark:border-transparent">
+              <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/40 dark:bg-white/[0.01] px-5 py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Gjithsej Artikuj</p>
                 <p className="mt-1 text-[22px] font-bold text-slate-900 dark:text-zinc-100 font-mono">{products.length}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200/40 dark:border-white/[0.03] bg-white/40 dark:bg-white/[0.01] px-5 py-4">
+              <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/40 dark:bg-white/[0.01] px-5 py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Stoku total</p>
                 <p className="mt-1 text-[22px] font-bold text-slate-900 dark:text-zinc-100 font-mono">{stockValue}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200/40 dark:border-white/[0.03] bg-white/40 dark:bg-white/[0.01] px-5 py-4">
+              <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/40 dark:bg-white/[0.01] px-5 py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-zinc-500">Stok i ulët (≤ 5)</p>
                 <p className="mt-1 text-[22px] font-bold text-slate-900 dark:text-zinc-100 font-mono">{lowStockCount}</p>
               </div>
@@ -313,8 +313,8 @@ const InventoryPage = () => {
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">
           
           {/* Main products table */}
-          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
-            <div className="flex flex-col gap-4 border-b border-slate-200/40 dark:border-white/[0.04] px-6 py-5 sm:flex-row sm:items-center sm:justify-between bg-white/60 dark:bg-white/[0.02]">
+          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
+            <div className="flex flex-col gap-4 border-b border-slate-200/40 dark:border-transparent px-6 py-5 sm:flex-row sm:items-center sm:justify-between bg-white/60 dark:bg-white/[0.02]">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Lista e produkteve</p>
                 <h2 className="mt-1 text-[16px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Të gjitha produktet</h2>
@@ -325,7 +325,7 @@ const InventoryPage = () => {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Kërko emër, barkod ose kategori..."
-                  className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] py-2.5 pl-9 pr-4 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                  className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-2.5 pl-9 pr-4 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                 />
               </div>
             </div>
@@ -333,7 +333,7 @@ const InventoryPage = () => {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] text-left text-[14px] text-slate-700 dark:text-zinc-300">
                 <thead>
-                  <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.02]">
+                  <tr className="border-b border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.02]">
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Produkt</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Barkod</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Blerja (€)</th>
@@ -343,7 +343,7 @@ const InventoryPage = () => {
                     <th className="px-6 py-4 text-right font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Veprime</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.04]">
+                <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                   {loading ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
@@ -379,7 +379,7 @@ const InventoryPage = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-slate-100/40 dark:bg-white/[0.02] px-2.5 py-0.5 text-[11px] font-medium text-slate-500 dark:text-zinc-400">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/60 dark:border-transparent bg-slate-100/40 dark:bg-white/[0.02] px-2.5 py-0.5 text-[11px] font-medium text-slate-500 dark:text-zinc-400">
                               <Bookmark size={10} />
                               {product.kategoria || 'Pa kategori'}
                             </span>
@@ -389,7 +389,7 @@ const InventoryPage = () => {
                               <button
                                 type="button"
                                 onClick={() => openEditForm(product)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-3 py-2 text-[12px] font-semibold text-slate-750 dark:text-zinc-200 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03]"
+                                className="inline-flex items-center gap-2 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2 text-[12px] font-semibold text-slate-750 dark:text-zinc-200 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03]"
                               >
                                 <PencilLine size={14} />
                                 Edit
@@ -416,8 +416,8 @@ const InventoryPage = () => {
           {/* Sidebar cards */}
           <div className="grid gap-6 self-start">
             {/* Top stock card */}
-            <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl">
-              <div className="flex items-start justify-between gap-4 border-b border-slate-200/40 dark:border-white/[0.04] pb-4">
+            <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl">
+              <div className="flex items-start justify-between gap-4 border-b border-slate-200/40 dark:border-transparent pb-4">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Lista e shpejtë</p>
                   <h3 className="mt-1 text-[16px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Artikujt kryesorë</h3>
@@ -429,7 +429,7 @@ const InventoryPage = () => {
 
               <div className="mt-5 space-y-3">
                 {products.slice(0, 5).map((product) => (
-                  <div key={product.id} className="flex items-center justify-between rounded-2xl border border-slate-200/40 dark:border-white/[0.03] bg-white/30 dark:bg-white/[0.01] px-4 py-3">
+                  <div key={product.id} className="flex items-center justify-between rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-white/[0.01] px-4 py-3">
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-semibold text-slate-800 dark:text-zinc-200">{product.emri}</p>
                       <p className="mt-0.5 text-[11px] font-mono text-slate-400 dark:text-zinc-500">{product.kodi_bar}</p>
@@ -444,7 +444,7 @@ const InventoryPage = () => {
             </div>
 
             {/* Hint card */}
-            <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl">
+            <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl">
               <div className="flex items-start gap-3">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
                   <Copy size={16} />
@@ -480,9 +480,9 @@ const InventoryPage = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              className="relative z-10 flex h-auto max-h-[90vh] w-full max-w-[32rem] flex-col border border-slate-200/60 dark:border-white/[0.06] bg-white/95 dark:bg-zinc-950/95 shadow-2xl rounded-[2.5rem] overflow-hidden backdrop-blur-2xl"
+              className="relative z-10 flex h-auto max-h-[90vh] w-full max-w-[32rem] flex-col border border-slate-200/60 dark:border-transparent bg-white/95 dark:bg-black/95 shadow-2xl rounded-[2.5rem] overflow-hidden backdrop-blur-2xl"
             >
-              <div className="flex items-start justify-between gap-4 border-b border-slate-200/40 dark:border-white/[0.04] px-6 py-5">
+              <div className="flex items-start justify-between gap-4 border-b border-slate-200/40 dark:border-transparent px-6 py-5">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-400">{formMode === 'create' ? 'Regjistrim i ri' : 'Modifiko produktin'}</p>
                   <h3 className="mt-1 text-[18px] font-bold tracking-tight text-slate-900 dark:text-zinc-100">{formMode === 'create' ? 'Produkt i ri' : 'Editim produkti'}</h3>
@@ -490,7 +490,7 @@ const InventoryPage = () => {
                 <button
                   type="button"
                   onClick={() => setFormOpen(false)}
-                  className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 transition hover:border-slate-350 hover:text-slate-900 dark:hover:text-zinc-100"
+                  className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 transition hover:border-slate-350 hover:text-slate-900 dark:hover:text-zinc-100"
                 >
                   <X size={16} />
                 </button>
@@ -499,7 +499,7 @@ const InventoryPage = () => {
               <form onSubmit={handleSaveProduct} className="flex min-h-0 flex-1 flex-col px-6 py-5 overflow-y-auto custom-scrollbar">
                 <div className="grid gap-5 pr-1">
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-white/[0.03] pb-1.5">Informata Bazë</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-transparent pb-1.5">Informata Bazë</p>
                     <div className="grid gap-4">
                       <div>
                         <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 ml-1 mb-2 block">Emri i produktit</label>
@@ -508,7 +508,7 @@ const InventoryPage = () => {
                           onChange={(event) => handleProductChange('emri', event.target.value)}
                           placeholder="p.sh. Coca-Cola 500ml"
                           required
-                          className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                          className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                         />
                       </div>
                       <div>
@@ -518,7 +518,7 @@ const InventoryPage = () => {
                           onChange={(event) => handleProductChange('kodi_bar', event.target.value)}
                           placeholder="p.sh. 5449000000996"
                           required
-                          className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] font-mono text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                          className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] font-mono text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                         />
                       </div>
                       <div>
@@ -527,14 +527,14 @@ const InventoryPage = () => {
                           value={productForm.kategoria}
                           onChange={(event) => handleProductChange('kategoria', event.target.value)}
                           placeholder="p.sh. Pije, Ushqime, Elektrikë"
-                          className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                          className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                         />
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-white/[0.03] pb-1.5">Çmimet (pa TVSH)</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-transparent pb-1.5">Çmimet (pa TVSH)</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 ml-1 mb-2 block">Çmimi blerjes (€)</label>
@@ -545,7 +545,7 @@ const InventoryPage = () => {
                           onChange={(event) => handleProductChange('cmimi_blerjes', event.target.value)}
                           placeholder="0.00"
                           required
-                          className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                          className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                         />
                       </div>
                       <div>
@@ -557,14 +557,14 @@ const InventoryPage = () => {
                           onChange={(event) => handleProductChange('cmimi_shitjes', event.target.value)}
                           placeholder="0.00"
                           required
-                          className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                          className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                         />
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-white/[0.03] pb-1.5">Inventari</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-transparent pb-1.5">Inventari</p>
                     <div>
                       <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 ml-1 mb-2 block">Sasia aktuale në stok</label>
                       <input
@@ -573,7 +573,7 @@ const InventoryPage = () => {
                         onChange={(event) => handleProductChange('stoku_aktual', event.target.value)}
                         placeholder="0"
                         required
-                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                       />
                     </div>
                   </div>
@@ -585,11 +585,11 @@ const InventoryPage = () => {
                   </div>
                 )}
 
-                <div className="mt-6 flex gap-3 border-t border-slate-200/40 dark:border-white/[0.04] pt-5">
+                <div className="mt-6 flex gap-3 border-t border-slate-200/40 dark:border-transparent pt-5">
                   <button
                     type="button"
                     onClick={() => setFormOpen(false)}
-                    className="flex-1 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:text-slate-900 dark:hover:text-zinc-100"
+                    className="flex-1 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:text-slate-900 dark:hover:text-zinc-100"
                   >
                     Anulo
                   </button>

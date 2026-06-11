@@ -11,6 +11,7 @@ import ArkaPage from './pages/ArkaPage';
 import ReportsPage from './pages/ReportsPage';
 import OffersPage from './pages/OffersPage';
 import './index.css';
+import Logo from './assets/Logo.png';
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,17 +28,17 @@ const App = () => {
         />
 
         <div className={`flex min-w-0 flex-1 flex-col ${sidebarCollapsed ? 'lg:pl-24' : 'lg:pl-72'}`}>
-          <header className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/[0.06] bg-white/80 dark:bg-zinc-950/80 px-4 py-3 backdrop-blur-xl lg:hidden">
+          <header className="flex items-center justify-between border-b border-slate-200/60 dark:border-transparent bg-white/80 dark:bg-zinc-950/80 px-4 py-3 backdrop-blur-xl lg:hidden">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 transition hover:border-slate-300 dark:border-white/[0.12] hover:text-slate-900 dark:text-zinc-100"
+              className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100"
               aria-label="Hap menunë"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
-            <span className="text-sm font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Zahlx</span>
+            <img src={Logo} alt="Zahlx Logo" className="h-6 w-auto object-contain dark:brightness-0 dark:invert" />
             <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[11px] font-medium text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">Live</span>
           </header>
 

@@ -6,7 +6,7 @@ const MetricCard = ({ label, value, detail, icon: Icon, tone = 'indigo', delta, 
   const toneMap = {
     emerald: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400',
     indigo: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400',
-    zinc: 'border-slate-200/60 dark:border-white/[0.06] bg-white/50 dark:bg-white/[0.04] text-slate-800 dark:text-zinc-200',
+    zinc: 'border-slate-200/60 dark:border-transparent bg-white/50 dark:bg-white/[0.04] text-slate-800 dark:text-zinc-200',
   };
 
   return (
@@ -22,7 +22,7 @@ const MetricCard = ({ label, value, detail, icon: Icon, tone = 'indigo', delta, 
             {tooltip && (
               <span className="group/tooltip relative inline-block cursor-help print:hidden">
                 <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                   {tooltip}
                 </span>
               </span>
@@ -41,7 +41,7 @@ const MetricCard = ({ label, value, detail, icon: Icon, tone = 'indigo', delta, 
             </div>
           )}
           {delta && (
-            <span className="rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-zinc-300">
+            <span className="rounded-full border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-zinc-300">
               {delta}
             </span>
           )}

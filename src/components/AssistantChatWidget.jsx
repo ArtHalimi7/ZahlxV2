@@ -229,10 +229,10 @@ const AssistantChatWidget = () => {
               exit={{ opacity: 0, scale: 0.8 }}
               whileHover={{ y: -2, scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="group flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-900 text-left text-zinc-950 dark:text-zinc-50 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-zinc-700 px-4 py-3 gap-3 cursor-grab active:cursor-grabbing select-none"
+              className="group flex items-center justify-center rounded-full border border-zinc-200 dark:border-transparent bg-white dark:bg-zinc-900 text-left text-zinc-950 dark:text-zinc-50 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-zinc-700 px-4 py-3 gap-3 cursor-grab active:cursor-grabbing select-none"
               aria-label="Hap asistentin AI"
             >
-              <span className="relative grid h-11 w-11 place-items-center rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 shadow-sm shrink-0">
+              <span className="relative grid h-11 w-11 place-items-center rounded-full border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 shadow-sm shrink-0">
                 <BotMessageSquare size={19} />
               </span>
 
@@ -253,14 +253,14 @@ const AssistantChatWidget = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
               transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-              className="w-[min(92vw,24rem)] overflow-hidden rounded-[1.75rem] border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+              className="w-[min(92vw,24rem)] overflow-hidden rounded-[1.75rem] border border-zinc-200 dark:border-transparent bg-white dark:bg-zinc-950 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
             >
               <div 
                 onPointerDown={handlePointerDown}
-                className="flex items-start justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 py-4 cursor-move select-none"
+                className="flex items-start justify-between border-b border-zinc-200 dark:border-transparent px-4 py-4 cursor-move select-none"
               >
                 <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
                     <Bot size={16} />
                   </span>
                   <div>
@@ -273,7 +273,7 @@ const AssistantChatWidget = () => {
                     type="button"
                     onClick={() => setOpen(false)}
                     onPointerDown={(e) => e.stopPropagation()}
-                    className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-2 text-zinc-600 dark:text-zinc-300 transition hover:border-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50"
+                    className="rounded-xl border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 p-2 text-zinc-600 dark:text-zinc-300 transition hover:border-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50"
                     aria-label="Mbyll asistentin AI"
                   >
                     <X size={16} />
@@ -290,8 +290,8 @@ const AssistantChatWidget = () => {
                     <div
                       className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-6 whitespace-pre-line ${
                         message.role === 'user' 
-                          ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 font-medium border border-transparent dark:border-zinc-800 shadow-sm' 
-                          : 'border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100'
+                          ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 font-medium border border-transparent dark:border-transparent shadow-sm' 
+                          : 'border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100'
                       }`}
                     >
                       {message.role === 'assistant' && index === messages.length - 1 ? (
@@ -304,7 +304,7 @@ const AssistantChatWidget = () => {
                 ))}
                  {isTyping && (
                   <div className="flex justify-start">
-                    <div className="max-w-[82%] rounded-2xl px-4 py-3 text-[13px] border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-400 flex items-center gap-1.5">
+                    <div className="max-w-[82%] rounded-2xl px-4 py-3 text-[13px] border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-400 flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce" />
                       <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.15s]" />
                       <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.3s]" />
@@ -314,21 +314,21 @@ const AssistantChatWidget = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="border-t border-zinc-200 dark:border-zinc-800 px-4 py-4">
+              <div className="border-t border-zinc-200 dark:border-transparent px-4 py-4">
                 <div className="mb-3 flex flex-wrap gap-2">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
                       type="button"
                       onClick={() => handleSend(prompt)}
-                      className="rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3 py-2 text-[11px] font-semibold text-zinc-650 dark:text-zinc-300 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-50"
+                      className="rounded-full border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 px-3 py-2 text-[11px] font-semibold text-zinc-650 dark:text-zinc-300 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-50"
                     >
                       {prompt}
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-end gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-2">
+                <div className="flex items-end gap-2 rounded-2xl border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 p-2">
                   <textarea
                     value={input}
                     onChange={(event) => setInput(event.target.value)}

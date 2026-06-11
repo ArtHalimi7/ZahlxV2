@@ -163,7 +163,7 @@ const PosPage = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_420px] items-start">
-          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 sm:p-8 shadow-sm backdrop-blur-xl">
+          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 sm:p-8 shadow-sm backdrop-blur-xl">
             <div className="flex items-start gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
                 <ReceiptText size={16} />
@@ -179,7 +179,7 @@ const PosPage = () => {
                         value={receiptClient}
                         onChange={(event) => setReceiptClient(event.target.value)}
                         placeholder="Klienti (Opcionale)"
-                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                       />
                     </div>
                     <div>
@@ -187,7 +187,7 @@ const PosPage = () => {
                       <select
                         value={invoiceStatus}
                         onChange={(e) => setInvoiceStatus(e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                       >
                         <option value="paguar">Paguar (Paid)</option>
                         <option value="ne_pritje">Në Pritje (Draft)</option>
@@ -201,7 +201,7 @@ const PosPage = () => {
                       <select
                         value={taxRate}
                         onChange={(e) => setTaxRate(Number(e.target.value))}
-                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                       >
                         <option value={0}>0% TVSH</option>
                         <option value={8}>8% TVSH</option>
@@ -213,7 +213,7 @@ const PosPage = () => {
                       <select
                         value={paymentTerms}
                         onChange={(e) => setPaymentTerms(e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
                       >
                         <option value="immediate">Menjëherë</option>
                         <option value="net_15">Net 15 Ditë</option>
@@ -252,7 +252,7 @@ const PosPage = () => {
                   
                   <div className="space-y-3 min-h-[220px] max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {receiptItems.length === 0 ? (
-                      <div className="flex h-[220px] flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-slate-200/60 dark:border-white/[0.06] text-center">
+                      <div className="flex h-[220px] flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-slate-200/60 dark:border-transparent text-center">
                         <ScanBarcode size={24} className="text-slate-400 dark:text-zinc-500 mb-3" />
                         <p className="text-[14px] font-medium text-slate-500 dark:text-zinc-400">Fatura është bosh.</p>
                         <p className="text-[12px] text-slate-400 dark:text-zinc-500 mt-1">Skano një produkt për të filluar.</p>
@@ -263,7 +263,7 @@ const PosPage = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           key={item.id} 
-                          className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 hover:bg-white/60 dark:hover:bg-white/[0.03] transition"
+                          className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 hover:bg-white/60 dark:hover:bg-white/[0.03] transition"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
@@ -276,12 +276,12 @@ const PosPage = () => {
                             </div>
                           </div>
                           
-                          <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-200/40 dark:border-white/[0.04] pt-3">
+                          <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-200/40 dark:border-transparent pt-3">
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
                                 onClick={() => updateReceiptQuantity(item.id, -1)}
-                                className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100 hover:border-slate-300 dark:hover:border-white/[0.12]"
+                                className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100 hover:border-slate-300 dark:hover:border-white/[0.12]"
                               >
                                 -
                               </button>
@@ -289,7 +289,7 @@ const PosPage = () => {
                               <button
                                 type="button"
                                 onClick={() => updateReceiptQuantity(item.id, 1)}
-                                className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100 hover:border-slate-300 dark:hover:border-white/[0.12]"
+                                className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:text-slate-900 dark:hover:text-zinc-100 hover:border-slate-300 dark:hover:border-white/[0.12]"
                               >
                                 +
                               </button>
@@ -314,7 +314,7 @@ const PosPage = () => {
                   </div>
                 )}
                 
-                <div className="mt-6 border-t border-slate-200/60 dark:border-white/[0.06] pt-6 space-y-2">
+                <div className="mt-6 border-t border-slate-200/60 dark:border-transparent pt-6 space-y-2">
                   <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
                     <span>Nëntotali:</span>
                     <span className="font-semibold tabular-nums text-slate-700 dark:text-zinc-300">{currency.format(receiptSubtotal)}</span>
@@ -326,7 +326,7 @@ const PosPage = () => {
                     </div>
                   )}
                   
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-3 border-t border-slate-200/30 dark:border-white/[0.03] mt-3">
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-3 border-t border-slate-200/30 dark:border-transparent mt-3">
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Totali Faturës</p>
                       <p className="mt-1 text-[30px] font-bold tracking-tight text-indigo-600 dark:text-indigo-400 tabular-nums">{currency.format(receiptTotal)}</p>
@@ -351,7 +351,7 @@ const PosPage = () => {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-8 shadow-sm backdrop-blur-xl"
+                className="relative overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-8 shadow-sm backdrop-blur-xl"
               >
                 {/* Soft success light glow top right */}
                 <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-green-500/10 dark:bg-green-500/5 blur-3xl" />
@@ -366,7 +366,7 @@ const PosPage = () => {
                   </div>
                 </div>
                 
-                <div className="mt-6 flex flex-col items-center justify-center p-6 rounded-3xl border border-slate-200/40 dark:border-white/[0.03] bg-white dark:bg-zinc-900 shadow-inner">
+                <div className="mt-6 flex flex-col items-center justify-center p-6 rounded-3xl border border-slate-200/40 dark:border-transparent bg-white dark:bg-zinc-900 shadow-inner">
                   <QRCodeSVG value={receiptResult.qrUrl} size={160} fgColor="#09090b" bgColor="#ffffff" className="dark:hidden" />
                   <QRCodeSVG value={receiptResult.qrUrl} size={160} fgColor="#ffffff" bgColor="#09090b" className="hidden dark:block" />
                   <p className="mt-4 text-[10px] font-bold tracking-widest text-slate-400 uppercase">Skano për faturën</p>
@@ -385,14 +385,14 @@ const PosPage = () => {
                 </Link>
                 <Link
                   to="/libri-shitjes"
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-4 py-3.5 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:hover:border-white/[0.12]"
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-4 py-3.5 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:hover:border-white/[0.12]"
                 >
                   Shko te Libri i Shitjes →
                 </Link>
               </motion.div>
             ) : (
-              <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-8 text-center opacity-70 shadow-sm backdrop-blur-xl">
-                <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500">
+              <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-8 text-center opacity-70 shadow-sm backdrop-blur-xl">
+                <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500">
                   <QrCode size={20} />
                 </div>
                 <h3 className="text-[14px] font-semibold text-slate-850 dark:text-zinc-200">Gjeneratori i QR</h3>

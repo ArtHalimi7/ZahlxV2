@@ -188,6 +188,8 @@ const buildPoolOptions = () => {
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
       ssl: sslMode === 'REQUIRED' ? buildSslConfig() : buildSslConfig(),
     };
   }
@@ -201,6 +203,8 @@ const buildPoolOptions = () => {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
     ssl: buildSslConfig(),
   };
 };

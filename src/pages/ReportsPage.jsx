@@ -21,25 +21,6 @@ import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const TypewriterText = ({ text }) => {
-  const [displayedText, setDisplayedText] = useState('');
-
-  useEffect(() => {
-    let index = 0;
-    setDisplayedText('');
-    const timer = setInterval(() => {
-      setDisplayedText((prev) => prev + text.charAt(index));
-      index++;
-      if (index >= text.length) {
-        clearInterval(timer);
-      }
-    }, 12);
-    return () => clearInterval(timer);
-  }, [text]);
-
-  return <span>{displayedText}</span>;
-};
-
 const currency = new Intl.NumberFormat('de-DE', {
   style: 'currency',
   currency: 'EUR',
@@ -53,8 +34,8 @@ const CustomTooltip = ({ active, payload, label }) => {
     const profit = rev - cost;
     
     return (
-      <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/90 dark:bg-zinc-900/90 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)] backdrop-blur-xl min-w-[200px]">
-        <p className="text-[12px] font-semibold text-slate-500 dark:text-zinc-400 mb-2 border-b border-slate-200/40 dark:border-white/[0.04] pb-1">{label}</p>
+      <div className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/90 dark:bg-black/90 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)] backdrop-blur-xl min-w-[200px]">
+        <p className="text-[12px] font-semibold text-slate-500 dark:text-zinc-400 mb-2 border-b border-slate-200/40 dark:border-transparent pb-1">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center gap-4 text-[13px]">
             <span className="text-slate-500 dark:text-zinc-400">Të ardhurat:</span>
@@ -68,7 +49,7 @@ const CustomTooltip = ({ active, payload, label }) => {
               {currency.format(cost)}
             </span>
           </div>
-          <div className="flex justify-between items-center gap-4 text-[13px] pt-1.5 border-t border-slate-200/40 dark:border-white/[0.04] mt-1.5">
+          <div className="flex justify-between items-center gap-4 text-[13px] pt-1.5 border-t border-slate-200/40 dark:border-transparent mt-1.5">
             <span className="text-slate-700 dark:text-zinc-200 font-medium">Fitimi i Pastër:</span>
             <span className={`font-bold tabular-nums ${profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-rose-600'}`}>
               {currency.format(profit)}
@@ -249,16 +230,15 @@ const ReportsPage = () => {
   const totalTopRevenue = reportData.topProducts.reduce((sum, item) => sum + item.revenue, 0);
 
   return (
-    <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(var(--accent-rgb),0.12),transparent_50%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_20%)]" />
+    <div className="relative min-h-full bg-zinc-50 dark:bg-zinc-950">
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
         {/* Header section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-zinc-900/40 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500 font-medium animate-pulse">
-              <BrainCircuit size={12} className="text-indigo-600 dark:text-indigo-400" />
-              Zahlx Autonomous Copilot (Aktiv)
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/50 dark:border-transparent bg-white dark:bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              <BrainCircuit size={12} className="text-indigo-500" />
+              Zahlx AI Copilot
             </div>
             <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem] leading-[1.15]">
               Analitika Financiare
@@ -268,7 +248,7 @@ const ReportsPage = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 p-1.5 self-start sm:self-center backdrop-blur-xl">
+          <div className="flex items-center gap-1 rounded-2xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-zinc-900 p-1 self-start sm:self-center shadow-sm">
             {['daily', 'weekly', 'monthly'].map((t) => (
               <button
                 key={t}
@@ -288,7 +268,7 @@ const ReportsPage = () => {
             <p className="text-[14px] font-medium">{error}</p>
           </div>
         ) : loading ? (
-          <div className="flex h-[400px] items-center justify-center rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] backdrop-blur-xl">
+          <div className="flex h-[400px] items-center justify-center rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] backdrop-blur-xl">
             <div className="flex flex-col items-center gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
               <p className="text-[13px] text-slate-400 dark:text-zinc-500 font-medium">Duke kalkuluar analitikën...</p>
@@ -301,15 +281,15 @@ const ReportsPage = () => {
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="relative rounded-3xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-6 shadow-sm"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                    <p className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 dark:text-zinc-400">
                       Shitjet Totale
                       <span className="group/tooltip relative inline-block cursor-help print:hidden">
                         <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                           Shuma totale e të gjitha shitjeve të kryera (me TVSH të përfshirë).
                         </span>
                       </span>
@@ -322,7 +302,7 @@ const ReportsPage = () => {
                     <Wallet size={18} />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-white/[0.04]">
+                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-transparent">
                   {reportData.monthlyComparison?.changePercent !== 0 ? (
                     <span className={`flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                       reportData.monthlyComparison?.changePercent > 0
@@ -346,15 +326,15 @@ const ReportsPage = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="relative overflow-hidden rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="relative rounded-3xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-6 shadow-sm"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                    <p className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 dark:text-zinc-400">
                       Fitimi i Pastër
                       <span className="group/tooltip relative inline-block cursor-help print:hidden">
                         <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                           Paratë e mbetura pasi zbresim koston e mallit dhe detyrimet tatimore.
                         </span>
                       </span>
@@ -367,7 +347,7 @@ const ReportsPage = () => {
                     <TrendingUp size={18} />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-white/[0.04]">
+                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-transparent">
                   <span className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 text-[11px] font-semibold">
                     {marginPercent}% e fitimit
                   </span>
@@ -380,15 +360,15 @@ const ReportsPage = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="relative overflow-hidden rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="relative rounded-3xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-6 shadow-sm"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                    <p className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 dark:text-zinc-400">
                       Rezerva për Taksa
                       <span className="group/tooltip relative inline-block cursor-help print:hidden">
                         <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                           Shuma e rezervuar për të paguar TVSH-në dhe tatimin mbi fitimin sipas shitjeve të kryera.
                         </span>
                       </span>
@@ -397,12 +377,12 @@ const ReportsPage = () => {
                       {currency.format(reportData.profitMargin?.taxLiability || 0)}
                     </h3>
                   </div>
-                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
                     <Scale size={18} />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-white/[0.04]">
-                  <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-transparent">
+                  <span className="flex h-2 w-2 rounded-full bg-amber-500" />
                   <span className="text-[12px] text-slate-400 dark:text-zinc-500">Detyrimet e vlerësuara për taksa (TVSH & Fitim)</span>
                 </div>
               </motion.div>
@@ -412,15 +392,15 @@ const ReportsPage = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="relative overflow-hidden rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl"
+                className="relative rounded-3xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-6 shadow-sm"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-500">
+                    <p className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 dark:text-zinc-400">
                       Vlera e Stokut
                       <span className="group/tooltip relative inline-block cursor-help print:hidden">
                         <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
-                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-zinc-900/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
                           Vlera totale e produkteve në stok e llogaritur me çmimin e shitjes dhe të blerjes.
                         </span>
                       </span>
@@ -429,11 +409,11 @@ const ReportsPage = () => {
                       {currency.format(reportData.inventoryValue?.atSalePrice || 0)}
                     </h3>
                   </div>
-                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400">
                     <Package size={18} />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-white/[0.04]">
+                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-transparent">
                   <span className="text-[12px] text-slate-400 dark:text-zinc-500">
                     Kostoja e blerjes: <strong className="font-semibold text-slate-600 dark:text-zinc-300 font-mono">{currency.format(reportData.inventoryValue?.atCostPrice || 0)}</strong>
                   </span>
@@ -445,9 +425,9 @@ const ReportsPage = () => {
             <motion.div 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl sm:p-8"
+              className="rounded-[2.5rem] border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-6 shadow-sm sm:p-8"
             >
-              <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/40 dark:border-white/[0.04] pb-6">
+              <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/40 dark:border-transparent pb-6">
                 <div>
                   <h2 className="flex items-center gap-2 text-[18px] font-semibold text-slate-900 dark:text-zinc-100">
                     <TrendingUp size={20} className="text-indigo-600 dark:text-indigo-400" />
@@ -471,7 +451,7 @@ const ReportsPage = () => {
                     </div>
                   </div>
 
-                  <div className="text-left sm:text-right border-l border-slate-200/60 dark:border-white/[0.06] pl-6">
+                  <div className="text-left sm:text-right border-l border-slate-200/60 dark:border-transparent pl-6">
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-zinc-500">Fitimi i Periudhës</p>
                     <p className="text-[26px] font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
                       {currency.format(totalPeriodRevenue - totalPeriodCost)}
@@ -494,7 +474,7 @@ const ReportsPage = () => {
                           <stop offset="95%" stopColor="var(--text-muted)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+
                       <XAxis 
                         dataKey="date" 
                         stroke="var(--border-strong)" 
@@ -520,8 +500,7 @@ const ReportsPage = () => {
                         stroke="var(--text-muted)" 
                         strokeWidth={2}
                         strokeDasharray="4 4"
-                        fillOpacity={1} 
-                        fill="url(#colorCost)" 
+                        fillOpacity={0} 
                       />
 
                       {/* Revenue Area Curve */}
@@ -530,14 +509,13 @@ const ReportsPage = () => {
                         name="Të ardhurat"
                         dataKey="revenue" 
                         stroke="var(--accent-primary)" 
-                        strokeWidth={3}
-                        fillOpacity={1} 
-                        fill="url(#colorRevenue)" 
+                        strokeWidth={2}
+                        fillOpacity={0} 
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-200/60 dark:border-white/[0.06]">
+                  <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-200/60 dark:border-transparent">
                     <div className="flex flex-col items-center gap-2">
                       <Calendar size={20} className="text-slate-400" />
                       <p className="text-[13px] text-slate-400 dark:text-zinc-500">Nuk ka të dhëna për këtë periudhë.</p>
@@ -555,7 +533,7 @@ const ReportsPage = () => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-6 shadow-sm backdrop-blur-xl lg:col-span-2 sm:p-8"
+                className="rounded-[2.5rem] border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-6 shadow-sm lg:col-span-2 sm:p-8"
               >
                 <div className="mb-6 flex items-center justify-between">
                   <div>
@@ -574,7 +552,7 @@ const ReportsPage = () => {
                     reportData.topProducts.map((p, index) => {
                       const pct = totalTopRevenue > 0 ? Math.round((p.revenue / totalTopRevenue) * 100) : 0;
                       return (
-                        <div key={p.id} className="group rounded-2xl border border-slate-200/40 dark:border-white/[0.03] bg-white/30 dark:bg-white/[0.01] p-4 transition duration-300 hover:bg-white/60 dark:hover:bg-white/[0.03] hover:border-slate-200 dark:hover:border-white/[0.06]">
+                        <div key={p.id} className="group rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-white/[0.01] p-4 transition duration-300 hover:bg-white/60 dark:hover:bg-white/[0.03] hover:border-slate-200 dark:hover:border-white/[0.06]">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <span className="grid h-6 w-6 place-items-center rounded-full bg-slate-200/60 dark:bg-zinc-800 text-[11px] font-bold text-slate-500 dark:text-zinc-400">
@@ -610,12 +588,12 @@ const ReportsPage = () => {
                 </div>
               </motion.div>
 
-              {/* Zahlx AI CFO Copilot Panel: Right 3 columns */}
+              {/* Zahlx AI CFO Autopilot Diagnostics */}
               <motion.div 
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-6 shadow-sm backdrop-blur-xl lg:col-span-3 sm:p-8 relative overflow-hidden"
+                className="rounded-[2.5rem] border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-6 shadow-sm lg:col-span-3 sm:p-8 relative overflow-hidden"
               >
                 <div className="mb-6 flex items-center justify-between">
                   <div>
@@ -628,7 +606,7 @@ const ReportsPage = () => {
                 </div>
 
                 {/* AI Interactive Tabs */}
-                <div className="flex gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 p-1 mb-6">
+                <div className="flex gap-2 rounded-2xl border border-zinc-200 dark:border-transparent bg-zinc-100 dark:bg-zinc-900 p-1 mb-6">
                   <button
                     onClick={() => setAiTab('stock')}
                     className={`flex-1 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition ${aiTab === 'stock' ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 shadow-sm' : 'text-zinc-550 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
@@ -659,12 +637,10 @@ const ReportsPage = () => {
                         exit={{ opacity: 0 }}
                         className="flex flex-col items-center justify-center py-10"
                       >
-                        <div className="flex gap-1 mb-2">
-                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce" />
-                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.15s]" />
-                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.3s]" />
+                        <div className="flex items-center gap-2 text-zinc-500 py-6">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                          <p className="text-[13px] font-medium">Po analizon të dhënat...</p>
                         </div>
-                        <p className="text-[11px] text-slate-400 uppercase tracking-widest font-mono">Duke përllogaritur mardhëniet...</p>
                       </motion.div>
                     ) : (
                       <motion.div
@@ -683,8 +659,10 @@ const ReportsPage = () => {
                           </span>
                         </div>
                         
-                        <p className="text-[13px] leading-relaxed text-zinc-650 dark:text-zinc-300 font-medium">
-                          <TypewriterText text={aiTabInsights[aiTab] || aiInsights[aiTab].text} />
+                        <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-300 font-medium">
+                          <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                            {aiTabInsights[aiTab] || aiInsights[aiTab].text}
+                          </motion.span>
                         </p>
                         {aiTabInsights[aiTab] && (
                           <p className="mt-2 text-[10px] text-zinc-500 italic flex items-center gap-1">
@@ -695,10 +673,10 @@ const ReportsPage = () => {
                     )}
                   </AnimatePresence>
 
-                  <div className="mt-6 border-t border-slate-200/40 dark:border-white/[0.04] pt-5 flex justify-end">
+                  <div className="mt-6 border-t border-slate-200/40 dark:border-transparent pt-5 flex justify-end">
                     <Link
                       to={aiInsights[aiTab].link}
-                      className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-4 py-2.5 text-[12px] font-bold transition hover:bg-zinc-950 hover:text-zinc-50 dark:hover:bg-zinc-50 dark:hover:text-zinc-950"
+                      className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-4 py-2.5 text-[12px] font-bold transition hover:bg-zinc-950 hover:text-zinc-50 dark:hover:bg-zinc-50 dark:hover:text-zinc-950"
                     >
                       {aiInsights[aiTab].cta}
                       <ArrowRight size={14} />
