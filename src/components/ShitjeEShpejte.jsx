@@ -354,7 +354,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="rounded-2xl bg-indigo-600 px-4 py-3 text-[14px] font-semibold text-white shadow-[0_18px_40px_rgba(99,102,241,0.35)] transition hover:bg-indigo-500"
+                  className="rounded-2xl bg-indigo-600 px-4 py-3 text-[14px] font-semibold text-white shadow-[0_18px_40px_rgba(var(--accent-rgb),0.35)] transition hover:bg-indigo-500"
                 >
                   Përfundo Shitjen
                 </button>
@@ -397,7 +397,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                   <Link
                     to={`/fature/${receiptData.id}`}
                     onClick={onClose}
-                    className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(99,102,241,0.35)] transition hover:bg-indigo-500"
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(var(--accent-rgb),0.35)] transition hover:bg-indigo-500"
                   >
                     <QrCode size={16} />
                     Hap Faturën

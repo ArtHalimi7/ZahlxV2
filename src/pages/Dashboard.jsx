@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Boxes, Clock3, Flame, Lightbulb, Plus, ReceiptText, Sparkles, TrendingUp, BrainCircuit, ArrowRight, RefreshCw } from 'lucide-react';
+import { Boxes, Clock3, Flame, Lightbulb, Plus, ReceiptText, Sparkles, TrendingUp, BrainCircuit, ArrowRight, RefreshCw, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import MetricCard from '../components/MetricCard';
@@ -356,7 +356,7 @@ const Dashboard = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="mx-auto grid w-full max-w-[1600px] gap-8 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
           <div className="min-w-0">
@@ -368,7 +368,7 @@ const Dashboard = () => {
             className="relative overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] p-8 sm:p-10 md:p-12 shadow-sm backdrop-blur-xl"
           >
             {/* Soft decorative backdrops */}
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.15),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.06),transparent_30%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.15),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(var(--accent-rgb),0.06),transparent_30%)]" />
             
             <div className="relative grid grid-cols-1 gap-8 md:grid-cols-12 md:items-center">
               {/* Left Column: Text & Actions */}
@@ -376,7 +376,7 @@ const Dashboard = () => {
                 
                 <h1 className="mt-5 text-[1.8rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.6rem] leading-[1.15]">
                   {greeting},
-                  <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300">
+                  <span className="block bg-gradient-to-r from-zinc-950 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-50 dark:to-zinc-400">
                     panoramë e qartë e biznesit.
                   </span>
                 </h1>
@@ -386,7 +386,7 @@ const Dashboard = () => {
                 </p>
 
                 <div className="mt-6 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-indigo-500/15 bg-indigo-500/10 px-3 py-1 text-[11px] text-indigo-600 dark:text-indigo-400">Live</span>
+                  <span className="rounded-full border border-zinc-200 dark:border-zinc-805 bg-zinc-50 dark:bg-zinc-900 px-3 py-1 text-[11px] text-zinc-900 dark:text-zinc-50">Live</span>
                   <span className="rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-3 py-1 text-[11px] text-slate-500 dark:text-zinc-400">Qartësi financiare</span>
                   <span className="rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-3 py-1 text-[11px] text-slate-500 dark:text-zinc-400">Shitje të shpejta</span>
                 </div>
@@ -396,10 +396,10 @@ const Dashboard = () => {
                     whileHover={{ y: -2, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSaleDrawerOpen(true)}
-                    className="inline-flex items-center justify-center gap-3 rounded-full border border-indigo-500/20 bg-indigo-500/10 dark:bg-indigo-500/15 px-6 py-3.5 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 shadow-[0_12px_40px_rgba(99,102,241,0.15)] transition hover:border-indigo-500/30 hover:bg-indigo-500/20"
+                    className="inline-flex items-center justify-center gap-3 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-950 dark:bg-zinc-50 px-6 py-3.5 text-[13px] font-semibold text-zinc-50 dark:text-zinc-950 shadow-[0_12px_40px_rgba(var(--accent-rgb),0.15)] transition hover:bg-zinc-900 dark:hover:bg-zinc-100"
                     id="quick-sale-button"
                   >
-                    <span className="grid h-7 w-7 place-items-center rounded-full bg-indigo-500 text-zinc-950 shadow-[0_0_16px_rgba(99,102,241,0.4)]">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-zinc-900 dark:bg-zinc-200 text-zinc-50 dark:text-zinc-950 shadow-sm">
                       <Plus size={14} strokeWidth={2.8} />
                     </span>
                     Shitje e Shpejtë
@@ -410,7 +410,7 @@ const Dashboard = () => {
               {/* Right Column: Floating CSS cards decoration (Hidden on mobile) */}
               <div className="hidden md:col-span-5 md:flex items-center justify-center relative min-h-[200px]">
                 {/* Visual Glow Layer */}
-                <div className="pointer-events-none absolute -inset-4 rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-3xl" />
+                <div className="pointer-events-none absolute -inset-4 rounded-full bg-zinc-500/10 dark:bg-zinc-500/5 blur-3xl" />
                 
                 {/* The Tilted Card Stack */}
                 <div className="relative w-64 h-40">
@@ -418,13 +418,13 @@ const Dashboard = () => {
                   <div className="absolute inset-0 rounded-2xl border border-slate-200/30 dark:border-white/5 bg-slate-100/10 dark:bg-zinc-900/10 shadow-lg transform -rotate-12 -translate-x-3 -translate-y-2 scale-95 backdrop-blur-md transition-all duration-500 hover:-translate-x-4 hover:-translate-y-3 hover:-rotate-6" />
                   
                   {/* Middle Card */}
-                  <div className="absolute inset-0 rounded-2xl border border-purple-500/20 dark:border-purple-500/10 bg-purple-500/[0.04] shadow-xl transform -rotate-6 -translate-x-1 -translate-y-1 scale-98 backdrop-blur-md transition-all duration-500 hover:-translate-x-2 hover:-translate-y-1.5 hover:-rotate-3" />
+                  <div className="absolute inset-0 rounded-2xl border border-zinc-500/20 dark:border-zinc-500/10 bg-zinc-500/[0.04] shadow-xl transform -rotate-6 -translate-x-1 -translate-y-1 scale-98 backdrop-blur-md transition-all duration-500 hover:-translate-x-2 hover:-translate-y-1.5 hover:-rotate-3" />
                   
                   {/* Foreground / Active Glass Card */}
-                  <div className="absolute inset-0 rounded-2xl border border-white/20 dark:border-white/[0.08] bg-gradient-to-br from-white/30 to-white/5 dark:from-white/[0.06] dark:to-white/[0.01] shadow-2xl p-5 flex flex-col justify-between backdrop-blur-lg transition-all duration-500 hover:-translate-y-2 hover:rotate-2 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/5">
+                  <div className="absolute inset-0 rounded-2xl border border-white/20 dark:border-white/[0.08] bg-gradient-to-br from-white/30 to-white/5 dark:from-white/[0.06] dark:to-white/[0.01] shadow-2xl p-5 flex flex-col justify-between backdrop-blur-lg transition-all duration-500 hover:-translate-y-2 hover:rotate-2 hover:shadow-zinc-500/10 dark:hover:shadow-zinc-500/5">
                     <div className="flex justify-between items-start">
-                      <div className="h-8 w-8 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/25 flex items-center justify-center">
-                        <Sparkles size={16} className="text-indigo-600 dark:text-indigo-400" />
+                      <div className="h-8 w-8 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                        <Bot size={16} className="text-zinc-900 dark:text-zinc-100" />
                       </div>
                       <span className="text-[9px] uppercase tracking-widest text-slate-400 dark:text-zinc-500 font-mono">Zahlx Premium</span>
                     </div>
@@ -440,7 +440,7 @@ const Dashboard = () => {
                       <div className="text-[9px] text-slate-400 dark:text-zinc-500 font-mono">
                         SHITJET SOT: {metrics.shitjet_sot_nr}
                       </div>
-                      <div className="h-4 w-6 rounded-md bg-gradient-to-r from-indigo-500/30 to-purple-500/30" />
+                      <div className="h-4 w-6 rounded-md bg-gradient-to-r from-zinc-500/30 to-zinc-700/30" />
                     </div>
                   </div>
                 </div>
@@ -452,7 +452,7 @@ const Dashboard = () => {
             <div className="px-4 py-8 lg:px-8">
               <div className="flex items-start gap-3">
                 <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
-                  <BrainCircuit size={18} className="animate-pulse text-indigo-600 dark:text-indigo-400" />
+                  <Bot size={18} className="text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -550,26 +550,23 @@ const Dashboard = () => {
             </div>
 
             <div className="py-8 relative overflow-hidden">
-              {/* AI glow effect overlay */}
-              <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-indigo-500/5 blur-3xl animate-pulse" />
               
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <BrainCircuit size={18} className="text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                  <Bot size={18} className="text-zinc-900 dark:text-zinc-100" />
                   <h4 className="text-[14px] font-bold text-slate-900 dark:text-zinc-100">
                     Zahlx AI CFO Copilot
                   </h4>
                 </div>
-                <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-ping" />
               </div>
 
               {/* Mini Tabs */}
-              <div className="flex gap-1 rounded-xl border border-slate-200/60 dark:border-white/[0.04] bg-white/40 dark:bg-zinc-900/40 p-0.5 mb-4">
+              <div className="flex gap-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 p-0.5 mb-4">
                 {['insight', 'stock', 'liquidity'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setAiTab(tab)}
-                    className={`flex-1 rounded-lg py-1.5 text-[9px] font-bold uppercase tracking-wider transition ${aiTab === tab ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'}`}
+                    className={`flex-1 rounded-lg py-1.5 text-[9px] font-bold uppercase tracking-wider transition ${aiTab === tab ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 shadow-sm' : 'text-zinc-550 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
                   >
                     {tab === 'insight' && 'Live'}
                     {tab === 'stock' && 'Stoku'}
@@ -589,11 +586,11 @@ const Dashboard = () => {
                       className="flex flex-col items-center justify-center py-6"
                     >
                       <div className="flex gap-1 mb-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-bounce" />
-                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.15s]" />
-                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.3s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.15s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.3s]" />
                       </div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Duke analizuar...</p>
+                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-mono">Duke analizuar...</p>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -612,12 +609,11 @@ const Dashboard = () => {
                         </span>
                       </div>
                       
-                      <p className="text-[12px] leading-relaxed text-slate-600 dark:text-zinc-400 font-medium">
+                      <p className="text-[12px] leading-relaxed text-zinc-600 dark:text-zinc-300 font-medium">
                         <TypewriterText text={aiTabInsights[aiTab] || aiInsights[aiTab].text} />
                       </p>
                       {aiTabInsights[aiTab] && (
-                        <p className="mt-2 text-[10px] text-indigo-500/60 italic flex items-center gap-1">
-                          <Sparkles size={10} />
+                        <p className="mt-2 text-[10px] text-zinc-500 italic flex items-center gap-1">
                           Gjeneruar nga Gemini AI
                         </p>
                       )}
@@ -628,7 +624,7 @@ const Dashboard = () => {
                 <div className="mt-4 border-t border-slate-200/40 dark:border-white/[0.04] pt-3 flex justify-end">
                   <Link
                     to={aiInsights[aiTab].link}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 px-3 py-1.5 text-[11px] font-bold transition hover:bg-indigo-600 hover:text-white hover:border-transparent"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-3 py-1.5 text-[11px] font-bold transition hover:bg-zinc-950 hover:text-zinc-50 dark:hover:bg-zinc-50 dark:hover:text-zinc-950"
                   >
                     {aiInsights[aiTab].cta}
                     <ArrowRight size={12} />

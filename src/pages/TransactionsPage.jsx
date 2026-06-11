@@ -91,7 +91,7 @@ const TransactionsPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_25%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_15%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_25%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_15%)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
         {/* Top header section */}

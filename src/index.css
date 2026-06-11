@@ -15,17 +15,115 @@
 
   :root {
     color-scheme: light;
+    
+    /* Grayscale theme variables - LIGHT mode */
+    --bg-app: #ffffff;
+    --text-primary: #09090b;
+    --text-secondary: #52525b;
+    --text-muted: #71717a;
+    
+    --accent-primary: #09090b;
+    --accent-secondary: #27272a;
+    --accent-muted: #e4e4e7;
+    --accent-rgb: 9, 9, 11;
+    
+    --border-subtle: rgba(9, 9, 11, 0.04);
+    --border-default: rgba(9, 9, 11, 0.08);
+    --border-strong: rgba(9, 9, 11, 0.15);
+    
+    --surface-card: rgba(9, 9, 11, 0.02);
+    --surface-raised: rgba(9, 9, 11, 0.04);
+    --surface-overlay: rgba(9, 9, 11, 0.06);
+
+    /* Grayscale values for slate and zinc overrides */
+    --zinc-50: #fafafa;
+    --zinc-100: #f4f4f5;
+    --zinc-200: #e4e4e7;
+    --zinc-300: #d4d4d8;
+    --zinc-400: #a1a1aa;
+    --zinc-500: #71717a;
+    --zinc-600: #52525b;
+    --zinc-700: #3f3f46;
+    --zinc-800: #27272a;
+    --zinc-900: #18181b;
+    --zinc-950: #09090b;
+
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(9, 9, 11, 0.05);
+    --shadow-glow: 0 0 0 1px rgba(9, 9, 11, 0.02), 0 18px 60px rgba(9, 9, 11, 0.06);
+
+    /* Indigo variables - LIGHT mode */
+    --indigo-50: #fafafa;
+    --indigo-100: #f4f4f5;
+    --indigo-200: #e4e4e7;
+    --indigo-300: #d4d4d8;
+    --indigo-400: #09090b;
+    --indigo-500: #27272a;
+    --indigo-600: #09090b;
+    --indigo-700: #18181b;
+    --indigo-800: #27272a;
+    --indigo-900: #18181b;
+    --indigo-950: #09090b;
   }
 
   :root.dark {
     color-scheme: dark;
+    
+    /* Grayscale theme variables - DARK mode */
+    --bg-app: #000000;
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    
+    --accent-primary: #ffffff;
+    --accent-secondary: #e4e4e7;
+    --accent-muted: #27272a;
+    --accent-rgb: 255, 255, 255;
+    
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.15);
+    
+    --surface-card: rgba(255, 255, 255, 0.02);
+    --surface-raised: rgba(255, 255, 255, 0.03);
+    --surface-overlay: rgba(255, 255, 255, 0.05);
+
+    /* Grayscale values for slate and zinc overrides */
+    --zinc-50: #ffffff;
+    --zinc-100: #f4f4f5;
+    --zinc-200: #e4e4e7;
+    --zinc-300: #d4d4d8;
+    --zinc-400: #a1a1aa;
+    --zinc-500: #71717a;
+    --zinc-600: #52525b;
+    --zinc-700: #3f3f46;
+    --zinc-800: #27272a;
+    --zinc-900: #18181b;
+    --zinc-950: #000000;
+
+    --glass-bg: rgba(0, 0, 0, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 18px 60px rgba(0, 0, 0, 0.75);
+
+    /* Indigo variables - DARK mode */
+    --indigo-50: #09090b;
+    --indigo-100: #18181b;
+    --indigo-200: #27272a;
+    --indigo-300: #3f3f46;
+    --indigo-400: #ffffff;
+    --indigo-500: #3f3f46;
+    --indigo-600: #27272a;
+    --indigo-700: #3f3f46;
+    --indigo-800: #52525b;
+    --indigo-900: #a1a1aa;
+    --indigo-950: #ffffff;
   }
 
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    background: #f8fafc;
+    background: var(--bg-app);
   }
 
   body {
@@ -67,18 +165,18 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.25);
+    background: rgba(var(--accent-rgb), 0.15);
     border-radius: 999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(99, 102, 241, 0.45);
+    background: rgba(var(--accent-rgb), 0.3);
   }
 
   /* ---- Selection ---- */
   ::selection {
-    background-color: rgba(99, 102, 241, 0.3);
-    color: #fff;
+    background-color: rgba(var(--accent-rgb), 0.12);
+    color: var(--text-primary);
   }
 
   a {
@@ -106,8 +204,8 @@
 
 @layer components {
   .glass {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     backdrop-filter: blur(24px);
   }
 
@@ -118,7 +216,7 @@
 
 @layer utilities {
   .soft-glow {
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 18px 60px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-glow);
   }
 
   .tabular-nums {

@@ -223,7 +223,7 @@ const InventoryPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
         {/* Header section */}
@@ -239,7 +239,7 @@ const InventoryPage = () => {
           <button
             type="button"
             onClick={() => openCreateForm('')}
-            className="inline-flex items-center gap-2 self-start rounded-full border border-indigo-500/20 bg-indigo-500/10 dark:bg-indigo-500/15 px-5 py-3.5 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 shadow-[0_12px_30px_rgba(99,102,241,0.15)] transition hover:border-indigo-500/30 hover:bg-indigo-500/20"
+            className="inline-flex items-center gap-2 self-start rounded-full border border-indigo-500/20 bg-indigo-500/10 dark:bg-indigo-500/15 px-5 py-3.5 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 shadow-[0_12px_30px_rgba(var(--accent-rgb),0.15)] transition hover:border-indigo-500/30 hover:bg-indigo-500/20"
           >
             <Plus size={16} />
             Produkt i ri
@@ -595,7 +595,7 @@ const InventoryPage = () => {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-bold text-white transition hover:bg-indigo-500 shadow-[0_8px_24px_rgba(99,102,241,0.2)]"
+                    className="flex-1 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-bold text-white transition hover:bg-indigo-500 shadow-[0_8px_24px_rgba(var(--accent-rgb),0.2)]"
                   >
                     Ruaj
                   </button>

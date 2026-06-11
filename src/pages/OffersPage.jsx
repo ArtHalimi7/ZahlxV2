@@ -323,7 +323,7 @@ const OffersPage = () => {
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950 print:bg-white print:text-black">
       {/* Decorative gradient overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.08),transparent_50%)] print:hidden" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(var(--accent-rgb),0.08),transparent_50%)] print:hidden" />
 
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:p-0">
         
@@ -348,7 +348,7 @@ const OffersPage = () => {
             </button>
             <button
               onClick={() => setBuilderOpen(true)}
-              className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-650 hover:bg-indigo-600 text-white px-5 py-3 text-[13px] font-semibold shadow-[0_12px_30px_rgba(99,102,241,0.22)] transition-all"
+              className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-650 hover:bg-indigo-600 text-white px-5 py-3 text-[13px] font-semibold shadow-[0_12px_30px_rgba(var(--accent-rgb),0.22)] transition-all"
             >
               <Plus size={15} />
               Krijo Ofertë

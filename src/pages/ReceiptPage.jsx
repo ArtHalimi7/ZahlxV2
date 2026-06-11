@@ -55,7 +55,7 @@ const ReceiptPage = () => {
   if (loading) {
     return (
       <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%)]" />
         <div className="relative mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-6 py-10 text-center backdrop-blur-xl">
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-slate-200/60 dark:border-white/[0.06] border-t-indigo-500" />
@@ -69,7 +69,7 @@ const ReceiptPage = () => {
   if (error || !receipt) {
     return (
       <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%)]" />
         <div className="relative mx-auto flex min-h-[70vh] max-w-4xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-[2rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] px-6 py-10 text-center backdrop-blur-xl">
             <p className="text-[11px] uppercase tracking-[0.28em] text-rose-600">Fatura nuk u gjet</p>
@@ -90,7 +90,7 @@ const ReceiptPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <Link

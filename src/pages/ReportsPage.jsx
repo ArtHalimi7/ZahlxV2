@@ -14,7 +14,8 @@ import {
   TrendingUp, 
   Wallet,
   BrainCircuit,
-  ArrowRight
+  ArrowRight,
+  Bot
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -249,7 +250,7 @@ const ReportsPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.12),transparent_50%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_20%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(var(--accent-rgb),0.12),transparent_50%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_20%)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
         {/* Header section */}
@@ -267,12 +268,12 @@ const ReportsPage = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-zinc-900/40 p-1.5 self-start sm:self-center backdrop-blur-xl">
+          <div className="flex items-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 p-1.5 self-start sm:self-center backdrop-blur-xl">
             {['daily', 'weekly', 'monthly'].map((t) => (
               <button
                 key={t}
                 onClick={() => setTimeframe(t)}
-                className={`rounded-xl px-4 py-2 text-[12px] font-semibold transition ${timeframe === t ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100'}`}
+                className={`rounded-xl px-4 py-2 text-[12px] font-semibold transition ${timeframe === t ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 shadow-md' : 'text-zinc-550 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
               >
                 {t === 'daily' && 'Ditore'}
                 {t === 'weekly' && 'Javore'}
@@ -294,7 +295,8 @@ const ReportsPage = () => {
             </div>
           </div>
         ) : (
-               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {/* Card 1: Revenue */}
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
@@ -484,26 +486,26 @@ const ReportsPage = () => {
                     <AreaChart data={reportData.chartData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                          <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
-                          <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                          <stop offset="5%" stopColor="var(--text-muted)" stopOpacity={0.15} />
+                          <stop offset="95%" stopColor="var(--text-muted)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.04)" vertical={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
                       <XAxis 
                         dataKey="date" 
-                        stroke="rgba(0,0,0,0.1)" 
-                        tick={{ fill: 'rgba(120,120,120,0.7)', fontSize: 11 }} 
+                        stroke="var(--border-strong)" 
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} 
                         tickLine={false}
                         axisLine={false}
                         dy={10}
                       />
                       <YAxis 
-                        stroke="rgba(0,0,0,0.1)" 
-                        tick={{ fill: 'rgba(120,120,120,0.7)', fontSize: 11 }}
+                        stroke="var(--border-strong)" 
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) => `${value}€`}
@@ -515,7 +517,7 @@ const ReportsPage = () => {
                         type="monotone" 
                         name="Kostoja"
                         dataKey="cost" 
-                        stroke="#94a3b8" 
+                        stroke="var(--text-muted)" 
                         strokeWidth={2}
                         strokeDasharray="4 4"
                         fillOpacity={1} 
@@ -527,7 +529,7 @@ const ReportsPage = () => {
                         type="monotone" 
                         name="Të ardhurat"
                         dataKey="revenue" 
-                        stroke="#6366f1" 
+                        stroke="var(--accent-primary)" 
                         strokeWidth={3}
                         fillOpacity={1} 
                         fill="url(#colorRevenue)" 
@@ -615,37 +617,33 @@ const ReportsPage = () => {
                 transition={{ delay: 0.15 }}
                 className="rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.06] bg-white/60 dark:bg-white/[0.03] p-6 shadow-sm backdrop-blur-xl lg:col-span-3 sm:p-8 relative overflow-hidden"
               >
-                {/* AI glow effect overlay */}
-                <div className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-3xl animate-pulse" />
-                
                 <div className="mb-6 flex items-center justify-between">
                   <div>
                     <h2 className="text-[16px] font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
-                      <BrainCircuit size={18} className="text-indigo-650 dark:text-indigo-400 animate-pulse" />
+                      <Bot size={18} className="text-zinc-900 dark:text-zinc-100" />
                       Zahlx AI CFO Copilot
                     </h2>
                     <p className="text-[12px] text-slate-500 dark:text-zinc-400">Analizë financiare dhe rekomandime autonome</p>
                   </div>
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-indigo-500 animate-ping" />
                 </div>
 
                 {/* AI Interactive Tabs */}
-                <div className="flex gap-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white/40 dark:bg-zinc-900/40 p-1 mb-6">
+                <div className="flex gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 p-1 mb-6">
                   <button
                     onClick={() => setAiTab('stock')}
-                    className={`flex-1 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition ${aiTab === 'stock' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'}`}
+                    className={`flex-1 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition ${aiTab === 'stock' ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 shadow-sm' : 'text-zinc-550 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
                   >
                     Stoku
                   </button>
                   <button
                     onClick={() => setAiTab('profit')}
-                    className={`flex-1 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition ${aiTab === 'profit' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'}`}
+                    className={`flex-1 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition ${aiTab === 'profit' ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 shadow-sm' : 'text-zinc-550 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
                   >
                     Marzhi
                   </button>
                   <button
                     onClick={() => setAiTab('liquidity')}
-                    className={`flex-1 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition ${aiTab === 'liquidity' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'}`}
+                    className={`flex-1 rounded-xl py-2 text-[11px] font-bold uppercase tracking-wider transition ${aiTab === 'liquidity' ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 shadow-sm' : 'text-zinc-550 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
                   >
                     Taksat
                   </button>
@@ -662,9 +660,9 @@ const ReportsPage = () => {
                         className="flex flex-col items-center justify-center py-10"
                       >
                         <div className="flex gap-1 mb-2">
-                          <span className="h-1.5 w-1.5 rounded-full bg-indigo-650 animate-bounce" />
-                          <span className="h-1.5 w-1.5 rounded-full bg-indigo-650 animate-bounce [animation-delay:0.15s]" />
-                          <span className="h-1.5 w-1.5 rounded-full bg-indigo-650 animate-bounce [animation-delay:0.3s]" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.15s]" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.3s]" />
                         </div>
                         <p className="text-[11px] text-slate-400 uppercase tracking-widest font-mono">Duke përllogaritur mardhëniet...</p>
                       </motion.div>
@@ -685,12 +683,11 @@ const ReportsPage = () => {
                           </span>
                         </div>
                         
-                        <p className="text-[13px] leading-relaxed text-slate-500 dark:text-zinc-400 font-medium">
+                        <p className="text-[13px] leading-relaxed text-zinc-650 dark:text-zinc-300 font-medium">
                           <TypewriterText text={aiTabInsights[aiTab] || aiInsights[aiTab].text} />
                         </p>
                         {aiTabInsights[aiTab] && (
-                          <p className="mt-2 text-[10px] text-indigo-500/60 italic flex items-center gap-1">
-                            <Sparkles size={10} />
+                          <p className="mt-2 text-[10px] text-zinc-500 italic flex items-center gap-1">
                             Gjeneruar nga Gemini AI
                           </p>
                         )}
@@ -701,7 +698,7 @@ const ReportsPage = () => {
                   <div className="mt-6 border-t border-slate-200/40 dark:border-white/[0.04] pt-5 flex justify-end">
                     <Link
                       to={aiInsights[aiTab].link}
-                      className="inline-flex items-center gap-2 rounded-xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 px-4 py-2.5 text-[12px] font-bold transition hover:bg-indigo-600 hover:text-white hover:border-transparent"
+                      className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-4 py-2.5 text-[12px] font-bold transition hover:bg-zinc-950 hover:text-zinc-50 dark:hover:bg-zinc-50 dark:hover:text-zinc-950"
                     >
                       {aiInsights[aiTab].cta}
                       <ArrowRight size={14} />

@@ -148,7 +148,7 @@ const PosPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
         {/* Page title */}
@@ -335,7 +335,7 @@ const PosPage = () => {
                       type="button"
                       onClick={submitReceipt}
                       disabled={receiptSubmitting || receiptItems.length === 0}
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-4 text-[14px] font-bold text-white shadow-[0_12px_30px_rgba(99,102,241,0.25)] transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none w-full sm:w-auto"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-4 text-[14px] font-bold text-white shadow-[0_12px_30px_rgba(var(--accent-rgb),0.25)] transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none w-full sm:w-auto"
                     >
                       <Save size={18} />
                       {receiptSubmitting ? 'Duke procesuar...' : 'Regjistro & Gjenero Faturë'}
@@ -378,7 +378,7 @@ const PosPage = () => {
                 
                 <Link
                   to={`/fature/${receiptResult.id}`}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(99,102,241,0.25)] transition hover:bg-indigo-500"
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(var(--accent-rgb),0.25)] transition hover:bg-indigo-500"
                 >
                   <ReceiptText size={16} />
                   Shiko & Printo Faturën
