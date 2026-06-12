@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 import mysql from 'mysql2/promise';
-import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -69,7 +68,11 @@ export function translateSql(sql) {
 class SqlitePoolShim {
   constructor(dbPath) {
     this.dbPath = dbPath;
-    this.db = new sqlite3.Database(dbPath);
+  }
+
+  async init() {
+    const sqlite3 = (await import('sqlite3')).default;
+    this.db = new sqlite3.Database(this.dbPath);
     this.db.run('PRAGMA foreign_keys = ON;');
   }
 
@@ -216,6 +219,7 @@ if (dbMode === 'SQLITE') {
   console.log('ℹ Using SQLite by explicit DB_MODE configuration');
   const dbPath = path.join(__dirname, 'database.db');
   pool = new SqlitePoolShim(dbPath);
+  await pool.init();
 } else {
   try {
     const options = buildPoolOptions();
@@ -236,6 +240,7 @@ if (dbMode === 'SQLITE') {
     console.log('ℹ Falling back to local SQLite database...');
     const dbPath = path.join(__dirname, 'database.db');
     pool = new SqlitePoolShim(dbPath);
+    await pool.init();
   }
 }
 
