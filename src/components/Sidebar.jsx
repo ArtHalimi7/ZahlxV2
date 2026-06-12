@@ -5,9 +5,8 @@ import {
   BookOpen,
   ChartColumnIncreasing,
   LayoutDashboard,
+  Menu,
   Package,
-  PanelLeftClose,
-  PanelLeftOpen,
   ShoppingCart,
   Wallet,
   X,
@@ -71,8 +70,8 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
           ${isCollapsed ? 'lg:w-24' : 'lg:w-72'}
         `}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-zinc-100 dark:border-white/[0.06] px-4 py-4">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className={`flex items-center border-b border-zinc-100 dark:border-white/[0.06] px-4 py-4 ${isCollapsed ? 'flex-col gap-3' : 'justify-between gap-3'}`}>
+          <div className={`flex min-w-0 items-center gap-3 ${isCollapsed ? 'flex-col' : ''}`}>
             <div className="flex h-12 w-12 items-center justify-center shrink-0">
               <img src={Logo} alt="Zahlx Logo" className="h-10 w-auto object-contain brightness-0 dark:invert transition-all" />
             </div>
@@ -94,7 +93,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
               className="hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-2 text-zinc-550 dark:text-zinc-400 transition hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-white lg:inline-flex"
               aria-label={isCollapsed ? 'Zgjero menunë' : 'Ngushto menunë'}
             >
-              {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+              {isCollapsed ? <Menu size={16} /> : <X size={16} />}
             </button>
             <button
               onClick={onClose}
@@ -126,8 +125,8 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                   )}
                   <span
                     className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition-colors ${isActive
-                        ? 'border-indigo-200 dark:border-indigo-500/30 bg-indigo-100/60 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
-                        : 'border-zinc-200/60 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500'
+                        ? 'border-zinc-800 dark:border-indigo-500/30 bg-zinc-800 dark:bg-indigo-500/20 text-white dark:text-indigo-400'
+                        : 'border-zinc-800/60 dark:border-transparent bg-zinc-800 dark:bg-zinc-900 text-white dark:text-zinc-500'
                       }`}
                   >
                     <Icon size={16} strokeWidth={isActive ? 2 : 1.6} />
@@ -166,7 +165,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
             <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.04]">
               {isCollapsed ? (
                 <div className="flex flex-col items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-650 text-white font-bold flex items-center justify-center text-[12px] shadow-sm">
+                  <div className="h-10 w-10 rounded-full border-2 border-black dark:border-0 bg-gradient-to-tr from-indigo-500 to-purple-650 text-white font-bold flex items-center justify-center text-[12px] shadow-sm">
                     {getInitials(user.emri_biznesit)}
                   </div>
                   <button
@@ -180,7 +179,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
               ) : (
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-650 text-white font-bold flex items-center justify-center text-[11px] shadow-sm shrink-0">
+                    <div className="h-9 w-9 rounded-full border-2 border-black dark:border-0 bg-gradient-to-tr from-indigo-500 to-purple-650 text-white font-bold flex items-center justify-center text-[11px] shadow-sm shrink-0">
                       {getInitials(user.emri_biznesit)}
                     </div>
                     <div className="min-w-0">

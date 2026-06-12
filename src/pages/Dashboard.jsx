@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, TrendingUp, ArrowRight, Bot, ShoppingCart, Percent, Package, Activity, AlertTriangle, CheckCircle2, ReceiptText } from 'lucide-react';
+import { Plus, TrendingUp, ArrowRight, ShoppingCart, Percent, Package, Activity, AlertTriangle, CheckCircle2, ReceiptText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Logo from '../assets/X.png';
@@ -282,7 +282,8 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="relative min-h-full bg-zinc-50 dark:bg-zinc-950">
+    <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="mx-auto grid w-full max-w-[1600px] gap-8 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
           
@@ -293,13 +294,13 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className="relative rounded-3xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-8 sm:p-10 md:p-12 shadow-sm"
+                className="relative rounded-[2rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] backdrop-blur-xl p-7 sm:p-9 shadow-sm overflow-hidden"
               >
                 <div className="relative grid grid-cols-1 gap-8 md:grid-cols-12 md:items-center">
                   {/* Left Column: Text & Actions */}
                   <div className="md:col-span-7 flex flex-col items-start text-left">
                     
-                    <h1 className="mt-5 text-[1.8rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.6rem] leading-[1.15]">
+                    <h1 className="text-[1.8rem] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.6rem] leading-[1.15]">
                       {greeting},
                       <span className="block bg-gradient-to-r from-zinc-950 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-400">
                         pasqyra e qartë e biznesit tënd.
@@ -311,9 +312,9 @@ const Dashboard = () => {
                     </p>
 
                     <div className="mt-6 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-zinc-200 dark:border-zinc-805 bg-zinc-50 dark:bg-zinc-900 px-3 py-1 text-[11px] text-zinc-900 dark:text-zinc-50">Live</span>
-                      <span className="rounded-full border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black px-3 py-1 text-[11px] text-slate-500 dark:text-zinc-400">Qartësi financiare</span>
-                      <span className="rounded-full border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black px-3 py-1 text-[11px] text-slate-500 dark:text-zinc-400">Shitje të shpejta</span>
+                      <span className="rounded-full border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-slate-700 dark:text-zinc-300">Live</span>
+                      <span className="rounded-full border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-1 text-[11px] text-slate-500 dark:text-zinc-400">Qartësi financiare</span>
+                      <span className="rounded-full border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-1 text-[11px] text-slate-500 dark:text-zinc-400">Shitje të shpejta</span>
                     </div>
 
                     <div className="mt-8">
@@ -321,9 +322,9 @@ const Dashboard = () => {
                         whileHover={{ y: -2, scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setSaleDrawerOpen(true)}
-                        className="inline-flex items-center justify-center gap-3 rounded-full border border-zinc-200 dark:border-transparent bg-zinc-950 dark:bg-zinc-50 px-6 py-3.5 text-[13px] font-semibold text-zinc-50 dark:text-zinc-950 shadow-[0_12px_40px_rgba(var(--accent-rgb),0.15)] transition hover:bg-zinc-900 dark:hover:bg-zinc-100"
+                        className="inline-flex items-center justify-center gap-3 rounded-full bg-slate-900 dark:bg-white px-6 py-3.5 text-[13px] font-semibold text-white dark:text-slate-900 shadow-[0_12px_40px_rgba(var(--accent-rgb),0.15)] transition hover:bg-slate-800 dark:hover:bg-zinc-200"
                       >
-                        <span className="grid h-7 w-7 place-items-center rounded-full bg-zinc-900 dark:bg-zinc-200 text-zinc-50 dark:text-zinc-950 shadow-sm">
+                        <span className="grid h-7 w-7 place-items-center rounded-full bg-slate-800 dark:bg-zinc-200 text-white dark:text-slate-900 shadow-sm">
                           <Plus size={14} strokeWidth={2.8} />
                         </span>
                         Shitje e Shpejtë
@@ -338,15 +339,14 @@ const Dashboard = () => {
                     
                     {/* The Tilted Card Stack */}
                     <div className="relative w-72 h-44">
-                      {/* Underlay / Back Card (Subtle indigo/violet card) */}
+                      {/* Underlay / Back Card */}
                       <div className="absolute inset-0 rounded-[24px] border border-indigo-500/10 bg-gradient-to-br from-indigo-500/10 to-violet-500/5 shadow-lg transform -rotate-12 -translate-x-4 -translate-y-3 scale-95 backdrop-blur-sm transition-all duration-500 hover:-translate-x-5 hover:-translate-y-4 hover:-rotate-8" />
                       
-                      {/* Middle Card (Violet accent glass card) */}
+                      {/* Middle Card */}
                       <div className="absolute inset-0 rounded-[24px] border border-violet-500/15 bg-gradient-to-br from-violet-500/15 to-fuchsia-500/5 shadow-xl transform -rotate-6 -translate-x-2 -translate-y-1.5 scale-98 backdrop-blur-md transition-all duration-500 hover:-translate-x-3 hover:-translate-y-2 hover:-rotate-4" />
                       
-                      {/* Foreground / Active Glass Card (Vibrant Indigo-Violet premium mesh glassmorphism) */}
-                      <div className="absolute inset-0 rounded-[24px] border border-white/20 dark:border-white/[0.08] bg-gradient-to-br from-zinc-900/95 via-indigo-950/80 to-zinc-950/95 dark:from-black/90 dark:via-indigo-950/40 dark:to-zinc-950/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-6 flex flex-col justify-between backdrop-blur-xl transition-all duration-500 hover:-translate-y-2.5 hover:rotate-2 hover:shadow-indigo-500/10">
-                        {/* Mesh gradient overlay for high-end look */}
+                      {/* Foreground / Active Glass Card */}
+                      <div className="absolute inset-0 rounded-[24px] border border-white/[0.12] bg-zinc-800 dark:bg-zinc-900 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-6 flex flex-col justify-between transition-all duration-500 hover:-translate-y-2.5 hover:rotate-2">
                         <div className="pointer-events-none absolute inset-0 rounded-[24px] bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.15),transparent_60%)]" />
 
                         <div className="flex justify-between items-start relative z-10">
@@ -394,7 +394,7 @@ const Dashboard = () => {
               
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Bot size={18} className="text-zinc-900 dark:text-zinc-100" />
+                  <img src={Logo} alt="Zahlx" className="h-5 w-auto brightness-0 dark:invert" />
                   <h4 className="text-[14px] font-bold text-slate-900 dark:text-zinc-100">
                     Zahlx AI CFO Copilot
                   </h4>

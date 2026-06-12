@@ -325,14 +325,15 @@ const OffersPage = () => {
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950 print:bg-white print:text-black">
       {/* Decorative gradient overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(var(--accent-rgb),0.08),transparent_50%)] print:hidden" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)] print:hidden" />
 
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:p-0">
 
         {/* Top Header Section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between print:hidden">
           <div>
-            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-indigo-600/90 font-medium">Menaxhimi i Ofertave</p>
+            <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
               Oferta & Kalkulime
               {loading && <RefreshCcw size={20} className="animate-spin text-slate-450 dark:text-zinc-500" />}
             </h1>

@@ -1126,8 +1126,12 @@ app.post('/api/chat', async (req, res) => {
       ? recentInvoices.map(i => `- ${i.numri_fatures} (Klienti: ${i.klienti}, Totali: ${i.totali} EUR, Statusi: ${i.statusi}, Data: ${new Date(i.data_krijimit).toLocaleDateString('sq-AL')})`).join('\n')
       : 'Nuk ka transaksione të fundit.';
 
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('sq-AL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const systemPrompt = `Ju jeni Zahlx AI CFO Copilot, një asistent financiar dhe menaxhues inteligjent për platformën e menaxhimit të biznesit Zahlx.
 Ju komunikoni në gjuhën shqipe (ose në gjuhën e përdoruesit nëse ju pyet në gjuhë tjetër), në mënyrë profesionale, miqësore, të qartë dhe të shkurtër.
+
+Data aktuale: ${todayStr}.
 
 Këtu janë të dhënat aktuale të biznesit në kohë reale nga baza e të dhënave:
 - Bilanci në Arkë: ${arka_balance.toFixed(2)} EUR

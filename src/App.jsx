@@ -16,6 +16,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './index.css';
+import { Menu } from 'lucide-react';
 import Logo from './assets/X.png';
 
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -89,9 +90,7 @@ const AuthenticatedLayout = () => {
             className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-2 text-zinc-550 dark:text-zinc-400 transition hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-white"
             aria-label="Hap menunë"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+            <Menu size={20} />
           </button>
           <img src={Logo} alt="Zahlx Logo" className="h-14 w-auto object-contain brightness-0 dark:invert" />
           <span className="rounded-full border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 text-[11px] font-medium text-indigo-600 dark:text-indigo-400">Live</span>

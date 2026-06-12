@@ -15,11 +15,11 @@ import {
   Wallet,
   BrainCircuit,
   ArrowRight,
-  Bot
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import Logo from '../assets/X.png';
 
 const currency = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -230,17 +230,15 @@ const ReportsPage = () => {
   const totalTopRevenue = reportData.topProducts.reduce((sum, item) => sum + item.revenue, 0);
 
   return (
-    <div className="relative min-h-full bg-zinc-50 dark:bg-zinc-950">
+    <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
         {/* Header section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/50 dark:border-transparent bg-white dark:bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              <BrainCircuit size={12} className="text-indigo-500" />
-              Zahlx AI Copilot
-            </div>
-            <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-zinc-100 sm:text-[2.8rem] leading-[1.15]">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-indigo-600/90 font-medium">Raportet</p>
+            <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
               Analitika Financiare
             </h1>
             <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 max-w-xl">
@@ -598,7 +596,7 @@ const ReportsPage = () => {
                 <div className="mb-6 flex items-center justify-between">
                   <div>
                     <h2 className="text-[16px] font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
-                      <Bot size={18} className="text-zinc-900 dark:text-zinc-100" />
+                      <img src={Logo} alt="Zahlx" className="h-5 w-auto brightness-0 dark:invert" />
                       Zahlx AI CFO Copilot
                     </h2>
                     <p className="text-[12px] text-slate-500 dark:text-zinc-400">Analizë financiare dhe rekomandime autonome</p>

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion, useDragControls } from 'framer-motion';
-import { BotMessageSquare, ChevronUp, Send, Bot, X } from 'lucide-react';
+import { ChevronUp, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import Logo from '../assets/X.png';
 
 const QUICK_PROMPTS = [
   'Përmbledhja e ditës',
@@ -134,6 +135,7 @@ const AssistantChatWidget = () => {
         headers,
         body: JSON.stringify({
           history: updatedHistory,
+          context: `Sot është ${new Date().toLocaleDateString('sq-AL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`,
         }),
       });
 
@@ -229,12 +231,21 @@ const AssistantChatWidget = () => {
               exit={{ opacity: 0, scale: 0.8 }}
               whileHover={{ y: -2, scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="group flex items-center justify-center rounded-full border border-zinc-200 dark:border-transparent bg-white dark:bg-zinc-900 text-left text-zinc-950 dark:text-zinc-50 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-zinc-700 px-4 py-3 gap-3 cursor-grab active:cursor-grabbing select-none"
+              className="group flex items-center justify-center rounded-full border border-zinc-300 dark:border-transparent bg-white dark:bg-zinc-900 text-left text-zinc-950 dark:text-zinc-50 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700 px-4 py-3 gap-3 cursor-grab active:cursor-grabbing select-none"
               aria-label="Hap asistentin AI"
             >
-              <span className="relative grid h-11 w-11 place-items-center rounded-full border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 shadow-sm shrink-0">
-                <BotMessageSquare size={19} />
-              </span>
+              <motion.span
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="relative grid h-11 w-11 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 shadow-sm shrink-0 overflow-hidden"
+              >
+                <img src={Logo} alt="Zahlx" className="relative z-10 h-5 w-auto brightness-0 dark:invert" />
+                <motion.span
+                  animate={{ opacity: [0, 0.4, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-full bg-black/5 dark:bg-white/5"
+                />
+              </motion.span>
 
               <span className="hidden sm:flex flex-col pr-1 overflow-hidden whitespace-nowrap">
                 <span className="block text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500 font-semibold">Zahlx AI</span>
@@ -253,19 +264,28 @@ const AssistantChatWidget = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
               transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-              className="w-[min(92vw,24rem)] overflow-hidden rounded-[1.75rem] border border-zinc-200 dark:border-transparent bg-white dark:bg-zinc-950 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+              className="w-[min(92vw,24rem)] overflow-hidden rounded-[1.75rem] border border-zinc-300 dark:border-white/[0.07] bg-white dark:bg-zinc-950 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
             >
               <div
                 onPointerDown={handlePointerDown}
-                className="flex items-start justify-between border-b border-zinc-200 dark:border-transparent px-4 py-4 cursor-move select-none"
+                className="flex items-start justify-between border-b border-zinc-700/60 dark:border-transparent bg-zinc-800 dark:bg-zinc-950 rounded-t-[1.75rem] px-4 py-4 cursor-move select-none"
               >
                 <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
-                    <Bot size={16} />
-                  </span>
+                  <motion.span
+                    animate={{ scale: [1, 1.04, 1] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative grid h-10 w-10 place-items-center rounded-2xl bg-zinc-800 dark:bg-zinc-900 text-zinc-100 dark:text-zinc-100 overflow-hidden"
+                  >
+                    <img src={Logo} alt="Zahlx" className="relative z-10 h-5 w-auto brightness-0 invert" />
+                    <motion.span
+                      animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.15, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute inset-0 rounded-2xl bg-white/10"
+                    />
+                  </motion.span>
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400 font-semibold">Asistent inteligjent</p>
-                    <p className="mt-1 text-[14px] font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">Zahlx AI</p>
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-300 dark:text-zinc-400 font-semibold">Asistent inteligjent</p>
+                    <p className="mt-1 text-[14px] font-semibold tracking-tight text-zinc-100 dark:text-zinc-50">Zahlx AI</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -273,7 +293,7 @@ const AssistantChatWidget = () => {
                     type="button"
                     onClick={() => setOpen(false)}
                     onPointerDown={(e) => e.stopPropagation()}
-                    className="rounded-xl border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 p-2 text-zinc-600 dark:text-zinc-300 transition hover:border-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50"
+                    className="rounded-xl border border-zinc-600/60 dark:border-transparent bg-zinc-700 dark:bg-zinc-900 p-2 text-zinc-200 dark:text-zinc-300 transition hover:border-zinc-500 hover:text-white dark:hover:text-zinc-50"
                     aria-label="Mbyll asistentin AI"
                   >
                     <X size={16} />
@@ -290,10 +310,10 @@ const AssistantChatWidget = () => {
                     <div
                       className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-6 whitespace-pre-line ${message.role === 'user'
                           ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 font-medium border border-transparent dark:border-transparent shadow-sm'
-                          : 'border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100'
+                          : 'border border-zinc-300 dark:border-transparent bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100'
                         }`}
                     >
-                      {message.role === 'assistant' && index === messages.length - 1 ? (
+                      {message.role === 'assistant' && index === messages.length - 1 && messages.length > 1 ? (
                         <TypewriterText text={message.text} />
                       ) : (
                         message.text
@@ -303,7 +323,7 @@ const AssistantChatWidget = () => {
                 ))}
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="max-w-[82%] rounded-2xl px-4 py-3 text-[13px] border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-400 flex items-center gap-1.5">
+                    <div className="max-w-[82%] rounded-2xl px-4 py-3 text-[13px] border border-zinc-300 dark:border-transparent bg-zinc-100 dark:bg-zinc-900 text-zinc-400 flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce" />
                       <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.15s]" />
                       <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce [animation-delay:0.3s]" />
@@ -313,21 +333,21 @@ const AssistantChatWidget = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="border-t border-zinc-200 dark:border-transparent px-4 py-4">
+                    <div className="border-t border-zinc-300 dark:border-transparent px-4 py-4">
                 <div className="mb-3 flex flex-wrap gap-2">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
                       type="button"
                       onClick={() => handleSend(prompt)}
-                      className="rounded-full border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 px-3 py-2 text-[11px] font-semibold text-zinc-650 dark:text-zinc-300 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-50"
+                      className="rounded-full border border-zinc-600/60 dark:border-transparent bg-zinc-800 dark:bg-zinc-900 px-3 py-2 text-[11px] font-semibold text-zinc-100 dark:text-zinc-300 transition hover:bg-zinc-700 dark:hover:bg-zinc-800 hover:text-white dark:hover:text-zinc-50"
                     >
                       {prompt}
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-end gap-2 rounded-2xl border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 p-2">
+                <div className="flex items-end gap-2 rounded-2xl border border-zinc-300 dark:border-transparent bg-zinc-100 dark:bg-zinc-900 p-2">
                   <textarea
                     value={input}
                     onChange={(event) => setInput(event.target.value)}

@@ -91,13 +91,14 @@ const TransactionsPage = () => {
 
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_25%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_15%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         
         {/* Top header section */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="mt-3 flex items-center gap-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-indigo-600/90 font-medium">Transaksionet</p>
+            <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-[2.8rem] leading-[1.15]">
               Libri i Shitjes
               {loading && <RefreshCcw size={20} className="animate-spin text-slate-450 dark:text-zinc-500" />}
             </h1>
