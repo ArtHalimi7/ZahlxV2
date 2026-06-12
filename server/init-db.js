@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -11,7 +12,10 @@ const statements = [
     emri_biznesit VARCHAR(200) NOT NULL,
     email VARCHAR(200) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    role ENUM('owner', 'worker') NOT NULL DEFAULT 'owner',
+    parent_user_id INT UNSIGNED DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_users_parent FOREIGN KEY (parent_user_id) REFERENCES users(id) ON DELETE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   `CREATE TABLE IF NOT EXISTS products (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -108,11 +112,12 @@ const ensureOwner = async () => {
 
   const businessName = process.env.DEFAULT_BUSINESS_NAME || 'Zahlx Business';
   const businessEmail = process.env.DEFAULT_BUSINESS_EMAIL || 'owner@zahlx.local';
+  const hashedDefault = await bcrypt.hash('bootstrap', 10);
 
   const [result] = await pool.query(
-    `INSERT INTO users (emri_biznesit, email, password_hash)
-     VALUES (?, ?, ?)`,
-    [businessName, businessEmail, 'bootstrap']
+    `INSERT INTO users (emri_biznesit, email, password_hash, role)
+     VALUES (?, ?, ?, 'owner')`,
+    [businessName, businessEmail, hashedDefault]
   );
 
   return result.insertId;
@@ -139,7 +144,8 @@ export const initDatabase = async ({ closePool = true } = {}) => {
     const columnsToMigrate = [
       { name: 'tax_rate', type: 'DECIMAL(5,2) DEFAULT 0' },
       { name: 'tax_amount', type: 'DECIMAL(12,2) DEFAULT 0' },
-      { name: 'due_date', type: 'DATETIME DEFAULT NULL' }
+      { name: 'due_date', type: 'DATETIME DEFAULT NULL' },
+      { name: 'seller_id', type: 'INT UNSIGNED DEFAULT NULL' }
     ];
 
     for (const col of columnsToMigrate) {
@@ -160,6 +166,17 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       }
     }
 
+    try {
+      await pool.query(`
+        ALTER TABLE invoices
+        ADD CONSTRAINT fk_invoices_seller
+        FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE SET NULL
+      `);
+      console.log('✓ Added foreign key constraint fk_invoices_seller to invoices table');
+    } catch (err) {
+      // Ignore if constraint already exists
+    }
+
     // Backfill due_date with data_krijimit for existing invoices
     try {
       await pool.query(`UPDATE invoices SET due_date = data_krijimit WHERE due_date IS NULL`);
@@ -167,7 +184,44 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       console.warn('Migration warning backfilling due_date:', err.message || err);
     }
 
+    // Run schema migrations for new users columns
+    const userColumnsToMigrate = [
+      { name: 'role', type: "ENUM('owner', 'worker') NOT NULL DEFAULT 'owner'" },
+      { name: 'parent_user_id', type: 'INT UNSIGNED DEFAULT NULL' }
+    ];
+
+    for (const col of userColumnsToMigrate) {
+      try {
+        await pool.query(`ALTER TABLE users ADD COLUMN ${col.name} ${col.type}`);
+        console.log(`✓ Added column ${col.name} to users table`);
+      } catch (err) {
+        if (
+          err.code === 'ER_DUP_FIELDNAME' ||
+          err.errno === 1060 ||
+          (err.message && err.message.includes('duplicate column')) ||
+          (err.message && err.message.includes('already exists'))
+        ) {
+          // Column already exists
+        } else {
+          console.warn(`Migration notice for users column ${col.name}:`, err.message || err);
+        }
+      }
+    }
+
+    try {
+      await pool.query(`
+        ALTER TABLE users
+        ADD CONSTRAINT fk_users_parent
+        FOREIGN KEY (parent_user_id) REFERENCES users(id) ON DELETE CASCADE
+      `);
+      console.log('✓ Added foreign key constraint fk_users_parent to users table');
+    } catch (err) {
+      // Ignore if constraint already exists
+    }
+
     const ownerId = await ensureOwner();
+    const hashedDefault = await bcrypt.hash('bootstrap', 10);
+    await pool.query("UPDATE users SET password_hash = ? WHERE password_hash = 'bootstrap'", [hashedDefault]);
 
     console.log('✓ Database schema is ready');
     console.log(`✓ Owner user available with id ${ownerId}`);

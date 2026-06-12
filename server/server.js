@@ -2,6 +2,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import pool from './db.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -10,6 +13,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // Ensure offers and offer_items tables exist at server start
 (async () => {
@@ -48,40 +52,224 @@ app.use(express.json());
   }
 })();
 
-let ownerIdPromise;
+const JWT_SECRET = process.env.JWT_SECRET || 'zahlx-super-secret-key-12345';
 
-const getOwnerId = async () => {
-  if (!ownerIdPromise) {
-    ownerIdPromise = (async () => {
-      const [users] = await pool.query('SELECT id FROM users ORDER BY id ASC LIMIT 1');
-
-      if (users.length > 0) {
-        return users[0].id;
-      }
-
-      const businessName = process.env.DEFAULT_BUSINESS_NAME || 'Zahlx Business';
-      const businessEmail = process.env.DEFAULT_BUSINESS_EMAIL || 'owner@zahlx.local';
-
-      const [result] = await pool.query(
-        `INSERT INTO users (emri_biznesit, email, password_hash)
-         VALUES (?, ?, ?)`,
-        [businessName, businessEmail, 'bootstrap']
-      );
-
-      return result.insertId;
-    })();
+const authenticateToken = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ error: 'Ju lutem identifikohuni' });
   }
 
-  return ownerIdPromise;
+  jwt.verify(token, JWT_SECRET, (err, decodedUser) => {
+    if (err) {
+      res.clearCookie('token');
+      return res.status(403).json({ error: 'Sesion i skaduar ose i pavlefshëm' });
+    }
+    req.user = decodedUser;
+    next();
+  });
 };
+
+const getTenantId = (req) => {
+  return req.user.role === 'worker' ? req.user.parent_user_id : req.user.id;
+};
+
+// ================================================================
+// AUTHENTICATION & STAFF APIS
+// ================================================================
+
+// Signup Owner
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { emri_biznesit, email, password } = req.body;
+    if (!emri_biznesit || !email || !password) {
+      return res.status(400).json({ error: 'Plotësoni të gjitha fushat e detyrueshme' });
+    }
+
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'Kjo adresë email është e regjistruar tashmë' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const [result] = await pool.query(
+      `INSERT INTO users (emri_biznesit, email, password_hash, role)
+       VALUES (?, ?, ?, 'owner')`,
+      [emri_biznesit, email, passwordHash]
+    );
+
+    const user = { id: result.insertId, email, emri_biznesit, role: 'owner', parent_user_id: null };
+    const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.status(201).json(user);
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ error: 'Gabim serveri gjatë regjistrimit' });
+  }
+});
+
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email dhe fjalëkalimi janë të detyrueshme' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT u.id, u.emri_biznesit, u.email, u.password_hash, u.role, u.parent_user_id, p.emri_biznesit AS parent_emri_biznesit
+       FROM users u
+       LEFT JOIN users p ON p.id = u.parent_user_id
+       WHERE u.email = ?`,
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Email ose fjalëkalim i pasaktë' });
+    }
+
+    const dbUser = rows[0];
+    const passwordMatch = await bcrypt.compare(password, dbUser.password_hash);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Email ose fjalëkalim i pasaktë' });
+    }
+
+    const emriBiznesit = dbUser.role === 'worker' ? dbUser.parent_emri_biznesit : dbUser.emri_biznesit;
+    const user = {
+      id: dbUser.id,
+      email: dbUser.email,
+      emri_biznesit: emriBiznesit,
+      role: dbUser.role,
+      parent_user_id: dbUser.parent_user_id
+    };
+
+    const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.json(user);
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Gabim serveri gjatë hyrjes' });
+  }
+});
+
+// Logout
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ message: 'Doli me sukses' });
+});
+
+// Get profile
+app.get('/api/auth/me', (req, res) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ error: 'Jo i kyçur' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decodedUser) => {
+    if (err) {
+      res.clearCookie('token');
+      return res.status(401).json({ error: 'Sesion i skaduar' });
+    }
+    res.json(decodedUser);
+  });
+});
+
+// List cashiers (Owner only)
+app.get('/api/auth/workers', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'owner') {
+      return res.status(403).json({ error: 'Nuk keni autorizim' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT id, emri_biznesit AS emri, email, created_at
+       FROM users
+       WHERE role = 'worker' AND parent_user_id = ?
+       ORDER BY created_at DESC`,
+      [req.user.id]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('List workers error:', error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// Create cashier (Owner only)
+app.post('/api/auth/workers', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'owner') {
+      return res.status(403).json({ error: 'Nuk keni autorizim për të krijuar punëtorë' });
+    }
+
+    const { emri_punetorit, email, password } = req.body;
+    if (!emri_punetorit || !email || !password) {
+      return res.status(400).json({ error: 'Plotësoni të gjitha fushat e detyrueshme' });
+    }
+
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'Kjo adresë email është e regjistruar tashmë' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const [result] = await pool.query(
+      `INSERT INTO users (emri_biznesit, email, password_hash, role, parent_user_id)
+       VALUES (?, ?, ?, 'worker', ?)`,
+      [emri_punetorit, email, passwordHash, req.user.id]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      email,
+      emri_biznesit: emri_punetorit,
+      role: 'worker',
+      parent_user_id: req.user.id
+    });
+  } catch (error) {
+    console.error('Create worker error:', error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// Gate authentication middleware for all other API endpoints
+app.use('/api', (req, res, next) => {
+  if (req.path.startsWith('/auth/')) {
+    return next();
+  }
+  authenticateToken(req, res, next);
+});
 
 app.get('/api/products', async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
-       FROM products
-       ORDER BY emri ASC`
-    );
+    const ownerId = getTenantId(req);
+    const isWorker = req.user.role === 'worker';
+    const query = isWorker
+      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+         FROM products
+         WHERE user_id = ?
+         ORDER BY emri ASC`
+      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+         FROM products
+         WHERE user_id = ?
+         ORDER BY emri ASC`;
+
+    const [rows] = await pool.query(query, [ownerId]);
     res.json(rows);
   } catch (error) {
     console.error('GET /api/products error:', error?.stack || error);
@@ -91,12 +279,17 @@ app.get('/api/products', async (req, res) => {
 
 app.get('/api/products/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
-       FROM products
-       WHERE id = ?`,
-      [req.params.id]
-    );
+    const ownerId = getTenantId(req);
+    const isWorker = req.user.role === 'worker';
+    const query = isWorker
+      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+         FROM products
+         WHERE id = ? AND user_id = ?`
+      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+         FROM products
+         WHERE id = ? AND user_id = ?`;
+
+    const [rows] = await pool.query(query, [req.params.id, ownerId]);
 
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Produkti nuk u gjet' });
@@ -111,7 +304,7 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
   try {
-    const ownerId = await getOwnerId();
+    const ownerId = getTenantId(req);
     const {
       emri,
       kodi_bar,
@@ -134,8 +327,8 @@ app.post('/api/products', async (req, res) => {
     const [rows] = await pool.query(
       `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, created_at, updated_at
        FROM products
-       WHERE id = ?`,
-      [result.insertId]
+       WHERE id = ? AND user_id = ?`,
+      [result.insertId, ownerId]
     );
 
     res.status(201).json(rows[0]);
@@ -151,6 +344,7 @@ app.post('/api/products', async (req, res) => {
 
 app.put('/api/products/:id', async (req, res) => {
   try {
+    const ownerId = getTenantId(req);
     const {
       emri,
       kodi_bar,
@@ -173,8 +367,8 @@ app.put('/api/products/:id', async (req, res) => {
            stoku_aktual = ?,
            kategoria = ?,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, req.params.id]
+       WHERE id = ? AND user_id = ?`,
+      [emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, req.params.id, ownerId]
     );
 
     if (result.affectedRows === 0) {
@@ -184,8 +378,8 @@ app.put('/api/products/:id', async (req, res) => {
     const [rows] = await pool.query(
       `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, created_at, updated_at
        FROM products
-       WHERE id = ?`,
-      [req.params.id]
+       WHERE id = ? AND user_id = ?`,
+      [req.params.id, ownerId]
     );
 
     res.json(rows[0]);
@@ -201,9 +395,10 @@ app.put('/api/products/:id', async (req, res) => {
 
 app.delete('/api/products/:id', async (req, res) => {
   try {
+    const ownerId = getTenantId(req);
     const [result] = await pool.query(
-      `DELETE FROM products WHERE id = ?`,
-      [req.params.id]
+      `DELETE FROM products WHERE id = ? AND user_id = ?`,
+      [req.params.id, ownerId]
     );
 
     if (result.affectedRows === 0) {
@@ -223,10 +418,13 @@ app.delete('/api/products/:id', async (req, res) => {
 
 app.get('/api/dashboard', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
+
     const [revenueRows] = await pool.query(
       `SELECT COALESCE(SUM(totali), 0) AS fitimi_total
        FROM invoices
-       WHERE statusi = 'paguar'`
+       WHERE statusi = 'paguar' AND user_id = ?`,
+      [tenantId]
     );
 
     const [todayRows] = await pool.query(
@@ -234,19 +432,24 @@ app.get('/api/dashboard', async (req, res) => {
               COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
        FROM invoices
        WHERE statusi = 'paguar'
-         AND DATE(data_krijimit) = CURDATE()`
+         AND DATE(data_krijimit) = CURDATE()
+         AND user_id = ?`,
+      [tenantId]
     );
 
     const [productRows] = await pool.query(
       `SELECT COUNT(*) AS total_produkte,
               COALESCE(SUM(stoku_aktual), 0) AS stoku_total
-       FROM products`
+       FROM products
+       WHERE user_id = ?`,
+      [tenantId]
     );
 
     const [lowStockRows] = await pool.query(
       `SELECT COUNT(*) AS stoku_ulet
        FROM products
-       WHERE stoku_aktual <= 5 AND stoku_aktual > 0`
+       WHERE stoku_aktual <= 5 AND stoku_aktual > 0 AND user_id = ?`,
+      [tenantId]
     );
 
     const [profitRows] = await pool.query(
@@ -256,20 +459,39 @@ app.get('/api/dashboard', async (req, res) => {
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
        JOIN products p ON p.id = ii.product_id
-       WHERE i.statusi = 'paguar'`
+       WHERE i.statusi = 'paguar' AND i.user_id = ?`,
+      [tenantId]
     );
 
     const [taxRows] = await pool.query(
       `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
        FROM invoices
-       WHERE statusi = 'paguar'`
+       WHERE statusi = 'paguar' AND user_id = ?`,
+      [tenantId]
     );
 
     const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
     const total_cost = Number(profitRows[0].total_cost || 0);
     const tax_liability = Number(taxRows[0].tax_liability || 0);
-    const net_profit = revenue_excl_tax - total_cost - (revenue_excl_tax - total_cost > 0 ? (revenue_excl_tax - total_cost) * 0.10 : 0); // 10% income tax estimate on net income
+    const net_profit = revenue_excl_tax - total_cost - (revenue_excl_tax - total_cost > 0 ? (revenue_excl_tax - total_cost) * 0.10 : 0);
     const profit_margin = revenue_excl_tax > 0 ? (net_profit / revenue_excl_tax) * 100 : 0;
+
+    if (req.user.role === 'worker') {
+      return res.json({
+        role: 'worker',
+        shitjet_sot_nr: Number(todayRows[0].shitjet_sot_nr || 0),
+        shitjet_sot_vlera: Number(todayRows[0].shitjet_sot_vlera || 0),
+        total_produkte: Number(productRows[0].total_produkte || 0),
+        stoku_total: Number(productRows[0].stoku_total || 0),
+        stoku_ulet: Number(lowStockRows[0].stoku_ulet || 0),
+        fitimi_total: null,
+        revenue_excl_tax: null,
+        total_cost: null,
+        tax_liability: null,
+        net_profit: null,
+        profit_margin: null,
+      });
+    }
 
     res.json({
       fitimi_total: Number(revenueRows[0].fitimi_total || 0),
@@ -292,13 +514,15 @@ app.get('/api/dashboard', async (req, res) => {
 
 app.get('/api/transactions', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const limit = Number.parseInt(req.query.limit, 10) || 10;
     const [rows] = await pool.query(
       `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date
        FROM invoices
+       WHERE user_id = ?
        ORDER BY data_krijimit DESC
        LIMIT ?`,
-      [limit]
+      [tenantId, limit]
     );
 
     const now = new Date();
@@ -320,7 +544,7 @@ app.post('/api/sales', async (req, res) => {
   const client = await pool.getConnection();
 
   try {
-    const ownerId = await getOwnerId();
+    const ownerId = getTenantId(req);
     const { klienti, items, tax_rate = 0, payment_terms = 'immediate', statusi = 'paguar' } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -332,7 +556,8 @@ app.post('/api/sales', async (req, res) => {
     const [countRows] = await client.query(
       `SELECT COUNT(*) AS c
        FROM invoices
-       WHERE DATE(data_krijimit) = CURDATE()`
+       WHERE DATE(data_krijimit) = CURDATE() AND user_id = ?`,
+      [ownerId]
     );
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
@@ -345,9 +570,9 @@ app.post('/api/sales', async (req, res) => {
       const [productRows] = await client.query(
         `SELECT id, emri, cmimi_shitjes, stoku_aktual
          FROM products
-         WHERE id = ?
+         WHERE id = ? AND user_id = ?
          FOR UPDATE`,
-        [item.product_id]
+        [item.product_id, ownerId]
       );
 
       if (productRows.length === 0) {
@@ -388,9 +613,9 @@ app.post('/api/sales', async (req, res) => {
     dueDate.setDate(dueDate.getDate() + daysToAdd);
 
     const [invoiceResult] = await client.query(
-      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', grandTotal, statusi, taxRate, taxAmount, dueDate]
+      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date, seller_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', grandTotal, statusi, taxRate, taxAmount, dueDate, req.user.id]
     );
 
     const invoiceId = invoiceResult.insertId;
@@ -405,8 +630,8 @@ app.post('/api/sales', async (req, res) => {
       await client.query(
         `UPDATE products
          SET stoku_aktual = stoku_aktual - ?, updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-         [item.sasia, item.product_id]
+         WHERE id = ? AND user_id = ?`,
+         [item.sasia, item.product_id, ownerId]
       );
     }
 
@@ -462,11 +687,16 @@ app.post('/api/sales', async (req, res) => {
 
 app.get('/api/invoices/:id', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const [invoiceRows] = await pool.query(
-      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date
-       FROM invoices
-       WHERE id = ?`,
-      [req.params.id]
+      `SELECT i.id, i.numri_fatures, i.klienti, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id,
+              owner.emri_biznesit AS emri_biznesit,
+              COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
+       FROM invoices i
+       JOIN users owner ON owner.id = i.user_id
+       LEFT JOIN users seller ON seller.id = i.seller_id
+       WHERE i.id = ? AND i.user_id = ?`,
+      [req.params.id, tenantId]
     );
 
     if (invoiceRows.length === 0) {
@@ -500,14 +730,15 @@ app.get('/api/invoices/:id', async (req, res) => {
 
 app.put('/api/invoices/:id/status', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const { statusi } = req.body;
     if (!['paguar', 'ne_pritje', 'anuluar'].includes(statusi)) {
       return res.status(400).json({ error: 'Status i panjohur' });
     }
 
     const [invoiceRows] = await pool.query(
-      `SELECT id, user_id, numri_fatures, totali, statusi FROM invoices WHERE id = ?`,
-      [req.params.id]
+      `SELECT id, user_id, numri_fatures, totali, statusi FROM invoices WHERE id = ? AND user_id = ?`,
+      [req.params.id, tenantId]
     );
 
     if (invoiceRows.length === 0) {
@@ -517,8 +748,8 @@ app.put('/api/invoices/:id/status', async (req, res) => {
     const invoice = invoiceRows[0];
 
     const [result] = await pool.query(
-      `UPDATE invoices SET statusi = ? WHERE id = ?`,
-      [statusi, req.params.id]
+      `UPDATE invoices SET statusi = ? WHERE id = ? AND user_id = ?`,
+      [statusi, req.params.id, tenantId]
     );
 
     if (invoice.statusi === 'ne_pritje' && statusi === 'paguar') {
@@ -541,16 +772,23 @@ app.put('/api/invoices/:id/status', async (req, res) => {
 
 app.get('/api/arka', async (req, res) => {
   try {
+    if (req.user.role === 'worker') {
+      return res.status(403).json({ error: 'Nuk keni autorizim' });
+    }
+    const tenantId = getTenantId(req);
+
     const [balanceRows] = await pool.query(
       `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
        FROM financial_ledger
-       WHERE llogaria = 'Arka'`
+       WHERE llogaria = 'Arka' AND user_id = ?`,
+      [tenantId]
     );
 
     const [todayRows] = await pool.query(
       `SELECT COALESCE(SUM(debit), 0) AS today_in, COALESCE(SUM(kredit), 0) AS today_out
        FROM financial_ledger
-       WHERE llogaria = 'Arka' AND DATE(data) = CURDATE()`
+       WHERE llogaria = 'Arka' AND DATE(data) = CURDATE() AND user_id = ?`,
+      [tenantId]
     );
 
     const [entries] = await pool.query(
@@ -558,9 +796,10 @@ app.get('/api/arka', async (req, res) => {
               i.numri_fatures
        FROM financial_ledger fl
        LEFT JOIN invoices i ON i.id = fl.invoice_id
-       WHERE fl.llogaria = 'Arka'
+       WHERE fl.llogaria = 'Arka' AND fl.user_id = ?
        ORDER BY fl.data DESC
-       LIMIT 200`
+       LIMIT 200`,
+      [tenantId]
     );
 
     const totalIn = Number(balanceRows[0].total_in);
@@ -590,6 +829,10 @@ app.get('/api/arka', async (req, res) => {
 
 app.get('/api/reports', async (req, res) => {
   try {
+    if (req.user.role === 'worker') {
+      return res.status(403).json({ error: 'Nuk keni autorizim' });
+    }
+    const tenantId = getTenantId(req);
     const interval = req.query.interval || 'daily';
     let chartDataRows = [];
 
@@ -603,11 +846,13 @@ app.get('/api/reports', async (req, res) => {
            SELECT ii.invoice_id, SUM(ii.sasia * p.cmimi_blerjes) as cost
            FROM invoice_items ii
            JOIN products p ON p.id = ii.product_id
+           WHERE p.user_id = ?
            GROUP BY ii.invoice_id
          ) AS invoice_costs ON i.id = invoice_costs.invoice_id
-         WHERE i.statusi = 'paguar' AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+         WHERE i.statusi = 'paguar' AND i.user_id = ? AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
          GROUP BY DATE_FORMAT(i.data_krijimit, '%Y-%m')
-         ORDER BY date ASC`
+         ORDER BY date ASC`,
+        [tenantId, tenantId]
       );
       chartDataRows = rows;
     } else if (interval === 'weekly') {
@@ -620,11 +865,13 @@ app.get('/api/reports', async (req, res) => {
            SELECT ii.invoice_id, SUM(ii.sasia * p.cmimi_blerjes) as cost
            FROM invoice_items ii
            JOIN products p ON p.id = ii.product_id
+           WHERE p.user_id = ?
            GROUP BY ii.invoice_id
          ) AS invoice_costs ON i.id = invoice_costs.invoice_id
-         WHERE i.statusi = 'paguar' AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+         WHERE i.statusi = 'paguar' AND i.user_id = ? AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
          GROUP BY DATE_FORMAT(i.data_krijimit, '%Y-W%u')
-         ORDER BY date ASC`
+         ORDER BY date ASC`,
+        [tenantId, tenantId]
       );
       chartDataRows = rows;
     } else {
@@ -638,11 +885,13 @@ app.get('/api/reports', async (req, res) => {
            SELECT ii.invoice_id, SUM(ii.sasia * p.cmimi_blerjes) as cost
            FROM invoice_items ii
            JOIN products p ON p.id = ii.product_id
+           WHERE p.user_id = ?
            GROUP BY ii.invoice_id
          ) AS invoice_costs ON i.id = invoice_costs.invoice_id
-         WHERE i.statusi = 'paguar' AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+         WHERE i.statusi = 'paguar' AND i.user_id = ? AND i.data_krijimit >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
          GROUP BY DATE(i.data_krijimit)
-         ORDER BY date ASC`
+         ORDER BY date ASC`,
+        [tenantId, tenantId]
       );
       chartDataRows = rows;
     }
@@ -652,10 +901,11 @@ app.get('/api/reports', async (req, res) => {
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
        JOIN products p ON p.id = ii.product_id
-       WHERE i.statusi = 'paguar'
+       WHERE i.statusi = 'paguar' AND i.user_id = ? AND p.user_id = ?
        GROUP BY p.id, p.emri
        ORDER BY total_sold DESC
-       LIMIT 5`
+       LIMIT 5`,
+      [tenantId, tenantId]
     );
 
     const [profitRows] = await pool.query(
@@ -665,7 +915,8 @@ app.get('/api/reports', async (req, res) => {
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
        JOIN products p ON p.id = ii.product_id
-       WHERE i.statusi = 'paguar'`
+       WHERE i.statusi = 'paguar' AND i.user_id = ? AND p.user_id = ?`,
+      [tenantId, tenantId]
     );
 
     const [thisMonthRows] = await pool.query(
@@ -673,7 +924,9 @@ app.get('/api/reports', async (req, res) => {
        FROM invoices
        WHERE statusi = 'paguar'
          AND YEAR(data_krijimit) = YEAR(CURDATE())
-         AND MONTH(data_krijimit) = MONTH(CURDATE())`
+         AND MONTH(data_krijimit) = MONTH(CURDATE())
+         AND user_id = ?`,
+      [tenantId]
     );
 
     const [lastMonthRows] = await pool.query(
@@ -681,19 +934,25 @@ app.get('/api/reports', async (req, res) => {
        FROM invoices
        WHERE statusi = 'paguar'
          AND YEAR(data_krijimit) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-         AND MONTH(data_krijimit) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))`
+         AND MONTH(data_krijimit) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+         AND user_id = ?`,
+      [tenantId]
     );
 
     const [inventoryRows] = await pool.query(
       `SELECT COALESCE(SUM(stoku_aktual * cmimi_shitjes), 0) AS inventory_value,
               COALESCE(SUM(stoku_aktual * cmimi_blerjes), 0) AS inventory_cost
-       FROM products`
+       FROM products
+       WHERE user_id = ?`,
+      [tenantId]
     );
 
     const [taxRows] = await pool.query(
       `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
        FROM invoices
-       WHERE statusi = 'paguar'`
+       WHERE statusi = 'paguar'
+         AND user_id = ?`,
+      [tenantId]
     );
 
     const totalRevenue = Number(profitRows[0].total_revenue);
@@ -760,6 +1019,10 @@ app.get('/api/reports', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
+    if (req.user.role === 'worker') {
+      return res.status(403).json({ error: 'Nuk keni autorizim' });
+    }
+    const tenantId = getTenantId(req);
     const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
@@ -775,7 +1038,8 @@ app.post('/api/chat', async (req, res) => {
     const [revenueRows] = await pool.query(
       `SELECT COALESCE(SUM(totali), 0) AS fitimi_total
        FROM invoices
-       WHERE statusi = 'paguar'`
+       WHERE statusi = 'paguar' AND user_id = ?`,
+      [tenantId]
     );
 
     const [todayRows] = await pool.query(
@@ -783,19 +1047,24 @@ app.post('/api/chat', async (req, res) => {
               COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
        FROM invoices
        WHERE statusi = 'paguar'
-         AND DATE(data_krijimit) = CURDATE()`
+         AND DATE(data_krijimit) = CURDATE()
+         AND user_id = ?`,
+      [tenantId]
     );
 
     const [productRows] = await pool.query(
       `SELECT COUNT(*) AS total_produkte,
               COALESCE(SUM(stoku_aktual), 0) AS stoku_total
-       FROM products`
+       FROM products
+       WHERE user_id = ?`,
+      [tenantId]
     );
 
     const [lowStockRows] = await pool.query(
       `SELECT COUNT(*) AS stoku_ulet
        FROM products
-       WHERE stoku_aktual <= 5 AND stoku_aktual > 0`
+       WHERE stoku_aktual <= 5 AND stoku_aktual > 0 AND user_id = ?`,
+      [tenantId]
     );
 
     const [profitRows] = await pool.query(
@@ -805,34 +1074,40 @@ app.post('/api/chat', async (req, res) => {
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
        JOIN products p ON p.id = ii.product_id
-       WHERE i.statusi = 'paguar'`
+       WHERE i.statusi = 'paguar' AND i.user_id = ? AND p.user_id = ?`,
+      [tenantId, tenantId]
     );
 
     const [taxRows] = await pool.query(
       `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
        FROM invoices
-       WHERE statusi = 'paguar'`
+       WHERE statusi = 'paguar' AND user_id = ?`,
+      [tenantId]
     );
 
     const [arkaRows] = await pool.query(
       `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
        FROM financial_ledger
-       WHERE llogaria = 'Arka'`
+       WHERE llogaria = 'Arka' AND user_id = ?`,
+      [tenantId]
     );
 
     const [lowStockProducts] = await pool.query(
       `SELECT emri, stoku_aktual, cmimi_shitjes, kategoria
        FROM products
-       WHERE stoku_aktual <= 5 AND stoku_aktual >= 0
+       WHERE stoku_aktual <= 5 AND stoku_aktual >= 0 AND user_id = ?
        ORDER BY stoku_aktual ASC
-       LIMIT 10`
+       LIMIT 10`,
+      [tenantId]
     );
 
     const [recentInvoices] = await pool.query(
       `SELECT numri_fatures, klienti, totali, statusi, data_krijimit
        FROM invoices
+       WHERE user_id = ?
        ORDER BY data_krijimit DESC
-       LIMIT 5`
+       LIMIT 5`,
+      [tenantId]
     );
 
     const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
@@ -928,6 +1203,10 @@ Përdorni këto të dhëna për t'u përgjigjur saktësisht pyetjeve të përdor
 // ─── AI Daily Insight Endpoint (Dashboard autopilot) ───
 app.get('/api/ai/daily-insight', async (req, res) => {
   try {
+    if (req.user.role === 'worker') {
+      return res.status(403).json({ error: 'Nuk keni autorizim' });
+    }
+    const tenantId = getTenantId(req);
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return res.status(400).json({ error: 'No API key configured' });
@@ -939,17 +1218,21 @@ app.get('/api/ai/daily-insight', async (req, res) => {
               COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
        FROM invoices
        WHERE statusi = 'paguar'
-         AND DATE(data_krijimit) = CURDATE()`
+         AND DATE(data_krijimit) = CURDATE()
+         AND user_id = ?`,
+      [tenantId]
     );
 
     const [productRows] = await pool.query(
-      `SELECT COUNT(*) AS total_produkte FROM products`
+      `SELECT COUNT(*) AS total_produkte FROM products WHERE user_id = ?`,
+      [tenantId]
     );
 
     const [lowStockRows] = await pool.query(
       `SELECT COUNT(*) AS stoku_ulet
        FROM products
-       WHERE stoku_aktual <= 5 AND stoku_aktual > 0`
+       WHERE stoku_aktual <= 5 AND stoku_aktual > 0 AND user_id = ?`,
+      [tenantId]
     );
 
     const [profitRows] = await pool.query(
@@ -959,13 +1242,15 @@ app.get('/api/ai/daily-insight', async (req, res) => {
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
        JOIN products p ON p.id = ii.product_id
-       WHERE i.statusi = 'paguar'`
+       WHERE i.statusi = 'paguar' AND i.user_id = ? AND p.user_id = ?`,
+      [tenantId, tenantId]
     );
 
     const [arkaRows] = await pool.query(
       `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
        FROM financial_ledger
-       WHERE llogaria = 'Arka'`
+       WHERE llogaria = 'Arka' AND user_id = ?`,
+      [tenantId]
     );
 
     const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
@@ -1010,6 +1295,10 @@ Jep një përmbledhje operative të ditës në 2-3 fjali. Bëhu profesional, kon
 // ─── AI Tab Insight Endpoint (CFO Copilot tabs) ───
 app.post('/api/ai/tab-insight', async (req, res) => {
   try {
+    if (req.user.role === 'worker') {
+      return res.status(403).json({ error: 'Nuk keni autorizim' });
+    }
+    const tenantId = getTenantId(req);
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return res.status(400).json({ error: 'No API key configured' });
@@ -1026,21 +1315,26 @@ app.post('/api/ai/tab-insight', async (req, res) => {
               COALESCE(SUM(totali), 0) AS shitjet_sot_vlera
        FROM invoices
        WHERE statusi = 'paguar'
-         AND DATE(data_krijimit) = CURDATE()`
+         AND DATE(data_krijimit) = CURDATE()
+         AND user_id = ?`,
+      [tenantId]
     );
 
     const [productRows] = await pool.query(
       `SELECT COUNT(*) AS total_produkte,
               COALESCE(SUM(stoku_aktual), 0) AS stoku_total
-       FROM products`
+       FROM products
+       WHERE user_id = ?`,
+      [tenantId]
     );
 
     const [lowStockProducts] = await pool.query(
       `SELECT emri, stoku_aktual, cmimi_shitjes, kategoria
        FROM products
-       WHERE stoku_aktual <= 5 AND stoku_aktual >= 0
+       WHERE stoku_aktual <= 5 AND stoku_aktual >= 0 AND user_id = ?
        ORDER BY stoku_aktual ASC
-       LIMIT 10`
+       LIMIT 10`,
+      [tenantId]
     );
 
     const [profitRows] = await pool.query(
@@ -1050,19 +1344,22 @@ app.post('/api/ai/tab-insight', async (req, res) => {
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
        JOIN products p ON p.id = ii.product_id
-       WHERE i.statusi = 'paguar'`
+       WHERE i.statusi = 'paguar' AND i.user_id = ? AND p.user_id = ?`,
+      [tenantId, tenantId]
     );
 
     const [taxRows] = await pool.query(
       `SELECT COALESCE(SUM(tax_amount), 0) AS tax_liability
        FROM invoices
-       WHERE statusi = 'paguar'`
+       WHERE statusi = 'paguar' AND user_id = ?`,
+      [tenantId]
     );
 
     const [arkaRows] = await pool.query(
       `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
        FROM financial_ledger
-       WHERE llogaria = 'Arka'`
+       WHERE llogaria = 'Arka' AND user_id = ?`,
+      [tenantId]
     );
 
     const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
@@ -1116,10 +1413,13 @@ Pyetja: ${userPrompt}`;
 
 app.get('/api/offers', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const [rows] = await pool.query(
       `SELECT id, numri_ofertes, klienti, email_klientit, data_krijimit, data_skadimit, totali, statusi, tax_rate, tax_amount, shenime
        FROM offers
-       ORDER BY data_krijimit DESC`
+       WHERE user_id = ?
+       ORDER BY data_krijimit DESC`,
+      [tenantId]
     );
     res.json(rows);
   } catch (error) {
@@ -1130,11 +1430,12 @@ app.get('/api/offers', async (req, res) => {
 
 app.get('/api/offers/:id', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const [offerRows] = await pool.query(
       `SELECT id, numri_ofertes, klienti, email_klientit, data_krijimit, data_skadimit, totali, statusi, tax_rate, tax_amount, shenime
        FROM offers
-       WHERE id = ?`,
-      [req.params.id]
+       WHERE id = ? AND user_id = ?`,
+      [req.params.id, tenantId]
     );
 
     if (offerRows.length === 0) {
@@ -1163,7 +1464,7 @@ app.get('/api/offers/:id', async (req, res) => {
 app.post('/api/offers', async (req, res) => {
   const client = await pool.getConnection();
   try {
-    const ownerId = await getOwnerId();
+    const ownerId = getTenantId(req);
     const { klienti, email_klientit = null, items, tax_rate = 0, data_skadimit = null, shenime = null, statusi = 'draft' } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -1175,7 +1476,8 @@ app.post('/api/offers', async (req, res) => {
     const [countRows] = await client.query(
       `SELECT COUNT(*) AS c
        FROM offers
-       WHERE DATE(data_krijimit) = CURDATE()`
+       WHERE DATE(data_krijimit) = CURDATE() AND user_id = ?`,
+      [ownerId]
     );
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
@@ -1188,8 +1490,8 @@ app.post('/api/offers', async (req, res) => {
       const [productRows] = await client.query(
         `SELECT id, emri, cmimi_shitjes
          FROM products
-         WHERE id = ?`,
-        [item.product_id]
+         WHERE id = ? AND user_id = ?`,
+        [item.product_id, ownerId]
       );
 
       if (productRows.length === 0) {
@@ -1248,14 +1550,15 @@ app.post('/api/offers', async (req, res) => {
 
 app.put('/api/offers/:id/status', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const { statusi } = req.body;
     if (!['draft', 'derguar', 'pranuar', 'refuzuar', 'skaduar'].includes(statusi)) {
       return res.status(400).json({ error: 'Status i panjohur' });
     }
 
     const [result] = await pool.query(
-      `UPDATE offers SET statusi = ? WHERE id = ?`,
-      [statusi, req.params.id]
+      `UPDATE offers SET statusi = ? WHERE id = ? AND user_id = ?`,
+      [statusi, req.params.id, tenantId]
     );
 
     if (result.affectedRows === 0) {
@@ -1272,12 +1575,12 @@ app.put('/api/offers/:id/status', async (req, res) => {
 app.post('/api/offers/:id/convert', async (req, res) => {
   const client = await pool.getConnection();
   try {
-    const ownerId = await getOwnerId();
+    const ownerId = getTenantId(req);
     
     // 1. Fetch offer
     const [offerRows] = await client.query(
-      `SELECT id, klienti, totali, tax_rate, tax_amount FROM offers WHERE id = ?`,
-      [req.params.id]
+      `SELECT id, klienti, totali, tax_rate, tax_amount FROM offers WHERE id = ? AND user_id = ?`,
+      [req.params.id, ownerId]
     );
 
     if (offerRows.length === 0) {
@@ -1302,7 +1605,8 @@ app.post('/api/offers/:id/convert', async (req, res) => {
     const [countRows] = await client.query(
       `SELECT COUNT(*) AS c
        FROM invoices
-       WHERE DATE(data_krijimit) = CURDATE()`
+       WHERE DATE(data_krijimit) = CURDATE() AND user_id = ?`,
+      [ownerId]
     );
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
@@ -1316,9 +1620,9 @@ app.post('/api/offers/:id/convert', async (req, res) => {
       const [productRows] = await client.query(
         `SELECT id, emri, cmimi_shitjes, stoku_aktual
          FROM products
-         WHERE id = ?
+         WHERE id = ? AND user_id = ?
          FOR UPDATE`,
-        [item.product_id]
+        [item.product_id, ownerId]
       );
 
       if (productRows.length === 0) {
@@ -1371,8 +1675,8 @@ app.post('/api/offers/:id/convert', async (req, res) => {
       await client.query(
         `UPDATE products
          SET stoku_aktual = stoku_aktual - ?, updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-         [item.sasia, item.product_id]
+         WHERE id = ? AND user_id = ?`,
+         [item.sasia, item.product_id, ownerId]
       );
     }
 
@@ -1398,8 +1702,8 @@ app.post('/api/offers/:id/convert', async (req, res) => {
     }
 
     await client.query(
-      `UPDATE offers SET statusi = 'pranuar' WHERE id = ?`,
-      [req.params.id]
+      `UPDATE offers SET statusi = 'pranuar' WHERE id = ? AND user_id = ?`,
+      [req.params.id, ownerId]
     );
 
     await client.commit();
@@ -1420,9 +1724,10 @@ app.post('/api/offers/:id/convert', async (req, res) => {
 
 app.delete('/api/offers/:id', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const [result] = await pool.query(
-      `DELETE FROM offers WHERE id = ?`,
-      [req.params.id]
+      `DELETE FROM offers WHERE id = ? AND user_id = ?`,
+      [req.params.id, tenantId]
     );
 
     if (result.affectedRows === 0) {
@@ -1438,14 +1743,15 @@ app.delete('/api/offers/:id', async (req, res) => {
 
 app.post('/api/offers/:id/ai-pitch', async (req, res) => {
   try {
+    const tenantId = getTenantId(req);
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return res.status(400).json({ error: 'No API key configured' });
     }
 
     const [offerRows] = await pool.query(
-      `SELECT numri_ofertes, klienti, totali, tax_rate, tax_amount, shenime FROM offers WHERE id = ?`,
-      [req.params.id]
+      `SELECT numri_ofertes, klienti, totali, tax_rate, tax_amount, shenime FROM offers WHERE id = ? AND user_id = ?`,
+      [req.params.id, tenantId]
     );
 
     if (offerRows.length === 0) {
@@ -1458,8 +1764,8 @@ app.post('/api/offers/:id/ai-pitch', async (req, res) => {
       `SELECT oi.sasia, oi.cmimi_per_njesi, p.emri
        FROM offer_items oi
        JOIN products p ON p.id = oi.product_id
-       WHERE oi.offer_id = ?`,
-      [req.params.id]
+       WHERE oi.offer_id = ? AND p.user_id = ?`,
+      [req.params.id, tenantId]
     );
 
     const itemsList = itemRows.map(i => `- ${i.emri} (Sasia: ${i.sasia}, Çmimi: ${i.cmimi_per_njesi} EUR)`).join('\n');

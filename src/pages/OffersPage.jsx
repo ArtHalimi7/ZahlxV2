@@ -24,7 +24,8 @@ import {
   Info
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Logo from '../assets/Logo.png';
+import Logo from '../assets/X.png';
+import { QRCodeSVG } from 'qrcode.react';
 
 const currencyFormatter = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -624,25 +625,22 @@ const OffersPage = () => {
                     <div className="flex justify-between items-start mb-6">
                       <div>
                         <img src={Logo} alt="Zahlx Logo" className="h-14 w-auto object-contain dark:brightness-0 dark:invert print:brightness-0 print:invert-0" />
-                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-widest font-mono mt-1.5">Oferta Profesionale</p>
+                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-widest font-mono mt-1.5 print:text-black">Oferta Profesionale</p>
                       </div>
                       <div className="text-right">
                         <span className="text-[12px] font-bold font-mono text-slate-900 dark:text-white print:text-black">{selectedOffer.numri_ofertes}</span>
-                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono mt-1">
-                          DATA: {new Date(selectedOffer.data_krijimit).toLocaleDateString('sq-AL')}
-                        </p>
                       </div>
                     </div>
 
                     {/* Client Information */}
-                    <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 mb-6 print:border-neutral-200">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-1">OFRUAR PËR:</p>
+                    <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 mb-6 print:border-none print:bg-transparent print:p-0 print:mb-4">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-1 print:text-black print:font-semibold">OFRUAR PËR:</p>
                       <p className="text-[14px] font-bold text-slate-900 dark:text-white print:text-black">{selectedOffer.klienti}</p>
                       {selectedOffer.email_klientit && (
-                        <p className="text-[12px] text-slate-500 dark:text-zinc-400 font-medium mt-1">{selectedOffer.email_klientit}</p>
+                        <p className="text-[12px] text-slate-500 dark:text-zinc-400 font-medium mt-1 print:text-black">{selectedOffer.email_klientit}</p>
                       )}
                       {selectedOffer.data_skadimit && (
-                        <p className="text-[11px] text-indigo-650 dark:text-indigo-400 font-semibold mt-2 font-mono">
+                        <p className="text-[11px] text-indigo-650 dark:text-indigo-400 font-semibold mt-2 font-mono print:text-black print:mt-1">
                           Valide deri më: {new Date(selectedOffer.data_skadimit).toLocaleDateString('sq-AL')}
                         </p>
                       )}
@@ -651,20 +649,20 @@ const OffersPage = () => {
                     {/* Items List Table */}
                     <table className="w-full text-left mb-6 text-[12px] border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200/60 dark:border-transparent text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-semibold print:border-neutral-300">
-                          <th className="py-2">Përshkrimi</th>
-                          <th className="py-2 text-center">Sasia</th>
-                          <th className="py-2 text-right">Çmimi</th>
-                          <th className="py-2 text-right">Totali</th>
+                        <tr className="border-b border-slate-200/60 dark:border-transparent text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-semibold print:border-b-2 print:border-black">
+                          <th className="py-2 print:py-1">Përshkrimi</th>
+                          <th className="py-2 text-center print:py-1">Sasia</th>
+                          <th className="py-2 text-right print:py-1">Çmimi</th>
+                          <th className="py-2 text-right print:py-1">Totali</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-200/40 dark:divide-transparent print:divide-neutral-100">
+                      <tbody className="divide-y divide-slate-200/40 dark:divide-transparent print:divide-zinc-100">
                         {selectedOffer.items && selectedOffer.items.map((item) => (
                           <tr key={item.id}>
-                            <td className="py-3 font-semibold text-slate-800 dark:text-zinc-200 print:text-black">{item.emri}</td>
-                            <td className="py-3 text-center font-medium font-mono">{item.sasia}</td>
-                            <td className="py-3 text-right font-medium font-mono">{currencyFormatter.format(item.cmimi_per_njesi)}</td>
-                            <td className="py-3 text-right font-bold font-mono text-slate-900 dark:text-white print:text-black">
+                            <td className="py-3 font-semibold text-slate-800 dark:text-zinc-200 print:text-black print:py-2">{item.emri}</td>
+                            <td className="py-3 text-center font-medium font-mono print:text-black print:py-2">{item.sasia}</td>
+                            <td className="py-3 text-right font-medium font-mono print:text-black print:py-2">{currencyFormatter.format(item.cmimi_per_njesi)}</td>
+                            <td className="py-3 text-right font-bold font-mono text-slate-900 dark:text-white print:text-black print:py-2">
                               {currencyFormatter.format(item.sasia * item.cmimi_per_njesi)}
                             </td>
                           </tr>
@@ -673,21 +671,21 @@ const OffersPage = () => {
                     </table>
 
                     {/* Totals Section */}
-                    <div className="border-t border-slate-200/60 dark:border-transparent pt-4 mb-6 print:border-neutral-300">
+                    <div className="border-t border-slate-200/60 dark:border-transparent pt-4 mb-6 print:border-t-2 print:border-black">
                       <div className="space-y-1.5 text-[13px] max-w-xs ml-auto font-mono">
-                        <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
+                        <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium print:text-black">
                           <span>Nëntotali:</span>
                           <span className="text-slate-900 dark:text-white print:text-black">
                             {currencyFormatter.format(Number(selectedOffer.totali) - Number(selectedOffer.tax_amount))}
                           </span>
                         </div>
-                        <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
+                        <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium print:text-black">
                           <span>TVSH ({selectedOffer.tax_rate}%):</span>
                           <span className="text-slate-900 dark:text-white print:text-black">
                             {currencyFormatter.format(selectedOffer.tax_amount)}
                           </span>
                         </div>
-                        <div className="flex justify-between text-[15px] font-bold border-t border-slate-200/40 dark:border-transparent pt-2">
+                        <div className="flex justify-between text-[15px] font-bold border-t border-slate-200/40 dark:border-transparent pt-2 print:border-t print:border-zinc-300">
                           <span className="text-slate-700 dark:text-zinc-200 print:text-black">Totali:</span>
                           <span className="text-indigo-600 dark:text-indigo-400 print:text-black">
                             {currencyFormatter.format(selectedOffer.totali)}
@@ -698,11 +696,24 @@ const OffersPage = () => {
 
                     {/* Notes & Terms */}
                     {selectedOffer.shenime && (
-                      <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 text-[11px] leading-5 text-slate-550 dark:text-zinc-400 print:border-neutral-100 print:text-neutral-550">
-                        <p className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-550 mb-1">Kushtet e Ofertës:</p>
+                      <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 text-[11px] leading-5 text-slate-550 dark:text-zinc-400 print:border-none print:bg-transparent print:p-0 print:mt-4 print:text-black">
+                        <p className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-550 mb-1 print:text-black print:font-bold">Kushtet e Ofertës:</p>
                         {selectedOffer.shenime}
                       </div>
                     )}
+
+                    {/* QR Code Section */}
+                    <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-zinc-800/40 flex flex-col items-center print:border-none print:mt-8 print:p-0">
+                      <div className="text-center print:hidden">
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-555 font-medium">QR i Ofertës</p>
+                        <h2 className="mt-1 text-[13px] font-semibold tracking-tight text-slate-900 dark:text-zinc-150">Skano për përmbajtjen e plotë</h2>
+                      </div>
+                      <div className="mt-4 grid place-items-center print:mt-2">
+                        <div className="rounded-2xl bg-white p-3 shadow-md print:p-0 print:shadow-none">
+                          <QRCodeSVG value={`${window.location.origin}/oferta?id=${selectedOffer.id}`} size={100} fgColor="#000000" bgColor="#ffffff" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Actions (Hidden on print) */}

@@ -7,6 +7,7 @@
   ================================================================ */
 
 @layer base {
+
   *,
   *::before,
   *::after {
@@ -15,22 +16,22 @@
 
   :root {
     color-scheme: light;
-    
+
     /* Grayscale theme variables - LIGHT mode */
     --bg-app: #ffffff;
     --text-primary: #09090b;
     --text-secondary: #52525b;
     --text-muted: #71717a;
-    
+
     --accent-primary: #09090b;
     --accent-secondary: #27272a;
     --accent-muted: #e4e4e7;
     --accent-rgb: 9, 9, 11;
-    
+
     --border-subtle: rgba(9, 9, 11, 0.04);
     --border-default: rgba(9, 9, 11, 0.08);
     --border-strong: rgba(9, 9, 11, 0.15);
-    
+
     --surface-card: rgba(9, 9, 11, 0.02);
     --surface-raised: rgba(9, 9, 11, 0.04);
     --surface-overlay: rgba(9, 9, 11, 0.06);
@@ -68,22 +69,22 @@
 
   :root.dark {
     color-scheme: dark;
-    
+
     /* Grayscale theme variables - DARK mode */
     --bg-app: #000000;
     --text-primary: #ffffff;
     --text-secondary: #a1a1aa;
     --text-muted: #71717a;
-    
+
     --accent-primary: #ffffff;
     --accent-secondary: #e4e4e7;
     --accent-muted: #27272a;
     --accent-rgb: 255, 255, 255;
-    
+
     --border-subtle: rgba(255, 255, 255, 0.04);
     --border-default: rgba(255, 255, 255, 0.08);
     --border-strong: rgba(255, 255, 255, 0.15);
-    
+
     --surface-card: rgba(255, 255, 255, 0.02);
     --surface-raised: rgba(255, 255, 255, 0.03);
     --surface-overlay: rgba(255, 255, 255, 0.05);
@@ -179,7 +180,8 @@
   }
 
   /* Reset table defaults */
-  th, td {
+  th,
+  td {
     border: none;
     padding: 0;
     text-align: left;
@@ -209,5 +211,74 @@
 
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  .animate-float-slow {
+    animation: float-slow 15s ease-in-out infinite;
+  }
+  .animate-float-medium {
+    animation: float-medium 20s ease-in-out infinite;
+  }
+  .animate-float-fast {
+    animation: float-fast 10s ease-in-out infinite;
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-30px) scale(1.1); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
+  50% { transform: translateY(25px) scale(0.9) rotate(180deg); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50% { transform: translateY(-15px) translateX(15px); }
+}
+
+
+/* ================================================================
+   PRINT SYSTEM OVERRIDES
+   ================================================================ */
+@media print {
+  /* Suppress browser default headers & footers (URL, page number, date, etc.) */
+  @page {
+    margin: 0 !important;
+    size: auto;
+  }
+
+  /* Core resets on main wrappers */
+  html, body, #root, #root > div, main {
+    background: #ffffff !important;
+    color: #000000 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body {
+    padding: 2cm !important;
+  }
+
+  /* Reset layout constraints and offsets on the main wrapper */
+  .lg\:pl-72,
+  .lg\:pl-24 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;
+  }
+
+  #root > div {
+    display: block !important;
+    transform: none !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
 }

@@ -4,6 +4,7 @@ import { AlertCircle, Check, Minus, Plus, Search, X, QrCode } from 'lucide-react
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import { useAuth } from '../contexts/AuthContext';
 
 const formatEuro = (amount) => new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -20,6 +21,7 @@ const STATES = {
 };
 
 const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
+  const { user } = useAuth();
   const [state, setState] = useState(STATES.SELECTING);
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
@@ -45,7 +47,10 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
     setSearch('');
     setErrorMsg('');
     setReceiptData(null);
-    setTaxRate(0);
+    
+    const savedTax = user ? localStorage.getItem(`default_tax_rate_${user.id}`) : null;
+    setTaxRate(savedTax ? Number(savedTax) : 0);
+    
     setPaymentTerms('immediate');
     setInvoiceStatus('paguar');
     setClient('Klient i përgjithshëm');

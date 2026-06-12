@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, TrendingUp, ArrowRight, Bot, ShoppingCart, Percent, Package, Activity, AlertTriangle, CheckCircle2, ReceiptText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import Logo from '../assets/Logo.png';
+import Logo from '../assets/X.png';
 import MetricCard from '../components/MetricCard';
 import ShitjeEShpejte from '../components/ShitjeEShpejte';
 import DashboardSkeleton from '../components/dashboard/DashboardSkeleton';
@@ -351,8 +351,8 @@ const Dashboard = () => {
 
                         <div className="flex justify-between items-start relative z-10">
                           <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-white/10 dark:bg-white/[0.04] backdrop-blur-sm border border-white/10">
-                              <img src={Logo} alt="Logo" className="h-6 w-auto object-contain dark:brightness-0 dark:invert" />
+                            <div className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/10 dark:bg-white/[0.04] backdrop-blur-sm border border-white/10">
+                              <img src={Logo} alt="Logo" className="h-7 w-auto object-contain brightness-0 invert" />
                             </div>
                             <span className="text-[12px] font-bold tracking-tight text-white">Zahlx</span>
                           </div>

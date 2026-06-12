@@ -38,14 +38,14 @@ const TypewriterText = ({ text }) => {
 const generateLocalFallbackReply = (text, metrics) => {
   const query = text.toLowerCase();
   const m = metrics || { total_produkte: 0, shitjet_sot_nr: 0, shitjet_sot_vlera: 0, stoku_ulet: 0 };
-  
+
   if (query.includes('përmbledhj') || query.includes('ecin shitjet') || query.includes('sot')) {
     if (m.total_produkte === 0) {
       return "Dështoi lidhja me serverin për përditësimin e të dhënave, burimi i katalogut tuaj është ende i zbrazët. Ju lutem regjistroni produktet e para te faqja e produkteve për të filluar shitjet.";
     }
     return `Sot keni regjistruar ${m.shitjet_sot_nr || 0} shitje me vlerë totale prej ${(m.shitjet_sot_vlera || 0).toFixed(2)} EUR. ${m.stoku_ulet > 0 ? `Keni ${m.stoku_ulet} produkte me stok kritik.` : 'Stoku është i qëndrueshëm.'}`;
   }
-  
+
   if (query.includes('stok') || query.includes('kontrolloj') || query.includes('artikull') || query.includes('produkt')) {
     if (m.total_produkte === 0) {
       return "Nuk keni asnjë produkt në katalog. Vizitoni seksionin 'Produktet' për të shtuar artikujt tuaj të parë.";
@@ -55,7 +55,7 @@ const generateLocalFallbackReply = (text, metrics) => {
     }
     return `Stoku juaj është në gjendje të rregullt. Të gjitha ${m.total_produkte} produktet kanë nivele të mjaftueshme.`;
   }
-  
+
   if (m.total_produkte === 0) {
     return "Sistemi është jashtë linje (offline). Gjithashtu, vumë re se nuk keni asnjë produkt në katalog. Pasi të ktheheni online, mund të bisedoni me asistentin dhe të kryeni shitje.";
   }
@@ -189,7 +189,7 @@ const AssistantChatWidget = () => {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-[2px] lg:hidden"
+            className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-[2px] lg:hidden print:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -212,7 +212,7 @@ const AssistantChatWidget = () => {
             isDraggingRef.current = false;
           }, 50);
         }}
-        className="fixed bottom-4 right-4 z-[160] sm:bottom-6 sm:right-6 flex flex-col items-end"
+        className="fixed bottom-4 right-4 z-[160] sm:bottom-6 sm:right-6 flex flex-col items-end print:hidden"
       >
         <AnimatePresence>
           {!open && (
@@ -255,7 +255,7 @@ const AssistantChatWidget = () => {
               transition={{ type: 'spring', stiffness: 280, damping: 28 }}
               className="w-[min(92vw,24rem)] overflow-hidden rounded-[1.75rem] border border-zinc-200 dark:border-transparent bg-white dark:bg-zinc-950 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
             >
-              <div 
+              <div
                 onPointerDown={handlePointerDown}
                 className="flex items-start justify-between border-b border-zinc-200 dark:border-transparent px-4 py-4 cursor-move select-none"
               >
@@ -288,11 +288,10 @@ const AssistantChatWidget = () => {
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-6 whitespace-pre-line ${
-                        message.role === 'user' 
-                          ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 font-medium border border-transparent dark:border-transparent shadow-sm' 
+                      className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-6 whitespace-pre-line ${message.role === 'user'
+                          ? 'bg-zinc-950 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-950 font-medium border border-transparent dark:border-transparent shadow-sm'
                           : 'border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100'
-                      }`}
+                        }`}
                     >
                       {message.role === 'assistant' && index === messages.length - 1 ? (
                         <TypewriterText text={message.text} />
@@ -302,7 +301,7 @@ const AssistantChatWidget = () => {
                     </div>
                   </div>
                 ))}
-                 {isTyping && (
+                {isTyping && (
                   <div className="flex justify-start">
                     <div className="max-w-[82%] rounded-2xl px-4 py-3 text-[13px] border border-zinc-200 dark:border-transparent bg-zinc-50 dark:bg-zinc-900 text-zinc-400 flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-zinc-950 dark:bg-zinc-100 animate-bounce" />

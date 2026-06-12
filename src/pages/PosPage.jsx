@@ -3,6 +3,7 @@ import { QrCode, ReceiptText, Save, ScanBarcode, Plus, CheckCircle2 } from 'luci
 import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const currency = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -19,6 +20,7 @@ const emptyReceiptItem = (product) => ({
 });
 
 const PosPage = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [receiptClient, setReceiptClient] = useState('Klient i përgjithshëm');
   const [receiptBarcode, setReceiptBarcode] = useState('');
@@ -30,6 +32,15 @@ const PosPage = () => {
   const [paymentTerms, setPaymentTerms] = useState('immediate');
   const [invoiceStatus, setInvoiceStatus] = useState('paguar');
   const barcodeRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      const savedTax = localStorage.getItem(`default_tax_rate_${user.id}`);
+      if (savedTax) {
+        setTaxRate(Number(savedTax));
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     fetch('/api/products')
@@ -222,24 +233,58 @@ const PosPage = () => {
                     </div>
                   </div>
 
-                  <div className="relative">
-                    <label className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest ml-1 mb-2 block">Shto Produkt (Skano)</label>
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="relative">
-                      <ScanBarcode size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
-                      <input
-                        ref={barcodeRef}
-                        value={receiptBarcode}
-                        onChange={(event) => setReceiptBarcode(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            event.preventDefault();
-                            addReceiptProduct(receiptBarcode);
-                            setReceiptBarcode('');
+                      <label className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest ml-1 mb-2 block">Shto Produkt (Skano)</label>
+                      <div className="relative">
+                        <ScanBarcode size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+                        <input
+                          ref={barcodeRef}
+                          value={receiptBarcode}
+                          onChange={(event) => setReceiptBarcode(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              event.preventDefault();
+                              addReceiptProduct(receiptBarcode);
+                              setReceiptBarcode('');
+                            }
+                          }}
+                          placeholder="Skano ose shtyp barkodin dhe jep Enter..."
+                          className="w-full rounded-2xl border border-indigo-500/20 bg-indigo-500/5 py-4 pl-12 pr-4 text-[15px] font-mono text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/40 focus:bg-indigo-500/10 placeholder:text-slate-400 dark:placeholder:text-zinc-600 placeholder:font-sans"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Zgjidh Produktin (Manuale)</label>
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            const product = products.find(p => p.id === Number(val));
+                            if (product) {
+                              setReceiptError('');
+                              setReceiptItems((current) => {
+                                const existing = current.find((item) => item.id === product.id);
+                                if (existing) {
+                                  return current.map((item) => (
+                                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                                  ));
+                                }
+                                return [...current, emptyReceiptItem(product)];
+                              });
+                            }
                           }
                         }}
-                        placeholder="Skano ose shtyp barkodin dhe jep Enter..."
-                        className="w-full rounded-2xl border border-indigo-500/20 bg-indigo-500/5 py-4 pl-12 pr-4 text-[15px] font-mono text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/40 focus:bg-indigo-500/10 placeholder:text-slate-400 dark:placeholder:text-zinc-600 placeholder:font-sans"
-                      />
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      >
+                        <option value="">-- Zgjidh produkt pa barkod --</option>
+                        {products.map(p => (
+                          <option key={p.id} value={p.id} disabled={p.stoku_aktual <= 0}>
+                            {p.emri} - {currency.format(p.cmimi_shitjes)} {p.stoku_aktual <= 0 ? '(Jashtë stokut)' : `(Stoku: ${p.stoku_aktual})`}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
