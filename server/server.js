@@ -5,8 +5,15 @@ import pool from './db.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,6 +34,36 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Static file serving for product images
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
+// Multer configuration for product image uploads
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, `product-${uniqueSuffix}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = /\.(jpg|jpeg|png|gif|webp|svg)$/i;
+    if (allowed.test(path.extname(file.originalname))) {
+      cb(null, true);
+    } else {
+      cb(new Error('Vetëm imazhe janë të lejuara (jpg, png, gif, webp, svg)'));
+    }
+  },
+});
 
 // Ensure offers and offer_items tables exist at server start
 (async () => {
@@ -62,6 +99,19 @@ app.use(cookieParser());
     console.log('✓ Offers tables verified/created');
   } catch (err) {
     console.error('Error creating offers tables:', err.message || err);
+  }
+
+  // Add image_url column to products if it doesn't exist
+  try {
+    await pool.query(`
+      ALTER TABLE products ADD COLUMN image_url VARCHAR(500) DEFAULT NULL
+    `);
+    console.log('✓ Added image_url column to products');
+  } catch (err) {
+    // Column likely already exists — ignore
+    if (!err.message?.includes('Duplicate column')) {
+      // Only log if it's not the expected "column already exists" error
+    }
   }
 })();
 
@@ -276,16 +326,30 @@ app.use('/api', (req, res, next) => {
   authenticateToken(req, res, next);
 });
 
+// Product image upload endpoint
+app.post('/api/upload-product-image', upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Asnjë imazh nuk u ngarkua' });
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ image_url: imageUrl });
+  } catch (error) {
+    console.error('POST /api/upload-product-image error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim gjatë ngarkimit të imazhit' });
+  }
+});
+
 app.get('/api/products', async (req, res) => {
   try {
     const ownerId = getTenantId(req);
     const isWorker = req.user.role === 'worker';
     const query = isWorker
-      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
          FROM products
          WHERE user_id = ?
          ORDER BY emri ASC`
-      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
          FROM products
          WHERE user_id = ?
          ORDER BY emri ASC`;
@@ -303,10 +367,10 @@ app.get('/api/products/:id', async (req, res) => {
     const ownerId = getTenantId(req);
     const isWorker = req.user.role === 'worker';
     const query = isWorker
-      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
          FROM products
          WHERE id = ? AND user_id = ?`
-      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria
+      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
          FROM products
          WHERE id = ? AND user_id = ?`;
 
@@ -333,6 +397,7 @@ app.post('/api/products', async (req, res) => {
       cmimi_shitjes = 0,
       stoku_aktual = 0,
       kategoria = null,
+      image_url = null,
     } = req.body;
 
     if (!emri || !kodi_bar) {
@@ -340,13 +405,13 @@ app.post('/api/products', async (req, res) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO products (user_id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [ownerId, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria]
+      `INSERT INTO products (user_id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url]
     );
 
     const [rows] = await pool.query(
-      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, created_at, updated_at
+      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, created_at, updated_at
        FROM products
        WHERE id = ? AND user_id = ?`,
       [result.insertId, ownerId]
@@ -373,6 +438,7 @@ app.put('/api/products/:id', async (req, res) => {
       cmimi_shitjes = 0,
       stoku_aktual = 0,
       kategoria = null,
+      image_url = null,
     } = req.body;
 
     if (!emri || !kodi_bar) {
@@ -387,9 +453,10 @@ app.put('/api/products/:id', async (req, res) => {
            cmimi_shitjes = ?,
            stoku_aktual = ?,
            kategoria = ?,
+           image_url = ?,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ? AND user_id = ?`,
-      [emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, req.params.id, ownerId]
+      [emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, req.params.id, ownerId]
     );
 
     if (result.affectedRows === 0) {
@@ -397,7 +464,7 @@ app.put('/api/products/:id', async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, created_at, updated_at
+      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, created_at, updated_at
        FROM products
        WHERE id = ? AND user_id = ?`,
       [req.params.id, ownerId]
