@@ -249,7 +249,6 @@ const OffersPage = () => {
       if (res.ok) {
         const data = await res.json();
         setSelectedOffer(data);
-        setAiPitch(''); // Clear previous pitch
       }
     } catch (err) {
       console.error('Error fetching details:', err);
@@ -351,7 +350,7 @@ const OffersPage = () => {
             </button>
             <button
               onClick={() => setBuilderOpen(true)}
-              className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-650 hover:bg-indigo-600 text-white px-5 py-3 text-[13px] font-semibold shadow-[0_12px_30px_rgba(var(--accent-rgb),0.22)] transition-all"
+              className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 px-5 py-3 text-[13px] font-semibold shadow-sm transition-all"
             >
               <Plus size={15} />
               Krijo Ofertë
@@ -634,8 +633,8 @@ const OffersPage = () => {
                     </div>
 
                     {/* Client Information */}
-                    <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 mb-6 print:border-none print:bg-transparent print:p-0 print:mb-4">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-1 print:text-black print:font-semibold">OFRUAR PËR:</p>
+                    <div className="rounded-2xl border border-slate-250 dark:border-transparent bg-slate-200/50 dark:bg-zinc-900/60 p-4 mb-6 print:border-none print:bg-transparent print:p-0 print:mb-4">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-450 dark:text-zinc-400 mb-1 print:text-black print:font-semibold">OFRUAR PËR:</p>
                       <p className="text-[14px] font-bold text-slate-900 dark:text-white print:text-black">{selectedOffer.klienti}</p>
                       {selectedOffer.email_klientit && (
                         <p className="text-[12px] text-slate-500 dark:text-zinc-400 font-medium mt-1 print:text-black">{selectedOffer.email_klientit}</p>
@@ -697,9 +696,9 @@ const OffersPage = () => {
 
                     {/* Notes & Terms */}
                     {selectedOffer.shenime && (
-                      <div className="rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 text-[11px] leading-5 text-slate-550 dark:text-zinc-400 print:border-none print:bg-transparent print:p-0 print:mt-4 print:text-black">
-                        <p className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-550 mb-1 print:text-black print:font-bold">Kushtet e Ofertës:</p>
-                        {selectedOffer.shenime}
+                      <div className="rounded-2xl border border-slate-300/60 dark:border-transparent bg-white/30 dark:bg-zinc-950/40 p-4 text-[11px] leading-5 text-slate-700 dark:text-white print:border-none print:bg-transparent print:p-0 print:mt-4 print:text-black">
+                        <p className="font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1 print:text-black print:font-bold">Kushtet e Ofertës:</p>
+                        <p className="text-slate-800 dark:text-white font-medium">{selectedOffer.shenime}</p>
                       </div>
                     )}
 
@@ -750,7 +749,6 @@ const OffersPage = () => {
                         <span className="text-[12px] font-bold">Kjo ofertë është pranuar dhe konvertuar në faturë.</span>
                       </div>
                     )}
-
                   </div>
                 </div>
               </div>
@@ -759,221 +757,239 @@ const OffersPage = () => {
         )}
       </div>
 
-      {/* Offer Builder Slide Drawer Overlay (Hidden on print) */}
+      {/* Offer Builder Centered Modal Overlay (Hidden on print) */}
       <AnimatePresence>
         {builderOpen && (
           <>
+            {/* Backdrop Blur Overlay */}
             <motion.div
               onClick={() => setBuilderOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-[2px] print:hidden"
+              className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-[4px] print:hidden"
             />
 
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-              className="fixed inset-y-0 right-0 z-[160] w-full max-w-xl bg-white dark:bg-zinc-950 shadow-2xl border-l border-slate-200/60 dark:border-transparent p-6 overflow-y-auto print:hidden"
-            >
-              <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-transparent pb-4 mb-6">
-                <div>
-                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-zinc-100">Krijo Ofertë / Quote</h3>
-                  <p className="text-[11px] text-slate-400 dark:text-zinc-500">Ndërto kalkulimin dhe zgjidh vlefshmërinë e ofertës.</p>
-                </div>
-                <button
-                  onClick={() => setBuilderOpen(false)}
-                  className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-2 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Client & Offer Info */}
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-slate-450 dark:text-zinc-500 font-bold mb-1">Emri i Klientit *</label>
-                  <input
-                    type="text"
-                    placeholder="Psh. Ahmet Halimi"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-slate-455 dark:text-zinc-500 font-bold mb-1">Email i Klientit (Opsionale)</label>
-                  <input
-                    type="email"
-                    placeholder="ahmet@shembull.com"
-                    value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-slate-450 dark:text-zinc-500 font-bold mb-1">Valide për (Ditë)</label>
-                    <input
-                      type="number"
-                      value={expiryDays}
-                      min="1"
-                      onChange={(e) => setExpiryDays(Math.max(1, parseInt(e.target.value) || 15))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-slate-450 dark:text-zinc-500 font-bold mb-1">Norma e TVSH %</label>
-                    <select
-                      value={taxRate}
-                      onChange={(e) => setTaxRate(Number(e.target.value))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
-                    >
-                      <option value="18">18% (Standard)</option>
-                      <option value="8">8% (Uluar)</option>
-                      <option value="0">0% (Pa TVSH)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Items Builder */}
-              <div className="border-t border-slate-200/60 dark:border-transparent pt-6 mb-6">
-                <h4 className="text-[13px] font-bold text-slate-900 dark:text-zinc-200 mb-3">Shto Produkte në Kalkulim</h4>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-end">
-                  <div className="sm:col-span-8">
-                    <label className="block text-[11px] uppercase tracking-wider text-slate-400 dark:text-zinc-550 font-bold mb-1">Zgjidh Produktin</label>
-                    <select
-                      value={selectedProductId}
-                      onChange={(e) => setSelectedProductId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30"
-                    >
-                      <option value="">-- Zgjidh produkt --</option>
-                      {products.map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.emri} - {currencyFormatter.format(p.cmimi_shitjes)} (Në stok: {p.stoku_aktual})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-[11px] uppercase tracking-wider text-slate-400 dark:text-zinc-550 font-bold mb-1">Sasia</label>
-                    <input
-                      type="number"
-                      value={selectedQty}
-                      min="1"
-                      onChange={(e) => setSelectedQty(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 px-4 py-2.5 text-[13px] outline-none transition focus:border-indigo-500/30 font-mono"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
+            {/* Modal Card Centering Container */}
+            <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 sm:p-6 overflow-hidden pointer-events-none print:hidden">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                className="w-full max-w-2xl max-h-[85vh] bg-zinc-200 dark:bg-zinc-950 shadow-2xl border border-slate-300 dark:border-zinc-800 flex flex-col pointer-events-auto rounded-[2rem] overflow-hidden"
+              >
+                <div className="flex flex-col h-full overflow-hidden">
+                  {/* Sticky Drawer Header */}
+                  <div className="flex items-center justify-between border-b border-slate-350 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-4">
+                    <div>
+                      <h3 className="text-[16px] font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
+                        <Plus size={18} className="text-indigo-600 dark:text-indigo-400" />
+                        Krijo Ofertë / Quote
+                      </h3>
+                      <p className="text-[11px] text-slate-550 dark:text-zinc-400 font-medium">Ndërtoni kalkulimin dhe zgjidhni vlefshmërinë e ofertës.</p>
+                    </div>
                     <button
-                      type="button"
-                      onClick={handleAddItem}
-                      disabled={!selectedProductId}
-                      className="w-full inline-flex h-[40px] items-center justify-center rounded-xl bg-indigo-650 hover:bg-indigo-600 text-white disabled:opacity-40 transition"
+                      onClick={() => setBuilderOpen(false)}
+                      className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/45 dark:bg-white/[0.02] p-2 text-slate-550 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 transition-colors"
                     >
-                      <Plus size={16} />
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  {/* Scrollable Contents */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {/* Card 1: Client & Offer Info */}
+                    <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-900 bg-white dark:bg-zinc-900 p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] space-y-4">
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-zinc-200 pb-2 border-b border-slate-100 dark:border-zinc-800">
+                        Të dhënat e Klientit
+                      </h4>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold mb-1.5">Emri i Klientit *</label>
+                        <input
+                          type="text"
+                          placeholder="Psh. Ahmet Halimi"
+                          value={clientName}
+                          onChange={(e) => setClientName(e.target.value)}
+                          className="w-full rounded-xl border border-slate-300 dark:border-zinc-850 bg-slate-50/50 dark:bg-zinc-950 px-4 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/40 focus:bg-white dark:focus:bg-zinc-900"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold mb-1.5">Email i Klientit (Opsionale)</label>
+                        <input
+                          type="email"
+                          placeholder="ahmet@shembull.com"
+                          value={clientEmail}
+                          onChange={(e) => setClientEmail(e.target.value)}
+                          className="w-full rounded-xl border border-slate-300 dark:border-zinc-850 bg-slate-50/50 dark:bg-zinc-950 px-4 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/40 focus:bg-white dark:focus:bg-zinc-900"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold mb-1.5">Valide për (Ditë)</label>
+                          <input
+                            type="number"
+                            value={expiryDays}
+                            min="1"
+                            onChange={(e) => setExpiryDays(Math.max(1, parseInt(e.target.value) || 15))}
+                            className="w-full rounded-xl border border-slate-300 dark:border-zinc-850 bg-slate-50/50 dark:bg-zinc-950 px-4 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/40 focus:bg-white dark:focus:bg-zinc-900 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold mb-1.5">Norma e TVSH %</label>
+                          <select
+                            value={taxRate}
+                            onChange={(e) => setTaxRate(Number(e.target.value))}
+                            className="w-full rounded-xl border border-slate-300 dark:border-zinc-850 bg-slate-50/50 dark:bg-zinc-950 px-4 py-2.5 text-[13px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-indigo-500/40 focus:bg-white dark:focus:bg-zinc-900 font-mono"
+                          >
+                            <option value="18">18% (Standard)</option>
+                            <option value="8">8% (Uluar)</option>
+                            <option value="0">0% (Pa TVSH)</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Items Builder */}
+                    <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-900 bg-white dark:bg-zinc-900 p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] space-y-4">
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-zinc-200 pb-2 border-b border-slate-100 dark:border-zinc-800">
+                        Shto Produkte në Kalkulim
+                      </h4>
+
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-end">
+                        <div className="sm:col-span-8">
+                          <label className="block text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold mb-1.5">Zgjidh Produktin</label>
+                          <select
+                            value={selectedProductId}
+                            onChange={(e) => setSelectedProductId(e.target.value)}
+                            className="w-full rounded-xl border border-slate-300 dark:border-zinc-850 bg-slate-50/50 dark:bg-zinc-950 px-4 py-2.5 text-[13px] text-slate-700 dark:text-zinc-300 outline-none transition focus:border-indigo-500/40 focus:bg-white dark:focus:bg-zinc-900"
+                          >
+                            <option value="">-- Zgjidh produkt --</option>
+                            {products.map(p => (
+                              <option key={p.id} value={p.id}>
+                                {p.emri} - {currencyFormatter.format(p.cmimi_shitjes)} (Në stok: {p.stoku_aktual})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold mb-1.5">Sasia</label>
+                          <input
+                            type="number"
+                            value={selectedQty}
+                            min="1"
+                            onChange={(e) => setSelectedQty(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-full rounded-xl border border-slate-300 dark:border-zinc-850 bg-slate-50/50 dark:bg-zinc-950 px-4 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/40 focus:bg-white dark:focus:bg-zinc-900 font-mono"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <button
+                            type="button"
+                            onClick={handleAddItem}
+                            disabled={!selectedProductId}
+                            className="w-full inline-flex h-[42px] items-center justify-center rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 disabled:opacity-45 transition-all shadow-sm"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Added Items table */}
+                      <div className="mt-4 rounded-xl border border-slate-300/80 dark:border-zinc-800 bg-slate-50/30 dark:bg-zinc-950/40 overflow-hidden">
+                        <table className="w-full text-left text-[12px] border-collapse">
+                          <thead>
+                            <tr className="bg-slate-100/60 dark:bg-zinc-900/60 text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold border-b border-slate-300/60 dark:border-zinc-800">
+                              <th className="px-4 py-2.5">Produkti</th>
+                              <th className="px-4 py-2.5 text-center">Sasia</th>
+                              <th className="px-4 py-2.5 text-right">Çmimi</th>
+                              <th className="px-4 py-2.5 text-right">Totali</th>
+                              <th className="px-4 py-2.5 text-center">Fshi</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-150 dark:divide-zinc-800">
+                            {addedItems.length === 0 ? (
+                              <tr>
+                                <td colSpan="5" className="px-4 py-6 text-center text-slate-500 dark:text-zinc-400 font-medium">
+                                  Nuk ka artikuj të shtuar ende.
+                                </td>
+                              </tr>
+                            ) : (
+                              addedItems.map((item, index) => (
+                                <tr key={index} className="hover:bg-slate-100/20 dark:hover:bg-zinc-900/10 transition-colors">
+                                  <td className="px-4 py-2.5 font-semibold text-slate-900 dark:text-white">{item.emri}</td>
+                                  <td className="px-4 py-2.5 text-center font-mono">{item.sasia}</td>
+                                  <td className="px-4 py-2.5 text-right font-mono">{currencyFormatter.format(item.cmimi_per_njesi)}</td>
+                                  <td className="px-4 py-2.5 text-right font-bold font-mono text-slate-900 dark:text-white">
+                                    {currencyFormatter.format(item.line_total)}
+                                  </td>
+                                  <td className="px-4 py-2.5 text-center">
+                                    <button
+                                      onClick={() => handleRemoveItem(index)}
+                                      className="text-rose-500 hover:text-rose-600 transition-colors"
+                                    >
+                                      <Trash2 size={13} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Card 3: Terms Notes */}
+                    <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-900 bg-white dark:bg-zinc-900 p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] space-y-3">
+                      <label className="block text-[10px] uppercase tracking-wider text-slate-600 dark:text-zinc-400 font-bold">Shënime / Kushte shtesë</label>
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        rows={3}
+                        className="w-full resize-none rounded-xl border border-slate-300 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-950 p-3 text-[12px] leading-5 text-slate-900 dark:text-white outline-none transition focus:border-indigo-500/40 focus:bg-white dark:focus:bg-zinc-900"
+                      />
+                    </div>
+
+                    {/* Card 4: Live Builder Totals */}
+                    <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-900 bg-white dark:bg-zinc-900 p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                      <div className="space-y-2 text-[12px] font-mono">
+                        <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
+                          <span>Nëntotali:</span>
+                          <span className="text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
+                          <span>TVSH ({taxRate}%):</span>
+                          <span className="text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.taxAmount)}</span>
+                        </div>
+                        <div className="flex justify-between text-[14px] font-bold border-t border-slate-200/60 dark:border-zinc-800 pt-2.5">
+                          <span className="text-slate-800 dark:text-zinc-200 font-sans">Totali i Ofertës:</span>
+                          <span className="text-indigo-600 dark:text-indigo-400 font-bold">{currencyFormatter.format(builderTotals.total)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sticky Footer */}
+                  <div className="border-t border-slate-350 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-4 flex items-center justify-end gap-3.5">
+                    <button
+                      onClick={() => handleCreateOffer('draft')}
+                      className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-800 bg-white hover:bg-slate-50 dark:bg-zinc-950 dark:hover:bg-zinc-900/65 text-slate-700 dark:text-zinc-300 text-[13px] font-bold transition shadow-sm"
+                    >
+                      Ruaj si Draft
+                    </button>
+                    <button
+                      onClick={() => handleCreateOffer('derguar')}
+                      className="px-6 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 text-[13px] font-bold transition shadow-md"
+                    >
+                      Krijo & Dërgo
                     </button>
                   </div>
                 </div>
-
-                {/* Added Items table */}
-                <div className="mt-4 rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/20 dark:bg-white/[0.01] overflow-hidden">
-                  <table className="w-full text-left text-[12px] border-collapse">
-                    <thead>
-                      <tr className="bg-slate-100/60 dark:bg-zinc-900/40 text-[10px] uppercase tracking-wider text-slate-450 dark:text-zinc-500 font-bold border-b border-slate-200/40 dark:border-transparent">
-                        <th className="px-4 py-2.5">Produkti</th>
-                        <th className="px-4 py-2.5 text-center">Sasia</th>
-                        <th className="px-4 py-2.5 text-right">Çmimi</th>
-                        <th className="px-4 py-2.5 text-right">Totali</th>
-                        <th className="px-4 py-2.5 text-center">Fshi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
-                      {addedItems.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="px-4 py-6 text-center text-slate-400 dark:text-zinc-500">
-                            Nuk ka artikuj të shtuar ende.
-                          </td>
-                        </tr>
-                      ) : (
-                        addedItems.map((item, index) => (
-                          <tr key={index}>
-                            <td className="px-4 py-2.5 font-semibold text-slate-800 dark:text-zinc-250">{item.emri}</td>
-                            <td className="px-4 py-2.5 text-center font-mono">{item.sasia}</td>
-                            <td className="px-4 py-2.5 text-right font-mono">{currencyFormatter.format(item.cmimi_per_njesi)}</td>
-                            <td className="px-4 py-2.5 text-right font-bold font-mono text-slate-900 dark:text-white">
-                              {currencyFormatter.format(item.line_total)}
-                            </td>
-                            <td className="px-4 py-2.5 text-center">
-                              <button
-                                onClick={() => handleRemoveItem(index)}
-                                className="text-rose-500 hover:text-rose-600 transition"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Terms Notes */}
-              <div className="mb-6">
-                <label className="block text-[11px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-bold mb-1">Shënime / Kushte shtesë</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  className="w-full resize-none rounded-xl border border-slate-200/60 dark:border-transparent bg-slate-50/60 dark:bg-zinc-900 p-3 text-[12px] leading-5 outline-none transition focus:border-indigo-500/30"
-                />
-              </div>
-
-              {/* Live Builder Totals */}
-              <div className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-slate-50/30 dark:bg-white/[0.03] p-4 mb-6">
-                <div className="space-y-1.5 text-[12px]">
-                  <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
-                    <span>Nëntotali:</span>
-                    <span className="font-mono text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
-                    <span>TVSH ({taxRate}%):</span>
-                    <span className="font-mono text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.taxAmount)}</span>
-                  </div>
-                  <div className="flex justify-between text-[14px] font-bold border-t border-slate-200/40 dark:border-transparent pt-2">
-                    <span className="text-slate-800 dark:text-zinc-200">Totali i Ofertës:</span>
-                    <span className="font-mono text-indigo-650 dark:text-indigo-400">{currencyFormatter.format(builderTotals.total)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Creator Save triggers */}
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => handleCreateOffer('draft')}
-                  className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-700 dark:text-zinc-350 hover:bg-slate-100 dark:hover:bg-white/[0.02] py-3 text-[13px] font-bold transition"
-                >
-                  Ruaj si Draft
-                </button>
-                <button
-                  onClick={() => handleCreateOffer('derguar')}
-                  className="rounded-2xl bg-indigo-650 hover:bg-indigo-600 text-white py-3 text-[13px] font-bold shadow-md transition"
-                >
-                  Krijo & Dërgo
-                </button>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
