@@ -113,6 +113,30 @@ const upload = multer({
       // Only log if it's not the expected "column already exists" error
     }
   }
+
+  // Ensure clients table exists
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS clients (
+          id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          user_id INT UNSIGNED NOT NULL,
+          emri VARCHAR(200) NOT NULL,
+          email VARCHAR(200) DEFAULT NULL,
+          telefoni VARCHAR(50) DEFAULT NULL,
+          adresa VARCHAR(500) DEFAULT NULL,
+          shenime TEXT DEFAULT NULL,
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          CONSTRAINT fk_clients_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    await pool.query(`CREATE INDEX idx_clients_user ON clients(user_id)`);
+    console.log('✓ Clients table verified/created');
+  } catch (err) {
+    if (!err.message?.includes('Duplicate key name')) {
+      // Only log if it's not the expected "index already exists" error
+    }
+  }
 })();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'zahlx-super-secret-key-12345';
@@ -1899,6 +1923,190 @@ Mos përdor emoji. Mbaje tonin miqësor por korporativ e formal.`;
     console.error('POST /api/offers/:id/ai-pitch error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
+});
+
+// ================================================================
+// CLIENTS CRUD
+// ================================================================
+
+// GET all clients with aggregated invoice/offer stats
+app.get('/api/clients', async (req, res) => {
+  try {
+    const ownerId = getTenantId(req);
+
+    const [clients] = await pool.query(
+      `SELECT c.*,
+              COALESCE(inv.invoice_count, 0) AS invoice_count,
+              COALESCE(inv.invoice_total, 0) AS invoice_total,
+              COALESCE(off.offer_count, 0) AS offer_count,
+              COALESCE(off.offer_total, 0) AS offer_total,
+              LEAST(
+                COALESCE(inv.first_invoice, '9999-12-31'),
+                COALESCE(off.first_offer, '9999-12-31')
+              ) AS first_seen,
+              GREATEST(
+                COALESCE(inv.last_invoice, '1970-01-01'),
+                COALESCE(off.last_offer, '1970-01-01')
+              ) AS last_seen
+       FROM clients c
+       LEFT JOIN (
+         SELECT klienti, 
+                COUNT(*) AS invoice_count, 
+                SUM(totali) AS invoice_total,
+                MIN(data_krijimit) AS first_invoice,
+                MAX(data_krijimit) AS last_invoice
+         FROM invoices WHERE user_id = ? AND klienti != 'Klient i përgjithshëm'
+         GROUP BY klienti
+       ) inv ON LOWER(TRIM(c.emri)) = LOWER(TRIM(inv.klienti))
+       LEFT JOIN (
+         SELECT klienti,
+                COUNT(*) AS offer_count,
+                SUM(totali) AS offer_total,
+                MIN(data_krijimit) AS first_offer,
+                MAX(data_krijimit) AS last_offer
+         FROM offers WHERE user_id = ? AND klienti != 'Klient i përgjithshëm'
+         GROUP BY klienti
+       ) off ON LOWER(TRIM(c.emri)) = LOWER(TRIM(off.klienti))
+       WHERE c.user_id = ?
+       ORDER BY c.emri ASC`,
+      [ownerId, ownerId, ownerId]
+    );
+
+    res.json(clients);
+  } catch (error) {
+    console.error('GET /api/clients error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// GET client's transaction history (invoices and offers)
+app.get('/api/clients/:id/transactions', async (req, res) => {
+  try {
+    const ownerId = getTenantId(req);
+    
+    // First get the client name
+    const [clientRows] = await pool.query(
+      `SELECT emri FROM clients WHERE id = ? AND user_id = ?`,
+      [req.params.id, ownerId]
+    );
+
+    if (clientRows.length === 0) {
+      return res.status(404).json({ error: 'Klienti nuk u gjet' });
+    }
+
+    const clientName = clientRows[0].emri;
+
+    // Get invoices
+    const [invoices] = await pool.query(
+      `SELECT id, numri_fatures AS number, data_krijimit AS date, totali AS total, statusi AS status, 'Faturë' AS type
+       FROM invoices
+       WHERE user_id = ? AND LOWER(TRIM(klienti)) = LOWER(TRIM(?))
+       ORDER BY data_krijimit DESC`,
+      [ownerId, clientName]
+    );
+
+    // Get offers
+    const [offers] = await pool.query(
+      `SELECT id, numri_ofertes AS number, data_krijimit AS date, totali AS total, statusi AS status, 'Ofertë' AS type
+       FROM offers
+       WHERE user_id = ? AND LOWER(TRIM(klienti)) = LOWER(TRIM(?))
+       ORDER BY data_krijimit DESC`,
+      [ownerId, clientName]
+    );
+
+    // Combine and sort by date descending
+    const transactions = [...invoices, ...offers].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json(transactions);
+  } catch (error) {
+    console.error('GET /api/clients/:id/transactions error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// POST create a new client
+app.post('/api/clients', async (req, res) => {
+  try {
+    const ownerId = getTenantId(req);
+    const { emri, email = null, telefoni = null, adresa = null, shenime = null } = req.body;
+
+    if (!emri || !emri.trim()) {
+      return res.status(400).json({ error: 'Emri i klientit është i detyrueshëm' });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO clients (user_id, emri, email, telefoni, adresa, shenime)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [ownerId, emri.trim(), email, telefoni, adresa, shenime]
+    );
+
+    const [rows] = await pool.query(
+      `SELECT * FROM clients WHERE id = ? AND user_id = ?`,
+      [result.insertId, ownerId]
+    );
+
+    res.status(201).json(rows[0]);
+  } catch (error) {
+    console.error('POST /api/clients error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// PUT update a client
+app.put('/api/clients/:id', async (req, res) => {
+  try {
+    const ownerId = getTenantId(req);
+    const { emri, email = null, telefoni = null, adresa = null, shenime = null } = req.body;
+
+    if (!emri || !emri.trim()) {
+      return res.status(400).json({ error: 'Emri i klientit është i detyrueshëm' });
+    }
+
+    const [result] = await pool.query(
+      `UPDATE clients SET emri = ?, email = ?, telefoni = ?, adresa = ?, shenime = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ? AND user_id = ?`,
+      [emri.trim(), email, telefoni, adresa, shenime, req.params.id, ownerId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Klienti nuk u gjet' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT * FROM clients WHERE id = ? AND user_id = ?`,
+      [req.params.id, ownerId]
+    );
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('PUT /api/clients/:id error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// DELETE a client
+app.delete('/api/clients/:id', async (req, res) => {
+  try {
+    const ownerId = getTenantId(req);
+    const [result] = await pool.query(
+      `DELETE FROM clients WHERE id = ? AND user_id = ?`,
+      [req.params.id, ownerId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Klienti nuk u gjet' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('DELETE /api/clients/:id error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// Health check endpoint for keep-alive pings
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', time: new Date().toISOString() });
 });
 
 app.listen(PORT, () => {

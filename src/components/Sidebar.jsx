@@ -15,6 +15,7 @@ import {
   FileText,
   LogOut,
   Users,
+  Contact,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,6 +28,7 @@ const navItems = [
   { to: '/arka', label: 'Arka', hint: 'Paraja', icon: Wallet, ownerOnly: true },
   { to: '/produktet', label: 'Produktet', hint: 'Stoku', icon: Package },
   { to: '/oferta', label: 'Oferta', hint: 'Kalkulime', icon: FileText, ownerOnly: true },
+  { to: '/klientet', label: 'Klientët', hint: 'Kontaktet', icon: Contact, ownerOnly: true },
   { to: '/raportet', label: 'Raportet', hint: 'Analitika', icon: ChartColumnIncreasing, ownerOnly: true },
   { to: '/stafi', label: 'Stafi', hint: 'Punëtorët', icon: Users, ownerOnly: true },
 ];

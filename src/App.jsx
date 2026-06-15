@@ -11,6 +11,7 @@ import TransactionsPage from './pages/TransactionsPage';
 import ArkaPage from './pages/ArkaPage';
 import ReportsPage from './pages/ReportsPage';
 import OffersPage from './pages/OffersPage';
+import ClientsPage from './pages/ClientsPage';
 import StaffPage from './pages/StaffPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -74,13 +75,13 @@ const AuthenticatedLayout = () => {
     }
   }, [user]);
 
-  // Keep-alive ping every 5 minutes to prevent Render spin-down
+  // Keep-alive ping every 1 minute to prevent Render spin-down
   useEffect(() => {
     const ping = () => {
       fetch('/api/health').catch(() => {});
     };
     ping();
-    const interval = setInterval(ping, 300000);
+    const interval = setInterval(ping, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -129,6 +130,7 @@ const AppContent = () => {
         <Route path="/" element={<PrivateRoute allowedRoles={['owner']}><Dashboard /></PrivateRoute>} />
         <Route path="/arka" element={<PrivateRoute allowedRoles={['owner']}><ArkaPage /></PrivateRoute>} />
         <Route path="/oferta" element={<PrivateRoute allowedRoles={['owner']}><OffersPage /></PrivateRoute>} />
+        <Route path="/klientet" element={<PrivateRoute allowedRoles={['owner']}><ClientsPage /></PrivateRoute>} />
         <Route path="/raportet" element={<PrivateRoute allowedRoles={['owner']}><ReportsPage /></PrivateRoute>} />
         <Route path="/stafi" element={<PrivateRoute allowedRoles={['owner']}><StaffPage /></PrivateRoute>} />
         
