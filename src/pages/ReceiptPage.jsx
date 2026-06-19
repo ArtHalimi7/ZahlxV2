@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import JsBarcode from 'jsbarcode';
+import Logo from '../assets/Logo.png';
 
 const currency = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -18,49 +19,7 @@ const STATUS_META = {
   anuluar: { label: 'ANULUAR (CANCELLED)', cls: 'border-neutral-500 bg-neutral-50 text-neutral-600' },
 };
 
-// Premium SVG architectural banner representing steel/construction structures
-const InvoiceBanner = () => (
-  <div className="relative h-28 w-full bg-gradient-to-r from-[#0c2340] via-[#1d3557] to-[#0a192f] overflow-hidden flex items-center justify-between px-8 text-white rounded-t-lg select-none">
-    {/* Abstract architectural SVG grid & columns in background */}
-    <svg className="absolute inset-0 w-full h-full opacity-40" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="structural-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-          <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5"/>
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#structural-grid)" />
-      
-      {/* Structural building beams and trusses */}
-      <path d="M -50,120 L 150,-20 L 180,-20 L -20,120 Z" fill="rgba(255,255,255,0.06)" />
-      <path d="M 120,120 L 320,-20 L 350,-20 L 150,120 Z" fill="rgba(255,255,255,0.06)" />
-      <path d="M 450,-20 L 290,120 L 320,120 L 480,-20 Z" fill="rgba(255,255,255,0.06)" />
-      <path d="M 680,-20 L 520,120 L 550,120 L 710,-20 Z" fill="rgba(255,255,255,0.06)" />
-      
-      {/* Accent steel cables */}
-      <line x1="0" y1="30" x2="1200" y2="30" stroke="rgba(59, 130, 246, 0.3)" strokeWidth="1.5" />
-      <line x1="0" y1="90" x2="1200" y2="90" stroke="rgba(59, 130, 246, 0.2)" strokeWidth="1" />
-      
-      <circle cx="150" cy="-20" r="120" fill="none" stroke="rgba(59, 130, 246, 0.15)" strokeWidth="1" />
-      <circle cx="700" cy="130" r="100" fill="none" stroke="rgba(59, 130, 246, 0.1)" strokeWidth="1" />
-    </svg>
-
-    <div className="z-10 flex items-center gap-4">
-      <div className="h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center font-extrabold text-[24px] shadow-lg shadow-blue-500/20 border border-blue-400/20">
-        Z
-      </div>
-      <div>
-        <h1 className="text-[22px] font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-blue-200 leading-none">
-          ZAHLX SYSTEM
-        </h1>
-        <p className="text-[9px] uppercase tracking-[0.32em] text-blue-300 font-semibold mt-1">Faturim &amp; Biznes me Sistem</p>
-      </div>
-    </div>
-    <div className="z-10 text-right">
-      <div className="text-[16px] font-black tracking-wider text-white">FATURË TATIMORE</div>
-      <div className="text-[9px] uppercase tracking-[0.2em] text-slate-300 mt-1">Zahlx Invoicing Network</div>
-    </div>
-  </div>
-);
+// InvoiceBanner removed
 
 const ReceiptPage = ({ isPublic = false }) => {
   const { invoiceId } = useParams();
@@ -103,15 +62,10 @@ const ReceiptPage = ({ isPublic = false }) => {
       try {
         JsBarcode(barcodeRef.current, receipt.secure_code, {
           format: "CODE128",
-          lineColor: "#111827",
+          lineColor: "#1f2937",
           width: 1.25,
-          height: 38,
-          displayValue: true,
-          fontSize: 8.5,
-          fontOptions: "bold",
-          font: "monospace",
-          textPosition: "bottom",
-          textMargin: 4,
+          height: 32,
+          displayValue: false,
           margin: 0
         });
       } catch (err) {
@@ -120,14 +74,14 @@ const ReceiptPage = ({ isPublic = false }) => {
     }
   }, [receipt?.secure_code]);
 
-  const taxRate = useMemo(() => Number(receipt?.tax_rate || 0), [receipt]);
-  
-  const getNetPrice = (price) => {
-    return price / (1 + taxRate / 100);
+  const getNetPrice = (price, rate) => {
+    const r = Number(rate || 0);
+    return price / (1 + r / 100);
   };
 
-  const getNetTotal = (price, quantity) => {
-    return (price * quantity) / (1 + taxRate / 100);
+  const getNetTotal = (price, quantity, rate) => {
+    const r = Number(rate || 0);
+    return (price * quantity) / (1 + r / 100);
   };
 
   const handleCopyLink = () => {
@@ -212,50 +166,15 @@ const ReceiptPage = ({ isPublic = false }) => {
       {/* Main Official Document Wrapper */}
       <div className="paper-preview relative flex flex-col justify-between border border-zinc-200/50 select-text">
         <div>
-          {/* Header Architectural Banner */}
-          <InvoiceBanner />
-
-          {/* Top Metadata Area */}
-          <div className="mt-8 flex justify-between items-start gap-8 px-2">
-            {/* Left: Barcode + Supplier Info */}
-            <div className="flex flex-col">
-              <div className="bg-white p-1.5 border border-zinc-200 rounded-lg inline-block self-start shadow-sm">
-                <svg ref={barcodeRef}></svg>
-              </div>
-              <div className="mt-3 text-[11px] text-zinc-700 leading-tight">
-                <p className="font-extrabold text-[12px] text-zinc-900 uppercase">{receipt.emri_biznesit}</p>
-                <p className="mt-1">Zahlx Operator / Lëshuesi i Faturës</p>
-                <p className="text-zinc-500 font-mono mt-0.5">{receipt.emri_shitesit || 'Zahlx Operator'}</p>
+          {/* Simple, Minimalized & Premium Header */}
+          <div className="flex justify-between items-center px-6 py-6 border-b border-zinc-200 bg-zinc-50/50">
+            <div className="flex items-center gap-4">
+              <img src={Logo} alt="Zahlx Logo" className="h-10 w-auto object-contain brightness-0 dark:invert transition-all" />
+              <div>
+                <h1 className="text-[20px] font-black uppercase tracking-wider text-zinc-900 dark:text-white">Faturë Fiskale</h1>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">{receipt.emri_biznesit}</p>
               </div>
             </div>
-
-            {/* Right: Vendor Address & Contacts */}
-            <div className="text-right text-[11px] text-zinc-600 space-y-1">
-              <p className="font-bold text-zinc-900 uppercase">Kontakti &amp; Adresa</p>
-              <p>Telefon: +383 (38) 500-500</p>
-              <p>Fax: +383 (38) 500-501</p>
-              <p>E-Mail: billing@zahlx.com</p>
-              <p className="font-medium text-zinc-800">Rruga Bill Clinton, Nr. 120, Prishtinë</p>
-            </div>
-          </div>
-
-          {/* Horizontal Divider Line */}
-          <div className="mt-6 border-b-2 border-zinc-800" />
-
-          {/* Customer / Billing Info Area */}
-          <div className="mt-6 flex justify-between items-end px-2">
-            <div className="max-w-md bg-zinc-50 border border-zinc-200 p-4 rounded-xl shadow-inner-sm">
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Faturuar për (Blerësi)</p>
-              <h2 className="mt-1.5 text-[15px] font-extrabold text-zinc-900 uppercase">{receipt.klienti}</h2>
-              <div className="mt-2 text-[11px] text-zinc-500 space-y-0.5">
-                {receipt.klient_email && <p>Email: {receipt.klient_email}</p>}
-                {receipt.klient_telefoni && <p>Tel: {receipt.klient_telefoni}</p>}
-                {receipt.klient_adresa ? <p>Adresa: {receipt.klient_adresa}</p> : <p>Adresa e Blerësit: Kosovë / Shqipëri</p>}
-                <p className="font-mono text-[10px]">ID e Klientit: #{receipt.klienti.replace(/\s+/g, '').slice(0,6).toUpperCase()}</p>
-              </div>
-            </div>
-
-            {/* Status indicator on screen */}
             <div className="text-right">
               <span className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${activeStatus.cls}`}>
                 {activeStatus.label}
@@ -263,27 +182,67 @@ const ReceiptPage = ({ isPublic = false }) => {
             </div>
           </div>
 
-          {/* Structured Key Fields Box (Matches the Baustoff + Metall Grid Box) */}
-          <div className="mt-6 grid grid-cols-5 border border-zinc-300 rounded-lg overflow-hidden text-center divide-x divide-zinc-300 bg-zinc-50/50">
+          {/* Top Metadata Area */}
+          <div className="mt-8 flex justify-between items-start gap-8 px-6">
+            {/* Left: Barcode + Supplier Info */}
+            <div className="flex flex-col">
+              <div className="bg-white p-0 inline-block self-start w-full max-w-[180px]">
+                <svg ref={barcodeRef} className="w-full h-auto"></svg>
+              </div>
+              <div className="mt-3 text-[11px] text-zinc-700 leading-tight">
+                <p className="font-extrabold text-[12px] text-zinc-900 uppercase">{receipt.emri_biznesit}</p>
+                <p className="mt-1">Operatori / Lëshuesi i Faturës</p>
+                <p className="text-zinc-500 font-mono mt-0.5">{receipt.emri_shitesit || 'Zahlx Operator'}</p>
+              </div>
+            </div>
+
+            {/* Right: Vendor Address & Contacts */}
+            <div className="text-right text-[11px] text-zinc-600 space-y-1">
+              <p className="font-bold text-zinc-900 uppercase">Kontakti dhe Adresa</p>
+              <p>Tel: +383 (38) 200-300</p>
+              <p>E-Mail: {receipt.email_biznesit || 'billing@zahlx.com'}</p>
+              <p className="font-medium text-zinc-800">Rruga Bill Clinton, Nr. 120, Prishtinë</p>
+            </div>
+          </div>
+
+          {/* Horizontal Divider Line */}
+          <div className="mt-6 border-b border-zinc-200" />
+
+          {/* Customer / Billing Info Area */}
+          <div className="mt-6 flex justify-between items-end px-6">
+            <div className="max-w-md p-0">
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Faturuar për (Blerësi)</p>
+              <h2 className="mt-1.5 text-[16px] font-black text-zinc-900 uppercase">{receipt.klienti}</h2>
+              <div className="mt-2 text-[11px] text-zinc-650 space-y-0.5">
+                {receipt.klient_email && <p><span className="text-zinc-400">Email:</span> {receipt.klient_email}</p>}
+                {receipt.klient_telefoni && <p><span className="text-zinc-400">Tel:</span> {receipt.klient_telefoni}</p>}
+                {receipt.klient_adresa && <p><span className="text-zinc-400">Adresa:</span> {receipt.klient_adresa}</p>}
+                <p className="font-mono text-[10px] text-zinc-400 mt-1">ID e Klientit: #KL-{String(receipt.id).padStart(4, '0')}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Structured Key Fields Box */}
+          <div className="mt-6 mx-6 grid grid-cols-5 border border-zinc-200 rounded-xl overflow-hidden text-center divide-x divide-zinc-200 bg-zinc-50/30">
             <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Tipi i Pagesës</p>
-              <p className="mt-1 text-[12px] font-extrabold text-zinc-800">BARVERKAUF</p>
+              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Mënyra e Pagesës</p>
+              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900">KESH</p>
             </div>
             <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Numër Fature</p>
-              <p className="mt-1 text-[12px] font-extrabold text-zinc-900 font-mono">{receipt.numri_fatures}</p>
+              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Numri i Faturës</p>
+              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-950 font-mono">{receipt.numri_fatures}</p>
             </div>
             <div className="p-3">
               <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Data e Lëshimit</p>
-              <p className="mt-1 text-[12px] font-bold text-zinc-800">{new Date(receipt.data_krijimit).toLocaleDateString('sq-AL')}</p>
+              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900">{new Date(receipt.data_krijimit).toLocaleDateString('sq-AL')}</p>
             </div>
             <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Kunden Nr.</p>
-              <p className="mt-1 text-[12px] font-bold text-zinc-800 font-mono">{receipt.seller_id || '901235'}</p>
+              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">ID e Operatorit</p>
+              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900 font-mono">#OP-{String(receipt.seller_id || 1).padStart(3, '0')}</p>
             </div>
             <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Faqe</p>
-              <p className="mt-1 text-[12px] font-bold text-zinc-800">1 / 1</p>
+              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Faqja</p>
+              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900">1 / 1</p>
             </div>
           </div>
 
@@ -292,27 +251,27 @@ const ReceiptPage = ({ isPublic = false }) => {
           </p>
 
           {/* Structured Items Table */}
-          <div className="mt-6 border border-zinc-300 rounded-lg overflow-hidden">
+          <div className="mt-6 mx-6 border border-zinc-200 rounded-xl overflow-hidden shadow-sm bg-white">
             <table className="w-full text-left text-[11px] border-collapse">
               <thead>
-                <tr className="bg-zinc-800 text-white text-[10px] font-extrabold uppercase tracking-wider divide-x divide-zinc-700">
-                  <th className="px-3 py-3 w-12 text-center">Art. Nr.</th>
-                  <th className="px-3 py-3 w-20 text-right">Sasia</th>
-                  <th className="px-3 py-3">Përshkrimi i Artikullit</th>
-                  <th className="px-3 py-3 w-28 text-center">Kodi / Barkodi</th>
-                  <th className="px-3 py-3 w-24 text-right">Çmimi Neto</th>
-                  <th className="px-3 py-3 w-16 text-center">TVSH %</th>
-                  <th className="px-3 py-3 w-24 text-right">Betrag (Bruto)</th>
+                <tr className="bg-zinc-900 text-zinc-100 text-[10px] font-extrabold uppercase tracking-wider">
+                  <th className="px-3 py-3.5 w-12 text-center">Nr.</th>
+                  <th className="px-3 py-3.5 w-20 text-right">Sasia</th>
+                  <th className="px-3 py-3.5">Përshkrimi i Artikullit</th>
+                  <th className="px-3 py-3.5 w-28 text-center">Kodi / Barkodi</th>
+                  <th className="px-3 py-3.5 w-24 text-right">Çmimi Neto</th>
+                  <th className="px-3 py-3.5 w-16 text-center">TVSH %</th>
+                  <th className="px-3 py-3.5 w-24 text-right">Vlera (Bruto)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 divide-x divide-zinc-200">
+              <tbody className="divide-y divide-zinc-200">
                 {receipt.items.map((item, idx) => (
                   <tr 
                     key={item.id} 
-                    className="hover:bg-zinc-50 transition-colors divide-x divide-zinc-200"
+                    className="hover:bg-zinc-50/50 transition-colors"
                   >
                     <td className="px-3 py-3.5 text-center font-mono text-zinc-400">{idx + 1}</td>
-                    <td className="px-3 py-3.5 text-right font-bold tabular-nums text-zinc-800">{Number(item.sasia || 1).toFixed(2)} Rol</td>
+                    <td className="px-3 py-3.5 text-right font-bold tabular-nums text-zinc-800">{Number(item.sasia || 1)} Copë</td>
                     <td className="px-3 py-3.5 font-semibold text-zinc-900 leading-tight">
                       {item.emri}
                       {item.kodi_bar && (
@@ -321,9 +280,9 @@ const ReceiptPage = ({ isPublic = false }) => {
                     </td>
                     <td className="px-3 py-3.5 text-center font-mono text-[10px] text-zinc-500">{item.kodi_bar || '—'}</td>
                     <td className="px-3 py-3.5 text-right tabular-nums font-mono text-zinc-600">
-                      {currency.format(getNetPrice(Number(item.cmimi_per_njesi)))}
+                      {currency.format(getNetPrice(Number(item.cmimi_per_njesi), item.tax_rate))}
                     </td>
-                    <td className="px-3 py-3.5 text-center font-bold text-zinc-700">{taxRate}%</td>
+                    <td className="px-3 py-3.5 text-center font-bold text-zinc-700">{item.tax_rate || 0}%</td>
                     <td className="px-3 py-3.5 text-right font-extrabold tabular-nums text-zinc-950 font-mono">
                       {currency.format(Number(item.cmimi_per_njesi) * Number(item.sasia))}
                     </td>
@@ -331,10 +290,10 @@ const ReceiptPage = ({ isPublic = false }) => {
                 ))}
 
                 {/* Vertical columns fill spacer row (keeps grid aligned) */}
-                <tr className="h-28 divide-x divide-zinc-200 bg-zinc-50/20">
+                <tr className="h-24 bg-zinc-50/10">
                   <td className="px-3 py-3"></td>
                   <td className="px-3 py-3"></td>
-                  <td className="px-3 py-3 text-zinc-300 italic align-top pt-4">
+                  <td className="px-3 py-3 text-zinc-400 italic align-top pt-4 font-medium">
                     {"->"} Transportuar dhe lëshuar në vendin e shitjes.
                   </td>
                   <td className="px-3 py-3"></td>
@@ -347,7 +306,7 @@ const ReceiptPage = ({ isPublic = false }) => {
           </div>
 
           {/* Totals Section */}
-          <div className="mt-6 flex justify-between items-start gap-8 px-2">
+          <div className="mt-6 flex justify-between items-start gap-8 px-6">
             {/* QR Code Validation */}
             <div className="flex items-start gap-4">
               <div className="bg-white p-2 border border-zinc-200 rounded-xl shadow-sm">
@@ -361,7 +320,7 @@ const ReceiptPage = ({ isPublic = false }) => {
             </div>
 
             {/* Breakdown Totals Box */}
-            <div className="w-80 border border-zinc-300 rounded-lg overflow-hidden bg-zinc-50/50 p-4 space-y-2 text-[12px]">
+            <div className="w-80 border border-zinc-200 rounded-xl overflow-hidden bg-zinc-50/30 p-4 space-y-2 text-[12px]">
               <div className="flex justify-between text-zinc-500">
                 <span>Nëntotali (pa TVSH):</span>
                 <span className="font-mono font-bold text-zinc-800">
@@ -370,15 +329,15 @@ const ReceiptPage = ({ isPublic = false }) => {
               </div>
               {Number(receipt.tax_amount) > 0 && (
                 <div className="flex justify-between text-zinc-500">
-                  <span>TVSH ({taxRate}%):</span>
+                  <span>TVSH:</span>
                   <span className="font-mono font-bold text-zinc-800">
                     {currency.format(receipt.tax_amount)}
                   </span>
                 </div>
               )}
-              <div className="border-t border-zinc-300 pt-2 flex justify-between text-[14px] font-black text-zinc-950">
+              <div className="border-t border-zinc-200 pt-2 flex justify-between text-[14px] font-black text-zinc-950">
                 <span>Totali (me TVSH):</span>
-                <span className="font-mono text-blue-900">
+                <span className="font-mono text-zinc-950">
                   {currency.format(receipt.totali)}
                 </span>
               </div>
@@ -401,34 +360,8 @@ const ReceiptPage = ({ isPublic = false }) => {
         </div>
 
         {/* Footer Area */}
-        <div className="mt-12 border-t border-zinc-200 pt-4 pb-2 text-[10px] text-zinc-500">
-          <div className="bg-slate-900 text-slate-300 p-4 rounded-b-lg grid grid-cols-4 gap-4 text-[9px] text-left">
-            <div>
-              <p className="font-bold text-white uppercase mb-1">Sede e Shoqërisë</p>
-              <p>Zahlx Billing Sh.p.k.</p>
-              <p>Rruga Bill Clinton, Nr. 120</p>
-              <p>10000 Prishtinë, Kosovë</p>
-            </div>
-            <div>
-              <p className="font-bold text-white uppercase mb-1">Menaxhmenti</p>
-              <p>Drejtor: Art Halimi</p>
-              <p>Gjykata Regjistruese: ARBK</p>
-              <p>Regjistri Tregtar: Reg. Nr. 123456</p>
-            </div>
-            <div>
-              <p className="font-bold text-white uppercase mb-1">Të Dhënat Bankare</p>
-              <p>TEB Banka: XK55 4530 0000 1234 5678</p>
-              <p>NLB Banka: XK55 3100 0000 8765 4321</p>
-              <p>BIC: TEBBXKPX, NLBBXKPX</p>
-            </div>
-            <div>
-              <p className="font-bold text-white uppercase mb-1">Numrat Fiskalë</p>
-              <p>NIPT / Nr. Fiskal: 330123456</p>
-              <p>Nr. i TVSH: 500123456</p>
-              <p>Sistemi: ZahlX Fiscal Portal</p>
-            </div>
-          </div>
-          <div className="text-center mt-3 text-[10px] text-zinc-400 italic">
+        <div className="mt-12 mx-6 border-t border-zinc-200 pt-4 pb-2 text-[10px] text-zinc-500">
+          <div className="text-center mt-2 text-[10px] text-zinc-400 italic">
             Faleminderit për bashkëpunimin tuaj! Kjo faturë është gjeneruar në mënyrë elektronike dhe është e vlefshme pa vulë fizike.
           </div>
         </div>

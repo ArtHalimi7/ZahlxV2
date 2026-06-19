@@ -33,6 +33,7 @@ const emptyProduct = {
   stoku_aktual: '0',
   kategoria: '',
   image_url: '',
+  tax_rate: '0',
 };
 
 const InventoryPage = () => {
@@ -120,6 +121,7 @@ const InventoryPage = () => {
       stoku_aktual: String(product.stoku_aktual ?? 0),
       kategoria: product.kategoria || '',
       image_url: product.image_url || '',
+      tax_rate: String(product.tax_rate ?? 0),
     });
     setImagePreview(product.image_url || '');
     setFormError('');
@@ -242,6 +244,7 @@ const InventoryPage = () => {
       stoku_aktual: Number(productForm.stoku_aktual || 0),
       kategoria: productForm.kategoria.trim() || null,
       image_url: productForm.image_url || null,
+      tax_rate: Number(productForm.tax_rate || 0),
     };
 
     try {
@@ -435,6 +438,7 @@ const InventoryPage = () => {
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Barkod</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Blerja (€)</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Shitja (€)</th>
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">TVSH</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Stoku</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Kategori</th>
                     <th className="px-6 py-4 text-right font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Veprime</th>
@@ -443,13 +447,13 @@ const InventoryPage = () => {
                 <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
+                      <td colSpan={8} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
                         Duke ngarkuar katalogun...
                       </td>
                     </tr>
                   ) : filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
+                      <td colSpan={8} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
                         Nuk u gjet asnjë produkt.
                       </td>
                     </tr>
@@ -483,6 +487,7 @@ const InventoryPage = () => {
                           <td className="px-6 py-4 font-mono font-medium text-slate-700 dark:text-zinc-350">{product.kodi_bar}</td>
                           <td className="px-6 py-4 font-medium tabular-nums text-slate-650 dark:text-zinc-300">{currency.format(product.cmimi_blerjes)}</td>
                           <td className="px-6 py-4 font-bold tabular-nums text-slate-900 dark:text-zinc-100">{currency.format(product.cmimi_shitjes)}</td>
+                          <td className="px-6 py-4 font-medium text-slate-700 dark:text-zinc-300 font-mono">{product.tax_rate}%</td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-bold font-mono ${
                               isLow ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'text-slate-800 dark:text-zinc-200'
@@ -747,8 +752,8 @@ const InventoryPage = () => {
                   </div>
 
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-transparent pb-1.5">Çmimet (pa TVSH)</p>
-                    <div className="grid grid-cols-2 gap-4">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500 mb-3 border-b border-slate-200/30 dark:border-transparent pb-1.5">Çmimet &amp; TVSH</p>
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
                         <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 ml-1 mb-2 block">Çmimi blerjes (€)</label>
                         <input
@@ -772,6 +777,18 @@ const InventoryPage = () => {
                           required
                           className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                         />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 ml-1 mb-2 block">SHKALLA E TVSH</label>
+                        <select
+                          value={productForm.tax_rate}
+                          onChange={(event) => handleProductChange('tax_rate', event.target.value)}
+                          className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-zinc-900 px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30"
+                        >
+                          <option value="0">0% TVSH</option>
+                          <option value="8">8% TVSH</option>
+                          <option value="18">18% TVSH</option>
+                        </select>
                       </div>
                     </div>
                   </div>

@@ -16,6 +16,7 @@ const emptyReceiptItem = (product) => ({
   emri: product.emri,
   kodi_bar: product.kodi_bar,
   cmimi_shitjes: Number(product.cmimi_shitjes),
+  tax_rate: Number(product.tax_rate || 0),
   quantity: 1,
 });
 
@@ -31,19 +32,9 @@ const PosPage = () => {
   const [receiptSubmitting, setReceiptSubmitting] = useState(false);
   const [receiptResult, setReceiptResult] = useState(null);
   const [receiptError, setReceiptError] = useState('');
-  const [taxRate, setTaxRate] = useState(0);
   const [paymentTerms, setPaymentTerms] = useState('immediate');
   const [invoiceStatus, setInvoiceStatus] = useState('paguar');
   const barcodeRef = useRef(null);
-
-  useEffect(() => {
-    if (user) {
-      const savedTax = localStorage.getItem(`default_tax_rate_${user.id}`);
-      if (savedTax) {
-        setTaxRate(Number(savedTax));
-      }
-    }
-  }, [user]);
 
   useEffect(() => {
     fetch('/api/products')
@@ -77,10 +68,13 @@ const PosPage = () => {
 
   const receiptTaxAmount = useMemo(
     () => {
-      const rate = Number(taxRate);
-      return rate > 0 ? receiptSubtotal * (rate / (100 + rate)) : 0;
+      return receiptItems.reduce((total, item) => {
+        const rate = Number(item.tax_rate || 0);
+        const itemTotal = item.cmimi_shitjes * item.quantity;
+        return total + (rate > 0 ? itemTotal * (rate / (100 + rate)) : 0);
+      }, 0);
     },
-    [receiptSubtotal, taxRate]
+    [receiptItems]
   );
 
   const receiptTotal = useMemo(
@@ -139,8 +133,8 @@ const PosPage = () => {
           klient_email: selectedClient?.email || null,
           klient_telefoni: selectedClient?.telefoni || null,
           klient_adresa: selectedClient?.adresa || null,
-          items: receiptItems.map((item) => ({ product_id: item.id, sasia: item.quantity })),
-          tax_rate: taxRate,
+          items: receiptItems.map((item) => ({ product_id: item.id, sasia: item.quantity, tax_rate: item.tax_rate })),
+          tax_rate: 0,
           payment_terms: paymentTerms,
           statusi: invoiceStatus,
         }),
@@ -157,7 +151,6 @@ const PosPage = () => {
       });
       setReceiptItems([]);
       setReceiptBarcode('');
-      setTaxRate(0);
       setPaymentTerms('immediate');
       setInvoiceStatus('paguar');
       setSelectedClient(null);
@@ -277,18 +270,6 @@ const PosPage = () => {
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Shkalla e TVSH</label>
-                      <select
-                        value={taxRate}
-                        onChange={(e) => setTaxRate(Number(e.target.value))}
-                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
-                      >
-                        <option value={0}>0% TVSH</option>
-                        <option value={8}>8% TVSH</option>
-                        <option value={18}>18% TVSH</option>
-                      </select>
-                    </div>
-                    <div>
                       <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Afati i Pagesës</label>
                       <select
                         value={paymentTerms}
@@ -386,7 +367,7 @@ const PosPage = () => {
                             </div>
                             <div className="text-right">
                               <p className="text-[15px] font-bold text-slate-900 dark:text-zinc-100 tabular-nums">{currency.format(item.cmimi_shitjes * item.quantity)}</p>
-                              <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">{currency.format(item.cmimi_shitjes)} / copë</p>
+                              <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">{currency.format(item.cmimi_shitjes)} / copë (TVSH {item.tax_rate}%)</p>
                             </div>
                           </div>
                           
@@ -437,7 +418,7 @@ const PosPage = () => {
                   )}
                   {receiptTaxAmount > 0 && (
                     <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
-                      <span>TVSH ({taxRate}%):</span>
+                      <span>TVSH:</span>
                       <span className="font-semibold tabular-nums text-slate-700 dark:text-zinc-300">{currency.format(receiptTaxAmount)}</span>
                     </div>
                   )}

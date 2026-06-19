@@ -26,6 +26,7 @@ const statements = [
     cmimi_shitjes DECIMAL(12,2) NOT NULL DEFAULT 0,
     stoku_aktual INT NOT NULL DEFAULT 0,
     kategoria VARCHAR(100) DEFAULT NULL,
+    tax_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_products_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -54,6 +55,7 @@ const statements = [
     product_id INT UNSIGNED NOT NULL,
     sasia INT NOT NULL DEFAULT 1,
     cmimi_per_njesi DECIMAL(12,2) NOT NULL,
+    tax_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     CONSTRAINT fk_invoice_items_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
     CONSTRAINT fk_invoice_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
@@ -216,6 +218,52 @@ export const initDatabase = async ({ closePool = true } = {}) => {
           // Column already exists
         } else {
           console.warn(`Migration notice for column ${col.name}:`, err.message || err);
+        }
+      }
+    }
+
+    // Run schema migrations for products columns
+    const productColumnsToMigrate = [
+      { name: 'tax_rate', type: 'DECIMAL(5,2) NOT NULL DEFAULT 0.00' }
+    ];
+
+    for (const col of productColumnsToMigrate) {
+      try {
+        await pool.query(`ALTER TABLE products ADD COLUMN ${col.name} ${col.type}`);
+        console.log(`✓ Added column ${col.name} to products table`);
+      } catch (err) {
+        if (
+          err.code === 'ER_DUP_FIELDNAME' ||
+          err.errno === 1060 ||
+          (err.message && err.message.includes('duplicate column')) ||
+          (err.message && err.message.includes('already exists'))
+        ) {
+          // Column already exists
+        } else {
+          console.warn(`Migration notice for products column ${col.name}:`, err.message || err);
+        }
+      }
+    }
+
+    // Run schema migrations for invoice_items columns
+    const invoiceItemColumnsToMigrate = [
+      { name: 'tax_rate', type: 'DECIMAL(5,2) NOT NULL DEFAULT 0.00' }
+    ];
+
+    for (const col of invoiceItemColumnsToMigrate) {
+      try {
+        await pool.query(`ALTER TABLE invoice_items ADD COLUMN ${col.name} ${col.type}`);
+        console.log(`✓ Added column ${col.name} to invoice_items table`);
+      } catch (err) {
+        if (
+          err.code === 'ER_DUP_FIELDNAME' ||
+          err.errno === 1060 ||
+          (err.message && err.message.includes('duplicate column')) ||
+          (err.message && err.message.includes('already exists'))
+        ) {
+          // Column already exists
+        } else {
+          console.warn(`Migration notice for invoice_items column ${col.name}:`, err.message || err);
         }
       }
     }

@@ -370,11 +370,11 @@ app.get('/api/products', async (req, res) => {
     const ownerId = getTenantId(req);
     const isWorker = req.user.role === 'worker';
     const query = isWorker
-      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
+      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate
          FROM products
          WHERE user_id = ?
          ORDER BY emri ASC`
-      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
+      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate
          FROM products
          WHERE user_id = ?
          ORDER BY emri ASC`;
@@ -392,10 +392,10 @@ app.get('/api/products/:id', async (req, res) => {
     const ownerId = getTenantId(req);
     const isWorker = req.user.role === 'worker';
     const query = isWorker
-      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
+      ? `SELECT id, emri, kodi_bar, 0 AS cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate
          FROM products
          WHERE id = ? AND user_id = ?`
-      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url
+      : `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate
          FROM products
          WHERE id = ? AND user_id = ?`;
 
@@ -423,6 +423,7 @@ app.post('/api/products', async (req, res) => {
       stoku_aktual = 0,
       kategoria = null,
       image_url = null,
+      tax_rate = 0,
     } = req.body;
 
     if (!emri || !kodi_bar) {
@@ -430,13 +431,13 @@ app.post('/api/products', async (req, res) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO products (user_id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ownerId, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url]
+      `INSERT INTO products (user_id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate]
     );
 
     const [rows] = await pool.query(
-      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, created_at, updated_at
+      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate, created_at, updated_at
        FROM products
        WHERE id = ? AND user_id = ?`,
       [result.insertId, ownerId]
@@ -464,6 +465,7 @@ app.put('/api/products/:id', async (req, res) => {
       stoku_aktual = 0,
       kategoria = null,
       image_url = null,
+      tax_rate = 0,
     } = req.body;
 
     if (!emri || !kodi_bar) {
@@ -479,9 +481,10 @@ app.put('/api/products/:id', async (req, res) => {
            stoku_aktual = ?,
            kategoria = ?,
            image_url = ?,
+           tax_rate = ?,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ? AND user_id = ?`,
-      [emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, req.params.id, ownerId]
+      [emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate, req.params.id, ownerId]
     );
 
     if (result.affectedRows === 0) {
@@ -489,7 +492,7 @@ app.put('/api/products/:id', async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, created_at, updated_at
+      `SELECT id, emri, kodi_bar, cmimi_blerjes, cmimi_shitjes, stoku_aktual, kategoria, image_url, tax_rate, created_at, updated_at
        FROM products
        WHERE id = ? AND user_id = ?`,
       [req.params.id, ownerId]
@@ -682,7 +685,7 @@ app.post('/api/sales', async (req, res) => {
 
     for (const item of items) {
       const [productRows] = await client.query(
-        `SELECT id, emri, cmimi_shitjes, stoku_aktual
+        `SELECT id, emri, cmimi_shitjes, stoku_aktual, tax_rate
          FROM products
          WHERE id = ? AND user_id = ?
          FOR UPDATE`,
@@ -703,6 +706,7 @@ app.post('/api/sales', async (req, res) => {
         });
       }
 
+      const itemTaxRate = Number(product.tax_rate || 0);
       const lineTotal = Number(product.cmimi_shitjes) * Number(item.sasia);
       subtotal += lineTotal;
 
@@ -711,12 +715,20 @@ app.post('/api/sales', async (req, res) => {
         emri: product.emri,
         sasia: Number(item.sasia),
         cmimi_per_njesi: Number(product.cmimi_shitjes),
+        tax_rate: itemTaxRate,
         line_total: lineTotal,
       });
     }
 
-    const taxRate = Number(tax_rate || 0);
-    const taxAmount = taxRate > 0 ? subtotal * (taxRate / (100 + taxRate)) : 0;
+    let totalTaxAmount = 0;
+    for (const rItem of resolvedItems) {
+      const itemTaxRate = rItem.tax_rate;
+      const lineTax = itemTaxRate > 0 ? rItem.line_total * (itemTaxRate / (100 + itemTaxRate)) : 0;
+      totalTaxAmount += lineTax;
+    }
+
+    const taxRate = 0;
+    const taxAmount = totalTaxAmount;
     const grandTotal = subtotal;
 
     let daysToAdd = 0;
@@ -737,9 +749,9 @@ app.post('/api/sales', async (req, res) => {
 
     for (const item of resolvedItems) {
       await client.query(
-        `INSERT INTO invoice_items (invoice_id, product_id, sasia, cmimi_per_njesi)
-         VALUES (?, ?, ?, ?)`,
-        [invoiceId, item.product_id, item.sasia, item.cmimi_per_njesi]
+        `INSERT INTO invoice_items (invoice_id, product_id, sasia, cmimi_per_njesi, tax_rate)
+         VALUES (?, ?, ?, ?, ?)`,
+        [invoiceId, item.product_id, item.sasia, item.cmimi_per_njesi, item.tax_rate]
       );
 
       await client.query(
@@ -807,6 +819,7 @@ app.get('/api/invoices/:id', async (req, res) => {
     const [invoiceRows] = await pool.query(
       `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
               owner.emri_biznesit AS emri_biznesit,
+              owner.email AS email_biznesit,
               COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
        FROM invoices i
        JOIN users owner ON owner.id = i.user_id
@@ -826,7 +839,7 @@ app.get('/api/invoices/:id', async (req, res) => {
     }
 
     const [itemRows] = await pool.query(
-      `SELECT ii.id, ii.product_id, ii.sasia, ii.cmimi_per_njesi, p.emri, p.kodi_bar
+      `SELECT ii.id, ii.product_id, ii.sasia, ii.cmimi_per_njesi, ii.tax_rate, p.emri, p.kodi_bar
        FROM invoice_items ii
        JOIN products p ON p.id = ii.product_id
        WHERE ii.invoice_id = ?
@@ -849,6 +862,7 @@ app.get('/api/invoices/public/:secureCode', async (req, res) => {
     const [invoiceRows] = await pool.query(
       `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
               owner.emri_biznesit AS emri_biznesit,
+              owner.email AS email_biznesit,
               COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
        FROM invoices i
        JOIN users owner ON owner.id = i.user_id
@@ -868,7 +882,7 @@ app.get('/api/invoices/public/:secureCode', async (req, res) => {
     }
 
     const [itemRows] = await pool.query(
-      `SELECT ii.id, ii.product_id, ii.sasia, ii.cmimi_per_njesi, p.emri, p.kodi_bar
+      `SELECT ii.id, ii.product_id, ii.sasia, ii.cmimi_per_njesi, ii.tax_rate, p.emri, p.kodi_bar
        FROM invoice_items ii
        JOIN products p ON p.id = ii.product_id
        WHERE ii.invoice_id = ?

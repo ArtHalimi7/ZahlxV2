@@ -16,6 +16,7 @@ import {
   LogOut,
   Users,
   Contact,
+  Receipt,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,7 +25,8 @@ import Logo from '../assets/X.png';
 const navItems = [
   { to: '/', label: 'Paneli', hint: 'Pasqyrë', icon: LayoutDashboard, ownerOnly: true },
   { to: '/shitje', label: 'Shitje e Re', hint: 'Regjistro', icon: ShoppingCart },
-  { to: '/libri-shitjes', label: 'Libri i Shitjes', hint: 'Historiku', icon: BookOpen },
+  { to: '/libri-shitjes', label: 'Libri i Shitjes', hint: 'Historiku', icon: Receipt },
+  { to: '/libri-blerjes', label: 'Libri i Blerjes', hint: 'Furnizimet', icon: BookOpen, ownerOnly: true },
   { to: '/arka', label: 'Arka', hint: 'Paraja', icon: Wallet, ownerOnly: true },
   { to: '/produktet', label: 'Produktet', hint: 'Stoku', icon: Package },
   { to: '/oferta', label: 'Oferta', hint: 'Kalkulime', icon: FileText, ownerOnly: true },

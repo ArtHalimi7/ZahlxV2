@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS products (
     stoku_aktual    INT NOT NULL DEFAULT 0,
     kategoria       VARCHAR(100) DEFAULT NULL,
     image_url       VARCHAR(500) DEFAULT NULL,
+    tax_rate        DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_products_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     product_id      INT UNSIGNED NOT NULL,
     sasia           INT NOT NULL DEFAULT 1,
     cmimi_per_njesi DECIMAL(12,2) NOT NULL,
+    tax_rate        DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     CONSTRAINT fk_invoice_items_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
     CONSTRAINT fk_invoice_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
