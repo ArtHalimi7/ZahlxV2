@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Copy, Printer, Check, ShieldAlert } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import JsBarcode from 'jsbarcode';
-import Logo from '../assets/Logo.png';
+import Logo from '../assets/X.png';
 
 const currency = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -63,10 +63,15 @@ const ReceiptPage = ({ isPublic = false }) => {
         JsBarcode(barcodeRef.current, receipt.secure_code, {
           format: "CODE128",
           lineColor: "#1f2937",
-          width: 1.25,
-          height: 32,
-          displayValue: false,
-          margin: 0
+          width: 1.4,
+          height: 40,
+          displayValue: true,
+          fontSize: 11,
+          font: "monospace",
+          textAlign: "center",
+          textPosition: "bottom",
+          textMargin: 4,
+          margin: 4
         });
       } catch (err) {
         console.error("JsBarcode generation failed:", err);
@@ -131,7 +136,7 @@ const ReceiptPage = ({ isPublic = false }) => {
 
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-950 py-6 print:py-0 print:bg-white transition-colors">
-      
+
       {/* Action Bar (hidden when printing) */}
       {!isPublic && (
         <div className="mx-auto flex max-w-[850px] items-center justify-between gap-4 px-4 pb-4 print:hidden">
@@ -164,14 +169,14 @@ const ReceiptPage = ({ isPublic = false }) => {
       )}
 
       {/* Main Official Document Wrapper */}
-      <div className="paper-preview relative flex flex-col justify-between border border-zinc-200/50 select-text">
+      <div className="paper-preview relative flex flex-col justify-between max-w-[210mm] mx-auto bg-white shadow-lg rounded-2xl border border-zinc-200/50 select-text print:shadow-none print:rounded-none print:border-0">
         <div>
           {/* Simple, Minimalized & Premium Header */}
           <div className="flex justify-between items-center px-6 py-6 border-b border-zinc-200 bg-zinc-50/50">
             <div className="flex items-center gap-4">
-              <img src={Logo} alt="Zahlx Logo" className="h-10 w-auto object-contain brightness-0 dark:invert transition-all" />
+              <img src={Logo} alt="Zahlx Logo" className="h-10 w-auto object-contain brightness-0 transition-all" />
               <div>
-                <h1 className="text-[20px] font-black uppercase tracking-wider text-zinc-900 dark:text-white">Faturë Fiskale</h1>
+                <h1 className="text-[20px] font-black uppercase tracking-wider text-zinc-900">Faturë Fiskale</h1>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">{receipt.emri_biznesit}</p>
               </div>
             </div>
@@ -186,12 +191,12 @@ const ReceiptPage = ({ isPublic = false }) => {
           <div className="mt-8 flex justify-between items-start gap-8 px-6">
             {/* Left: Barcode + Supplier Info */}
             <div className="flex flex-col">
-              <div className="bg-white p-0 inline-block self-start w-full max-w-[180px]">
-                <svg ref={barcodeRef} className="w-full h-auto"></svg>
+              <div className="bg-white rounded-lg p-2 inline-block self-start">
+                <svg ref={barcodeRef} className="w-full h-auto block"></svg>
               </div>
               <div className="mt-3 text-[11px] text-zinc-700 leading-tight">
                 <p className="font-extrabold text-[12px] text-zinc-900 uppercase">{receipt.emri_biznesit}</p>
-                <p className="mt-1">Operatori / Lëshuesi i Faturës</p>
+                <p className="mt-1 text-zinc-600">Operatori / Lëshuesi i Faturës</p>
                 <p className="text-zinc-500 font-mono mt-0.5">{receipt.emri_shitesit || 'Zahlx Operator'}</p>
               </div>
             </div>
@@ -209,41 +214,34 @@ const ReceiptPage = ({ isPublic = false }) => {
           <div className="mt-6 border-b border-zinc-200" />
 
           {/* Customer / Billing Info Area */}
-          <div className="mt-6 flex justify-between items-end px-6">
+          <div className="mt-6 flex justify-between items-start px-6">
             <div className="max-w-md p-0">
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Faturuar për (Blerësi)</p>
               <h2 className="mt-1.5 text-[16px] font-black text-zinc-900 uppercase">{receipt.klienti}</h2>
-              <div className="mt-2 text-[11px] text-zinc-650 space-y-0.5">
-                {receipt.klient_email && <p><span className="text-zinc-400">Email:</span> {receipt.klient_email}</p>}
-                {receipt.klient_telefoni && <p><span className="text-zinc-400">Tel:</span> {receipt.klient_telefoni}</p>}
-                {receipt.klient_adresa && <p><span className="text-zinc-400">Adresa:</span> {receipt.klient_adresa}</p>}
-                <p className="font-mono text-[10px] text-zinc-400 mt-1">ID e Klientit: #KL-{String(receipt.id).padStart(4, '0')}</p>
+              <div className="mt-2 text-[12px] text-zinc-700 space-y-1">
+                {receipt.klient_email && <p><span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Email</span><br />{receipt.klient_email}</p>}
+                {receipt.klient_telefoni && <p><span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Tel</span><br />{receipt.klient_telefoni}</p>}
+                {receipt.klient_adresa && <p><span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Adresa</span><br />{receipt.klient_adresa}</p>}
+                <p className="font-mono text-[10px] text-zinc-400 mt-2 pt-1 border-t border-zinc-100">ID e Klientit: #KL-{String(receipt.id).padStart(4, '0')}</p>
               </div>
             </div>
+            <img src={Logo} alt="Zahlx Logo" className="h-28 w-auto object-contain -mr-4 mt-4" />
           </div>
 
           {/* Structured Key Fields Box */}
-          <div className="mt-6 mx-6 grid grid-cols-5 border border-zinc-200 rounded-xl overflow-hidden text-center divide-x divide-zinc-200 bg-zinc-50/30">
-            <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Mënyra e Pagesës</p>
-              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900">KESH</p>
-            </div>
-            <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Numri i Faturës</p>
-              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-950 font-mono">{receipt.numri_fatures}</p>
-            </div>
-            <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Data e Lëshimit</p>
-              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900">{new Date(receipt.data_krijimit).toLocaleDateString('sq-AL')}</p>
-            </div>
-            <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">ID e Operatorit</p>
-              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900 font-mono">#OP-{String(receipt.seller_id || 1).padStart(3, '0')}</p>
-            </div>
-            <div className="p-3">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Faqja</p>
-              <p className="mt-1.5 text-[12px] font-extrabold text-zinc-900">1 / 1</p>
-            </div>
+          <div className="mt-6 mx-6 grid grid-cols-5 border border-zinc-200 rounded-xl overflow-hidden text-center divide-x divide-zinc-200 bg-white shadow-sm">
+            {[
+              { label: 'Mënyra e Pagesës', value: 'KESH' },
+              { label: 'Numri i Faturës', value: receipt.numri_fatures, mono: true },
+              { label: 'Data e Lëshimit', value: new Date(receipt.data_krijimit).toLocaleDateString('sq-AL') },
+              { label: 'ID e Operatorit', value: `#OP-${String(receipt.seller_id || 1).padStart(3, '0')}`, mono: true },
+              { label: 'Faqja', value: '1 / 1' },
+            ].map((f, i) => (
+              <div key={i} className="py-3 px-2">
+                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.15em]">{f.label}</p>
+                <p className={`mt-1.5 text-[13px] font-black text-zinc-900 ${f.mono ? 'font-mono tracking-tight' : ''}`}>{f.value}</p>
+              </div>
+            ))}
           </div>
 
           <p className="mt-4 text-[10px] text-zinc-400 italic px-2">
@@ -266,8 +264,8 @@ const ReceiptPage = ({ isPublic = false }) => {
               </thead>
               <tbody className="divide-y divide-zinc-200">
                 {receipt.items.map((item, idx) => (
-                  <tr 
-                    key={item.id} 
+                  <tr
+                    key={item.id}
                     className="hover:bg-zinc-50/50 transition-colors"
                   >
                     <td className="px-3 py-3.5 text-center font-mono text-zinc-400">{idx + 1}</td>
@@ -309,7 +307,7 @@ const ReceiptPage = ({ isPublic = false }) => {
           <div className="mt-6 flex justify-between items-start gap-8 px-6">
             {/* QR Code Validation */}
             <div className="flex items-start gap-4">
-              <div className="bg-white p-2 border border-zinc-200 rounded-xl shadow-sm">
+              <div className="bg-white p-2 rounded-xl">
                 <QRCodeSVG value={receipt.qrUrl} size={85} fgColor="#0c2340" bgColor="#ffffff" />
               </div>
               <div className="max-w-[200px] text-[10px] text-zinc-400 leading-normal">
@@ -346,14 +344,14 @@ const ReceiptPage = ({ isPublic = false }) => {
 
           {/* Signatures Section */}
           <div className="mt-10 grid grid-cols-2 gap-12 px-6">
-            <div className="border-t border-dashed border-zinc-400 pt-3 text-center">
+            <div className="border-t border-dashed border-zinc-300 pt-3 text-center">
               <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Pranoi (Blerësi / Klienti)</p>
-              <div className="h-8" /> {/* Spacer for physical signature */}
+              <div className="h-8" />
               <p className="text-[12px] font-extrabold text-zinc-900 uppercase">{receipt.klienti}</p>
             </div>
-            <div className="border-t border-dashed border-zinc-400 pt-3 text-center">
+            <div className="border-t border-dashed border-zinc-300 pt-3 text-center">
               <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Lëshoi (Operatori / Përfaqësuesi)</p>
-              <div className="h-8" /> {/* Spacer for physical signature */}
+              <div className="h-8" />
               <p className="text-[12px] font-extrabold text-zinc-900 uppercase">{receipt.emri_shitesit || receipt.emri_biznesit}</p>
             </div>
           </div>
