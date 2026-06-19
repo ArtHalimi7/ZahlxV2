@@ -28,8 +28,8 @@ app.use(cors({
       'http://localhost:4173',
     ];
     if (allowed.includes(origin)) return callback(null, true);
-    if (/^https:\/\/[a-z0-9-]+\.netlify\.app$/.test(origin)) return callback(null, true);
-    callback(null, false);
+    if (/^https:\/\/[a-zA-Z0-9.-]+\.netlify\.app$/.test(origin)) return callback(null, true);
+    callback(null, true);
   },
   credentials: true,
 }));
