@@ -24,11 +24,11 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const allowed = [
-      'https://zahlxv2.netlify.app',
       'http://localhost:5173',
       'http://localhost:4173',
     ];
     if (allowed.includes(origin)) return callback(null, true);
+    if (/^https:\/\/[a-z0-9-]+\.netlify\.app$/.test(origin)) return callback(null, true);
     callback(null, false);
   },
   credentials: true,
