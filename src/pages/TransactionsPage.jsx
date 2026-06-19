@@ -234,6 +234,7 @@ const TransactionsPage = () => {
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Numri Faturës</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Data & Ora</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Klienti</th>
+                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Zbritja</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Totali</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Statusi</th>
                     <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Veprime</th>
@@ -242,7 +243,7 @@ const TransactionsPage = () => {
                 <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                   {filteredTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
+                      <td colSpan={7} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
                         {loading ? 'Duke ngarkuar të dhënat...' : 'Nuk u gjet asnjë transaksion.'}
                       </td>
                     </tr>
@@ -255,7 +256,7 @@ const TransactionsPage = () => {
                         className="transition-colors hover:bg-white/60 dark:hover:bg-white/[0.03]"
                       >
                         <td className="px-6 py-4">
-                          <Link to={`/fature/${t.id}`} className="font-mono font-semibold text-slate-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                          <Link to={`/fature/${t.secure_code || t.id}`} className="font-mono font-semibold text-slate-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                             {t.numri_fatures}
                           </Link>
                         </td>
@@ -264,6 +265,9 @@ const TransactionsPage = () => {
                         </td>
                         <td className="px-6 py-4 font-medium text-slate-800 dark:text-zinc-200">
                           {t.klienti}
+                        </td>
+                        <td className="px-6 py-4 font-medium text-slate-500 dark:text-zinc-400 tabular-nums">
+                          {t.discount_rate > 0 ? `${t.discount_rate}% (-${currency.format(t.discount_amount)})` : '-'}
                         </td>
                         <td className="px-6 py-4 font-bold text-slate-900 dark:text-zinc-100 tabular-nums">
                           {currency.format(t.totali)}

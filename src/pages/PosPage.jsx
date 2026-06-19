@@ -68,13 +68,16 @@ const PosPage = () => {
   );
 
   const receiptTaxAmount = useMemo(
-    () => receiptSubtotal * (Number(taxRate) / 100),
+    () => {
+      const rate = Number(taxRate);
+      return rate > 0 ? receiptSubtotal * (rate / (100 + rate)) : 0;
+    },
     [receiptSubtotal, taxRate]
   );
 
   const receiptTotal = useMemo(
-    () => receiptSubtotal + receiptTaxAmount,
-    [receiptSubtotal, receiptTaxAmount]
+    () => receiptSubtotal,
+    [receiptSubtotal]
   );
 
   const addReceiptProduct = (barcode) => {
@@ -360,10 +363,12 @@ const PosPage = () => {
                 )}
                 
                 <div className="mt-6 border-t border-slate-200/60 dark:border-transparent pt-6 space-y-2">
-                  <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
-                    <span>Nëntotali:</span>
-                    <span className="font-semibold tabular-nums text-slate-700 dark:text-zinc-300">{currency.format(receiptSubtotal)}</span>
-                  </div>
+                  {receiptTaxAmount > 0 && (
+                    <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
+                      <span>Nëntotali (pa TVSH):</span>
+                      <span className="font-semibold tabular-nums text-slate-700 dark:text-zinc-300">{currency.format(receiptSubtotal - receiptTaxAmount)}</span>
+                    </div>
+                  )}
                   {receiptTaxAmount > 0 && (
                     <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
                       <span>TVSH ({taxRate}%):</span>
@@ -373,7 +378,7 @@ const PosPage = () => {
                   
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-3 border-t border-slate-200/30 dark:border-transparent mt-3">
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Totali Faturës</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Totali (përfshirë TVSH)</p>
                       <p className="mt-1 text-[30px] font-bold tracking-tight text-indigo-600 dark:text-indigo-400 tabular-nums">{currency.format(receiptTotal)}</p>
                     </div>
                     <button

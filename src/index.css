@@ -241,18 +241,38 @@
 
 
 /* ================================================================
-   PRINT SYSTEM OVERRIDES
+   PAPER PREVIEW & PRINT SYSTEM OVERRIDES
    ================================================================ */
+
+/* Screen View Paper Style */
+.paper-preview {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+  max-width: 850px;
+  min-height: 1100px;
+  padding: 3rem;
+  margin: 2rem auto;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  position: relative;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 @media print {
-  /* Suppress browser default headers & footers (URL, page number, date, etc.) */
+  /* Suppress browser default headers & footers and set custom margin */
   @page {
-    margin: 0 !important;
-    size: auto;
+    margin: 1.2cm !important;
+    size: A4 portrait;
   }
 
-  /* Core resets on main wrappers */
-  html, body, #root, #root > div, main {
+  /* Core resets on main wrappers for print */
+  html, body, #root, #root > div, main,
+  .min-h-screen, .min-h-full, .relative,
+  [class*="bg-zinc-950"], [class*="dark:bg-zinc-950"],
+  [class*="bg-black"], [class*="dark:bg-black"],
+  [class*="bg-[#f4f4f5]"], [class*="bg-zinc-100"] {
     background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #000000 !important;
     min-height: 0 !important;
     height: auto !important;
@@ -262,10 +282,10 @@
   }
 
   body {
-    padding: 2cm !important;
+    padding: 0 !important;
   }
 
-  /* Reset layout constraints and offsets on the main wrapper */
+  /* Reset sidebar layout constraints on print */
   .lg\:pl-72,
   .lg\:pl-24 {
     padding-left: 0 !important;
@@ -280,5 +300,35 @@
     transform: none !important;
     min-height: 0 !important;
     height: auto !important;
+  }
+
+  /* Override paper container on print to take full page */
+  .paper-preview {
+    max-width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Enable color printing for backgrounds/badges */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide print buttons and sidebar widgets */
+  .print-hidden,
+  header,
+  aside,
+  button,
+  .assistant-chat-widget,
+  [role="button"] {
+    display: none !important;
   }
 }

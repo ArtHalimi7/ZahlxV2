@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -665,14 +666,15 @@ app.post('/api/sales', async (req, res) => {
 
     await client.beginTransaction();
 
-    const [countRows] = await client.query(
-      `SELECT COUNT(*) AS c
-       FROM invoices
-       WHERE DATE(data_krijimit) = CURDATE() AND user_id = ?`,
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    await client.query(
+      `INSERT INTO counters (user_id, prefix, date, counter)
+       VALUES (?, 'FAT', CURDATE(), LAST_INSERT_ID(1))
+       ON DUPLICATE KEY UPDATE counter = LAST_INSERT_ID(counter + 1)`,
       [ownerId]
     );
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
+    const [seqRow] = await client.query(`SELECT LAST_INSERT_ID() AS seq`);
+    const seqNum = String(seqRow[0].seq).padStart(4, '0');
     const numriFatures = `FAT-${dateStr}-${seqNum}`;
 
     let subtotal = 0;
@@ -714,20 +716,21 @@ app.post('/api/sales', async (req, res) => {
     }
 
     const taxRate = Number(tax_rate || 0);
-    const taxAmount = subtotal * (taxRate / 100);
-    const grandTotal = subtotal + taxAmount;
+    const taxAmount = taxRate > 0 ? subtotal * (taxRate / (100 + taxRate)) : 0;
+    const grandTotal = subtotal;
 
     let daysToAdd = 0;
     if (payment_terms === 'net_15') daysToAdd = 15;
     else if (payment_terms === 'net_30') daysToAdd = 30;
-
+    
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + daysToAdd);
 
+    const secureCode = crypto.randomUUID();
     const [invoiceResult] = await client.query(
-      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date, seller_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', grandTotal, statusi, taxRate, taxAmount, dueDate, req.user.id]
+      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date, seller_id, secure_code)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', grandTotal, statusi, taxRate, taxAmount, dueDate, req.user.id, secureCode]
     );
 
     const invoiceId = invoiceResult.insertId;
@@ -780,6 +783,7 @@ app.post('/api/sales', async (req, res) => {
       invoice: {
         id: invoiceId,
         numri_fatures: numriFatures,
+        secure_code: secureCode,
         totali: grandTotal,
         tax_rate: taxRate,
         tax_amount: taxAmount,
@@ -801,7 +805,7 @@ app.get('/api/invoices/:id', async (req, res) => {
   try {
     const tenantId = getTenantId(req);
     const [invoiceRows] = await pool.query(
-      `SELECT i.id, i.numri_fatures, i.klienti, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id,
+      `SELECT i.id, i.numri_fatures, i.klienti, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
               owner.emri_biznesit AS emri_biznesit,
               COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
        FROM invoices i
@@ -836,6 +840,48 @@ app.get('/api/invoices/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('GET /api/invoices/:id error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+app.get('/api/invoices/public/:secureCode', async (req, res) => {
+  try {
+    const [invoiceRows] = await pool.query(
+      `SELECT i.id, i.numri_fatures, i.klienti, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
+              owner.emri_biznesit AS emri_biznesit,
+              COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
+       FROM invoices i
+       JOIN users owner ON owner.id = i.user_id
+       LEFT JOIN users seller ON seller.id = i.seller_id
+       WHERE i.secure_code = ?`,
+      [req.params.secureCode]
+    );
+
+    if (invoiceRows.length === 0) {
+      return res.status(404).json({ error: 'Fatura nuk u gjet' });
+    }
+
+    const invoice = invoiceRows[0];
+    const now = new Date();
+    if (invoice.statusi === 'ne_pritje' && invoice.due_date && new Date(invoice.due_date) < now) {
+      invoice.statusi = 'vonese';
+    }
+
+    const [itemRows] = await pool.query(
+      `SELECT ii.id, ii.product_id, ii.sasia, ii.cmimi_per_njesi, p.emri, p.kodi_bar
+       FROM invoice_items ii
+       JOIN products p ON p.id = ii.product_id
+       WHERE ii.invoice_id = ?
+       ORDER BY ii.id ASC`,
+      [invoice.id]
+    );
+
+    res.json({
+      ...invoice,
+      items: itemRows,
+    });
+  } catch (error) {
+    console.error('GET /api/invoices/public/:secureCode error:', error?.stack || error);
     res.status(500).json({ error: 'Gabim serveri' });
   }
 });
@@ -1589,14 +1635,15 @@ app.post('/api/offers', async (req, res) => {
 
     await client.beginTransaction();
 
-    const [countRows] = await client.query(
-      `SELECT COUNT(*) AS c
-       FROM offers
-       WHERE DATE(data_krijimit) = CURDATE() AND user_id = ?`,
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    await client.query(
+      `INSERT INTO counters (user_id, prefix, date, counter)
+       VALUES (?, 'OFR', CURDATE(), LAST_INSERT_ID(1))
+       ON DUPLICATE KEY UPDATE counter = LAST_INSERT_ID(counter + 1)`,
       [ownerId]
     );
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
+    const [seqRow] = await client.query(`SELECT LAST_INSERT_ID() AS seq`);
+    const seqNum = String(seqRow[0].seq).padStart(4, '0');
     const numriOfertes = `OFR-${dateStr}-${seqNum}`;
 
     let subtotal = 0;
@@ -1628,8 +1675,8 @@ app.post('/api/offers', async (req, res) => {
     }
 
     const taxRate = Number(tax_rate || 0);
-    const taxAmount = subtotal * (taxRate / 100);
-    const grandTotal = subtotal + taxAmount;
+    const taxAmount = taxRate > 0 ? subtotal * (taxRate / (100 + taxRate)) : 0;
+    const grandTotal = subtotal;
 
     const [offerResult] = await client.query(
       `INSERT INTO offers (user_id, numri_ofertes, klienti, email_klientit, totali, tax_rate, tax_amount, data_skadimit, shenime, statusi)
@@ -1718,14 +1765,15 @@ app.post('/api/offers/:id/convert', async (req, res) => {
     await client.beginTransaction();
 
     // 3. Generate Invoice Number
-    const [countRows] = await client.query(
-      `SELECT COUNT(*) AS c
-       FROM invoices
-       WHERE DATE(data_krijimit) = CURDATE() AND user_id = ?`,
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    await client.query(
+      `INSERT INTO counters (user_id, prefix, date, counter)
+       VALUES (?, 'FAT', CURDATE(), LAST_INSERT_ID(1))
+       ON DUPLICATE KEY UPDATE counter = LAST_INSERT_ID(counter + 1)`,
       [ownerId]
     );
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const seqNum = String(Number(countRows[0].c) + 1).padStart(4, '0');
+    const [seqRow] = await client.query(`SELECT LAST_INSERT_ID() AS seq`);
+    const seqNum = String(seqRow[0].seq).padStart(4, '0');
     const numriFatures = `FAT-${dateStr}-${seqNum}`;
 
     // 4. Verify stock and lock items
@@ -1767,16 +1815,17 @@ app.post('/api/offers/:id/convert', async (req, res) => {
     }
 
     const taxRate = Number(offer.tax_rate || 0);
-    const taxAmount = subtotal * (taxRate / 100);
-    const grandTotal = subtotal + taxAmount;
+    const taxAmount = taxRate > 0 ? subtotal * (taxRate / (100 + taxRate)) : 0;
+    const grandTotal = subtotal;
 
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 15);
 
+    const secureCode = crypto.randomUUID();
     const [invoiceResult] = await client.query(
-      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date)
-       VALUES (?, ?, ?, ?, 'ne_pritje', ?, ?, ?)`,
-      [ownerId, numriFatures, offer.klienti, grandTotal, taxRate, taxAmount, dueDate]
+      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date, secure_code)
+       VALUES (?, ?, ?, ?, 'ne_pritje', ?, ?, ?, ?)`,
+      [ownerId, numriFatures, offer.klienti, grandTotal, taxRate, taxAmount, dueDate, secureCode]
     );
 
     const invoiceId = invoiceResult.insertId;

@@ -96,8 +96,8 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
   }, [products, search]);
 
   const subtotal = selected ? selected.cmimi_shitjes * quantity : 0;
-  const taxAmount = subtotal * (taxRate / 100);
-  const total = subtotal + taxAmount;
+  const taxAmount = taxRate > 0 ? subtotal * (taxRate / (100 + taxRate)) : 0;
+  const total = subtotal;
 
   const handleSelect = (product) => {
     setSelected(product);
@@ -146,7 +146,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
 
       setReceiptData({
         ...data.invoice,
-        qrUrl: `${window.location.origin}/fature/${data.invoice.id}`,
+        qrUrl: `${window.location.origin}/fature/publike/${data.invoice.secure_code}`,
       });
       setState(STATES.SUCCESS);
       onSaleComplete?.();
@@ -334,10 +334,12 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
               </div>
 
               <div className="mt-4 rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-4 space-y-1.5">
-                <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
-                  <span>Nëntotali:</span>
-                  <span className="font-semibold tabular-nums">{formatEuro(subtotal)}</span>
-                </div>
+                {taxAmount > 0 && (
+                  <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                    <span>Nëntotali (pa TVSH):</span>
+                    <span className="font-semibold tabular-nums">{formatEuro(subtotal - taxAmount)}</span>
+                  </div>
+                )}
                 {taxAmount > 0 && (
                   <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
                     <span>TVSH ({taxRate}%):</span>
@@ -345,7 +347,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                   </div>
                 )}
                 <div className="flex items-end justify-between border-t border-slate-200/30 dark:border-transparent pt-1.5">
-                  <span className="text-[13px] text-slate-400 dark:text-zinc-500">Totali</span>
+                  <span className="text-[13px] text-slate-400 dark:text-zinc-500">Totali (përfshirë TVSH)</span>
                   <span className="text-[30px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">{formatEuro(total)}</span>
                 </div>
               </div>
@@ -400,7 +402,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                     Mbyll
                   </button>
                   <Link
-                    to={`/fature/${receiptData.id}`}
+                    to={`/fature/${receiptData.secure_code || receiptData.id}`}
                     onClick={onClose}
                     className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(var(--accent-rgb),0.35)] transition hover:bg-indigo-500"
                   >

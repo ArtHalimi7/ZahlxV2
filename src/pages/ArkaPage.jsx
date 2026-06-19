@@ -177,7 +177,7 @@ const ArkaPage = () => {
                           </td>
                           <td className="px-6 py-4">
                             {entry.numri_fatures ? (
-                              <Link to={`/fature/${entry.invoice_id}`} className="font-mono font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                              <Link to={`/fature/${entry.invoice_secure_code || entry.invoice_id}`} className="font-mono font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
                                 {entry.numri_fatures}
                               </Link>
                             ) : (

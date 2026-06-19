@@ -101,6 +101,15 @@ const statements = [
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   `CREATE INDEX idx_offer_items_offer ON offer_items(offer_id)`,
   `CREATE INDEX idx_offer_items_product ON offer_items(product_id)`,
+  `CREATE TABLE IF NOT EXISTS counters (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    prefix VARCHAR(10) NOT NULL,
+    date DATE NOT NULL,
+    counter INT UNSIGNED NOT NULL DEFAULT 0,
+    UNIQUE INDEX idx_counters_key (user_id, prefix, date),
+    CONSTRAINT fk_counters_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 ];
 
 const ensureOwner = async () => {
@@ -145,8 +154,17 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       { name: 'tax_rate', type: 'DECIMAL(5,2) DEFAULT 0' },
       { name: 'tax_amount', type: 'DECIMAL(12,2) DEFAULT 0' },
       { name: 'due_date', type: 'DATETIME DEFAULT NULL' },
-      { name: 'seller_id', type: 'INT UNSIGNED DEFAULT NULL' }
+      { name: 'seller_id', type: 'INT UNSIGNED DEFAULT NULL' },
+      { name: 'secure_code', type: 'VARCHAR(64) DEFAULT NULL' }
     ];
+
+    // Backfill secure_code for existing invoices that don't have one
+    try {
+      await pool.query(`UPDATE invoices SET secure_code = UUID() WHERE secure_code IS NULL`);
+      console.log('✓ Backfilled secure_code for existing invoices');
+    } catch (err) {
+      console.warn('Migration warning backfilling secure_code:', err.message || err);
+    }
 
     for (const col of columnsToMigrate) {
       try {
@@ -217,6 +235,76 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       console.log('✓ Added foreign key constraint fk_users_parent to users table');
     } catch (err) {
       // Ignore if constraint already exists
+    }
+
+    // Migrate: drop global UNIQUE on invoices.numri_fatures, add per-tenant UNIQUE
+    try {
+      await pool.query(`ALTER TABLE invoices DROP INDEX numri_fatures`);
+      console.log('✓ Dropped global UNIQUE on invoices.numri_fatures');
+    } catch (err) {
+      if (!err.message?.includes('check that column/key exists') && !err.message?.includes("can't drop")) {
+        console.warn('Migration notice dropping invoices index:', err.message || err);
+      }
+    }
+    try {
+      await pool.query(`ALTER TABLE invoices ADD UNIQUE INDEX uq_invoice_per_user (user_id, numri_fatures)`);
+      console.log('✓ Added per-tenant UNIQUE (user_id, numri_fatures) on invoices');
+    } catch (err) {
+      if (!err.message?.includes('duplicate key') && !err.message?.includes('already exists')) {
+        console.warn('Migration notice adding invoices unique:', err.message || err);
+      }
+    }
+    try {
+      await pool.query(`CREATE INDEX idx_invoices_secure_code ON invoices(secure_code)`);
+      console.log('✓ Added index on invoices.secure_code');
+    } catch (err) {
+      if (!err.message?.includes('already exists') && !err.message?.includes('duplicate key name')) {
+        console.warn('Migration notice adding secure_code index:', err.message || err);
+      }
+    }
+
+    // Migrate: drop global UNIQUE on offers.numri_ofertes, add per-tenant UNIQUE
+    try {
+      await pool.query(`ALTER TABLE offers DROP INDEX numri_ofertes`);
+      console.log('✓ Dropped global UNIQUE on offers.numri_ofertes');
+    } catch (err) {
+      if (!err.message?.includes('check that column/key exists') && !err.message?.includes("can't drop")) {
+        console.warn('Migration notice dropping offers index:', err.message || err);
+      }
+    }
+    try {
+      await pool.query(`ALTER TABLE offers ADD UNIQUE INDEX uq_offer_per_user (user_id, numri_ofertes)`);
+      console.log('✓ Added per-tenant UNIQUE (user_id, numri_ofertes) on offers');
+    } catch (err) {
+      if (!err.message?.includes('duplicate key') && !err.message?.includes('already exists')) {
+        console.warn('Migration notice adding offers unique:', err.message || err);
+      }
+    }
+
+    // Seed counters with existing data so new sequence numbers don't collide
+    try {
+      await pool.query(`
+        INSERT INTO counters (user_id, prefix, date, counter)
+        SELECT user_id, 'FAT', DATE(data_krijimit), COUNT(*)
+        FROM invoices
+        GROUP BY user_id, DATE(data_krijimit)
+        ON DUPLICATE KEY UPDATE counter = VALUES(counter)
+      `);
+      console.log('✓ Seeded FAT counters from existing invoices');
+    } catch (err) {
+      console.warn('Migration warning seeding FAT counters:', err.message || err);
+    }
+    try {
+      await pool.query(`
+        INSERT INTO counters (user_id, prefix, date, counter)
+        SELECT user_id, 'OFR', DATE(data_krijimit), COUNT(*)
+        FROM offers
+        GROUP BY user_id, DATE(data_krijimit)
+        ON DUPLICATE KEY UPDATE counter = VALUES(counter)
+      `);
+      console.log('✓ Seeded OFR counters from existing offers');
+    } catch (err) {
+      console.warn('Migration warning seeding OFR counters:', err.message || err);
     }
 
     const ownerId = await ensureOwner();

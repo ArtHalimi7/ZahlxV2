@@ -13,6 +13,7 @@ import ReportsPage from './pages/ReportsPage';
 import OffersPage from './pages/OffersPage';
 import ClientsPage from './pages/ClientsPage';
 import StaffPage from './pages/StaffPage';
+import PurchasesPage from './pages/PurchasesPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -124,6 +125,7 @@ const AppContent = () => {
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
+      <Route path="/fature/publike/:invoiceId" element={<ReceiptPage isPublic={true} />} />
       
       <Route element={<PrivateRoute><AuthenticatedLayout /></PrivateRoute>}>
         {/* Owner-only routes */}
@@ -133,12 +135,13 @@ const AppContent = () => {
         <Route path="/klientet" element={<PrivateRoute allowedRoles={['owner']}><ClientsPage /></PrivateRoute>} />
         <Route path="/raportet" element={<PrivateRoute allowedRoles={['owner']}><ReportsPage /></PrivateRoute>} />
         <Route path="/stafi" element={<PrivateRoute allowedRoles={['owner']}><StaffPage /></PrivateRoute>} />
+        <Route path="/libri-blerjes" element={<PrivateRoute allowedRoles={['owner']}><PurchasesPage /></PrivateRoute>} />
         
         {/* Common routes (Owner & Worker) */}
         <Route path="/shitje" element={<PosPage />} />
         <Route path="/libri-shitjes" element={<TransactionsPage />} />
         <Route path="/produktet" element={<InventoryPage />} />
-        <Route path="/fature/:invoiceId" element={<ReceiptPage />} />
+        <Route path="/fature/:invoiceId" element={<ReceiptPage isPublic={false} />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />

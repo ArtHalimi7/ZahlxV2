@@ -186,8 +186,8 @@ const OffersPage = () => {
   // Creator Totals
   const builderTotals = useMemo(() => {
     const subtotal = addedItems.reduce((sum, item) => sum + item.line_total, 0);
-    const taxAmount = subtotal * (taxRate / 100);
-    const total = subtotal + taxAmount;
+    const taxAmount = taxRate > 0 ? subtotal * (taxRate / (100 + taxRate)) : 0;
+    const total = subtotal;
     return { subtotal, taxAmount, total };
   }, [addedItems, taxRate]);
 
@@ -674,7 +674,7 @@ const OffersPage = () => {
                     <div className="border-t border-slate-200/60 dark:border-transparent pt-4 mb-6 print:border-t-2 print:border-black">
                       <div className="space-y-1.5 text-[13px] max-w-xs ml-auto font-mono">
                         <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium print:text-black">
-                          <span>Nëntotali:</span>
+                          <span>Nëntotali (pa TVSH):</span>
                           <span className="text-slate-900 dark:text-white print:text-black">
                             {currencyFormatter.format(Number(selectedOffer.totali) - Number(selectedOffer.tax_amount))}
                           </span>
@@ -686,7 +686,7 @@ const OffersPage = () => {
                           </span>
                         </div>
                         <div className="flex justify-between text-[15px] font-bold border-t border-slate-200/40 dark:border-transparent pt-2 print:border-t print:border-zinc-300">
-                          <span className="text-slate-700 dark:text-zinc-200 print:text-black">Totali:</span>
+                          <span className="text-slate-700 dark:text-zinc-200 print:text-black">Totali (përfshirë TVSH):</span>
                           <span className="text-indigo-600 dark:text-indigo-400 print:text-black">
                             {currencyFormatter.format(selectedOffer.totali)}
                           </span>
@@ -956,16 +956,18 @@ const OffersPage = () => {
                     {/* Card 4: Live Builder Totals */}
                     <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-900 bg-white dark:bg-zinc-900 p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
                       <div className="space-y-2 text-[12px] font-mono">
-                        <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
-                          <span>Nëntotali:</span>
-                          <span className="text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.subtotal)}</span>
-                        </div>
+                        {builderTotals.taxAmount > 0 && (
+                          <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
+                            <span>Nëntotali (pa TVSH):</span>
+                            <span className="text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.subtotal - builderTotals.taxAmount)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between text-slate-500 dark:text-zinc-400 font-medium">
                           <span>TVSH ({taxRate}%):</span>
                           <span className="text-slate-900 dark:text-white">{currencyFormatter.format(builderTotals.taxAmount)}</span>
                         </div>
                         <div className="flex justify-between text-[14px] font-bold border-t border-slate-200/60 dark:border-zinc-800 pt-2.5">
-                          <span className="text-slate-800 dark:text-zinc-200 font-sans">Totali i Ofertës:</span>
+                          <span className="text-slate-800 dark:text-zinc-200 font-sans">Totali (përfshirë TVSH):</span>
                           <span className="text-indigo-600 dark:text-indigo-400 font-bold">{currencyFormatter.format(builderTotals.total)}</span>
                         </div>
                       </div>
