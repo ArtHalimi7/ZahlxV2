@@ -37,6 +37,9 @@ const statements = [
     user_id INT UNSIGNED NOT NULL,
     numri_fatures VARCHAR(50) NOT NULL UNIQUE,
     klienti VARCHAR(200) NOT NULL DEFAULT 'Klient i përgjithshëm',
+    klient_email VARCHAR(200) DEFAULT NULL,
+    klient_telefoni VARCHAR(100) DEFAULT NULL,
+    klient_adresa TEXT DEFAULT NULL,
     data_krijimit DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     totali DECIMAL(12,2) NOT NULL DEFAULT 0,
     statusi ENUM('paguar', 'ne_pritje', 'anuluar') NOT NULL DEFAULT 'paguar',
@@ -60,13 +63,15 @@ const statements = [
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
     invoice_id INT UNSIGNED DEFAULT NULL,
+    purchase_id INT UNSIGNED DEFAULT NULL,
     data DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     pershkrimi TEXT,
     llogaria VARCHAR(100) NOT NULL,
     debit DECIMAL(12,2) NOT NULL DEFAULT 0,
     kredit DECIMAL(12,2) NOT NULL DEFAULT 0,
     CONSTRAINT fk_ledger_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ledger_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL
+    CONSTRAINT fk_ledger_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL,
+    CONSTRAINT fk_ledger_purchase FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE SET NULL
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   `CREATE INDEX idx_ledger_user ON financial_ledger(user_id)`,
   `CREATE INDEX idx_ledger_date ON financial_ledger(data)`,
@@ -109,6 +114,34 @@ const statements = [
     counter INT UNSIGNED NOT NULL DEFAULT 0,
     UNIQUE INDEX idx_counters_key (user_id, prefix, date),
     CONSTRAINT fk_counters_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  `CREATE TABLE IF NOT EXISTS purchases (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    numri_blerjes VARCHAR(50) NOT NULL,
+    furnitori VARCHAR(200) NOT NULL,
+    data_blerjes DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    totali DECIMAL(12,2) NOT NULL DEFAULT 0,
+    tax_rate DECIMAL(5,2) DEFAULT 0,
+    tax_amount DECIMAL(12,2) DEFAULT 0,
+    discount_rate DECIMAL(5,2) DEFAULT 0,
+    statusi ENUM('paguar', 'ne_pritje', 'anuluar') NOT NULL DEFAULT 'paguar',
+    source_invoice_secure_code VARCHAR(64) DEFAULT NULL,
+    source_invoice_numri VARCHAR(50) DEFAULT NULL,
+    shenime TEXT DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE INDEX uq_purchase_per_user (user_id, numri_blerjes),
+    CONSTRAINT fk_purchases_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  `CREATE TABLE IF NOT EXISTS purchase_items (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    purchase_id INT UNSIGNED NOT NULL,
+    emri VARCHAR(200) NOT NULL,
+    kodi_bar VARCHAR(100) DEFAULT NULL,
+    sasia DECIMAL(12,2) NOT NULL DEFAULT 1.00,
+    cmimi_per_njesi DECIMAL(12,2) NOT NULL,
+    CONSTRAINT fk_purchase_items_purchase FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 ];
 
@@ -155,7 +188,10 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       { name: 'tax_amount', type: 'DECIMAL(12,2) DEFAULT 0' },
       { name: 'due_date', type: 'DATETIME DEFAULT NULL' },
       { name: 'seller_id', type: 'INT UNSIGNED DEFAULT NULL' },
-      { name: 'secure_code', type: 'VARCHAR(64) DEFAULT NULL' }
+      { name: 'secure_code', type: 'VARCHAR(64) DEFAULT NULL' },
+      { name: 'klient_email', type: 'VARCHAR(200) DEFAULT NULL' },
+      { name: 'klient_telefoni', type: 'VARCHAR(100) DEFAULT NULL' },
+      { name: 'klient_adresa', type: 'TEXT DEFAULT NULL' }
     ];
 
     // Backfill secure_code for existing invoices that don't have one
@@ -191,6 +227,39 @@ export const initDatabase = async ({ closePool = true } = {}) => {
         FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE SET NULL
       `);
       console.log('✓ Added foreign key constraint fk_invoices_seller to invoices table');
+    } catch (err) {
+      // Ignore if constraint already exists
+    }
+
+    const ledgerColumnsToMigrate = [
+      { name: 'purchase_id', type: 'INT UNSIGNED DEFAULT NULL' }
+    ];
+
+    for (const col of ledgerColumnsToMigrate) {
+      try {
+        await pool.query(`ALTER TABLE financial_ledger ADD COLUMN ${col.name} ${col.type}`);
+        console.log(`✓ Added column ${col.name} to financial_ledger table`);
+      } catch (err) {
+        if (
+          err.code === 'ER_DUP_FIELDNAME' ||
+          err.errno === 1060 ||
+          (err.message && err.message.includes('duplicate column')) ||
+          (err.message && err.message.includes('already exists'))
+        ) {
+          // Column already exists
+        } else {
+          console.warn(`Migration notice for financial_ledger column ${col.name}:`, err.message || err);
+        }
+      }
+    }
+
+    try {
+      await pool.query(`
+        ALTER TABLE financial_ledger
+        ADD CONSTRAINT fk_ledger_purchase
+        FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE SET NULL
+      `);
+      console.log('✓ Added foreign key constraint fk_ledger_purchase to financial_ledger table');
     } catch (err) {
       // Ignore if constraint already exists
     }
@@ -305,6 +374,18 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       console.log('✓ Seeded OFR counters from existing offers');
     } catch (err) {
       console.warn('Migration warning seeding OFR counters:', err.message || err);
+    }
+    try {
+      await pool.query(`
+        INSERT INTO counters (user_id, prefix, date, counter)
+        SELECT user_id, 'BLR', DATE(data_blerjes), COUNT(*)
+        FROM purchases
+        GROUP BY user_id, DATE(data_blerjes)
+        ON DUPLICATE KEY UPDATE counter = VALUES(counter)
+      `);
+      console.log('✓ Seeded BLR counters from existing purchases');
+    } catch (err) {
+      console.warn('Migration warning seeding BLR counters:', err.message || err);
     }
 
     const ownerId = await ensureOwner();

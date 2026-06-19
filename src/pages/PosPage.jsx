@@ -22,7 +22,10 @@ const emptyReceiptItem = (product) => ({
 const PosPage = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
-  const [receiptClient, setReceiptClient] = useState('Klient i përgjithshëm');
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [clientSearch, setClientSearch] = useState('Klient i përgjithshëm');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [receiptBarcode, setReceiptBarcode] = useState('');
   const [receiptItems, setReceiptItems] = useState([]);
   const [receiptSubmitting, setReceiptSubmitting] = useState(false);
@@ -47,6 +50,11 @@ const PosPage = () => {
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setProducts(Array.isArray(data) ? data : []))
       .catch(() => setProducts([]));
+
+    fetch('/api/clients')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setClients(Array.isArray(data) ? data : []))
+      .catch(() => setClients([]));
       
     // Focus the barcode input on load
     window.setTimeout(() => barcodeRef.current?.focus(), 100);
@@ -127,7 +135,10 @@ const PosPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          klienti: receiptClient,
+          klienti: selectedClient ? selectedClient.emri : (clientSearch || 'Klient i përgjithshëm'),
+          klient_email: selectedClient?.email || null,
+          klient_telefoni: selectedClient?.telefoni || null,
+          klient_adresa: selectedClient?.adresa || null,
           items: receiptItems.map((item) => ({ product_id: item.id, sasia: item.quantity })),
           tax_rate: taxRate,
           payment_terms: paymentTerms,
@@ -149,6 +160,8 @@ const PosPage = () => {
       setTaxRate(0);
       setPaymentTerms('immediate');
       setInvoiceStatus('paguar');
+      setSelectedClient(null);
+      setClientSearch('Klient i përgjithshëm');
       
       // Focus back to barcode to be ready for next sale
       window.setTimeout(() => barcodeRef.current?.focus(), 100);
@@ -187,14 +200,67 @@ const PosPage = () => {
                 
                 <div className="mt-6 space-y-5">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
+                    <div className="relative">
                       <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Klienti</label>
                       <input
-                        value={receiptClient}
-                        onChange={(event) => setReceiptClient(event.target.value)}
-                        placeholder="Klienti (Opcionale)"
+                        value={clientSearch}
+                        onChange={(e) => {
+                          setClientSearch(e.target.value);
+                          setShowClientDropdown(true);
+                        }}
+                        onFocus={() => setShowClientDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+                        placeholder="Kërko ose zgjidh klient..."
                         className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
                       />
+                      {showClientDropdown && (
+                        <div className="absolute z-[100] mt-1 w-full max-h-60 overflow-y-auto rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl custom-scrollbar py-2 text-left">
+                          <div 
+                            onMouseDown={() => {
+                              setSelectedClient(null);
+                              setClientSearch('Klient i përgjithshëm');
+                              setShowClientDropdown(false);
+                            }}
+                            className="px-4 py-2 text-[13px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer font-semibold text-indigo-600 dark:text-indigo-400"
+                          >
+                            Klient i përgjithshëm
+                          </div>
+                          {clients
+                            .filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase()))
+                            .map(c => (
+                              <div
+                                key={c.id}
+                                onMouseDown={() => {
+                                  setSelectedClient(c);
+                                  setClientSearch(c.emri);
+                                  setShowClientDropdown(false);
+                                }}
+                                className="px-4 py-2 text-[13px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer text-slate-800 dark:text-zinc-200"
+                              >
+                                <p className="font-semibold">{c.emri}</p>
+                                {(c.email || c.telefoni) && (
+                                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">
+                                    {c.email} {c.telefoni && `· ${c.telefoni}`}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          {clients.filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                            <div className="px-4 py-2 text-[12px] text-slate-400 dark:text-zinc-500">
+                              Nuk u gjet asnjë klient. Shtypni për ta përdorur këtë emër:
+                              <div 
+                                onMouseDown={() => {
+                                  setSelectedClient({ emri: clientSearch });
+                                  setShowClientDropdown(false);
+                                }}
+                                className="mt-1 text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer font-semibold"
+                              >
+                                Përdor "{clientSearch}"
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Statusi</label>

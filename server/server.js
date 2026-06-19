@@ -658,7 +658,7 @@ app.post('/api/sales', async (req, res) => {
 
   try {
     const ownerId = getTenantId(req);
-    const { klienti, items, tax_rate = 0, payment_terms = 'immediate', statusi = 'paguar' } = req.body;
+    const { klienti, klient_email = null, klient_telefoni = null, klient_adresa = null, items, tax_rate = 0, payment_terms = 'immediate', statusi = 'paguar' } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Duhet të shtoni së paku një produkt' });
@@ -722,15 +722,15 @@ app.post('/api/sales', async (req, res) => {
     let daysToAdd = 0;
     if (payment_terms === 'net_15') daysToAdd = 15;
     else if (payment_terms === 'net_30') daysToAdd = 30;
-    
+
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + daysToAdd);
 
     const secureCode = crypto.randomUUID();
     const [invoiceResult] = await client.query(
-      `INSERT INTO invoices (user_id, numri_fatures, klienti, totali, statusi, tax_rate, tax_amount, due_date, seller_id, secure_code)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', grandTotal, statusi, taxRate, taxAmount, dueDate, req.user.id, secureCode]
+      `INSERT INTO invoices (user_id, numri_fatures, klienti, klient_email, klient_telefoni, klient_adresa, totali, statusi, tax_rate, tax_amount, due_date, seller_id, secure_code)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', klient_email, klient_telefoni, klient_adresa, grandTotal, statusi, taxRate, taxAmount, dueDate, req.user.id, secureCode]
     );
 
     const invoiceId = invoiceResult.insertId;
@@ -746,7 +746,7 @@ app.post('/api/sales', async (req, res) => {
         `UPDATE products
          SET stoku_aktual = stoku_aktual - ?, updated_at = CURRENT_TIMESTAMP
          WHERE id = ? AND user_id = ?`,
-         [item.sasia, item.product_id, ownerId]
+        [item.sasia, item.product_id, ownerId]
       );
     }
 
@@ -805,7 +805,7 @@ app.get('/api/invoices/:id', async (req, res) => {
   try {
     const tenantId = getTenantId(req);
     const [invoiceRows] = await pool.query(
-      `SELECT i.id, i.numri_fatures, i.klienti, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
+      `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
               owner.emri_biznesit AS emri_biznesit,
               COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
        FROM invoices i
@@ -847,7 +847,7 @@ app.get('/api/invoices/:id', async (req, res) => {
 app.get('/api/invoices/public/:secureCode', async (req, res) => {
   try {
     const [invoiceRows] = await pool.query(
-      `SELECT i.id, i.numri_fatures, i.klienti, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
+      `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
               owner.emri_biznesit AS emri_biznesit,
               COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
        FROM invoices i
@@ -950,10 +950,12 @@ app.get('/api/arka', async (req, res) => {
     );
 
     const [entries] = await pool.query(
-      `SELECT fl.id, fl.data, fl.pershkrimi, fl.debit, fl.kredit, fl.invoice_id,
-              i.numri_fatures
+      `SELECT fl.id, fl.data, fl.pershkrimi, fl.debit, fl.kredit, fl.invoice_id, fl.purchase_id,
+              COALESCE(i.numri_fatures, p.numri_blerjes) AS numri_fatures,
+              i.secure_code AS invoice_secure_code
        FROM financial_ledger fl
        LEFT JOIN invoices i ON i.id = fl.invoice_id
+       LEFT JOIN purchases p ON p.id = fl.purchase_id
        WHERE fl.llogaria = 'Arka' AND fl.user_id = ?
        ORDER BY fl.data DESC
        LIMIT 200`,
@@ -976,7 +978,9 @@ app.get('/api/arka', async (req, res) => {
         debit: Number(e.debit),
         kredit: Number(e.kredit),
         invoice_id: e.invoice_id,
+        purchase_id: e.purchase_id,
         numri_fatures: e.numri_fatures,
+        invoice_secure_code: e.invoice_secure_code,
       })),
     });
   } catch (error) {
@@ -1182,11 +1186,11 @@ app.post('/api/chat', async (req, res) => {
     }
     const tenantId = getTenantId(req);
     const apiKey = process.env.GEMINI_API_KEY;
-    
+
     if (!apiKey) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'api_key_required',
-        message: 'Konfiguro çelësin e Gemini API (GEMINI_API_KEY) në skedarin .env.' 
+        message: 'Konfiguro çelësin e Gemini API (GEMINI_API_KEY) në skedarin .env.'
       });
     }
 
@@ -1338,9 +1342,9 @@ Përdorni këto të dhëna për t'u përgjigjur saktësisht pyetjeve të përdor
     if (!response.ok) {
       const errDetails = await response.text();
       console.error('Gemini API error response:', errDetails);
-      return res.status(response.status).json({ 
-        error: 'gemini_api_error', 
-        message: 'Gabim gjatë komunikimit me Gemini API. Sigurohuni që çelësi juaj i API është i saktë.' 
+      return res.status(response.status).json({
+        error: 'gemini_api_error',
+        message: 'Gabim gjatë komunikimit me Gemini API. Sigurohuni që çelësi juaj i API është i saktë.'
       });
     }
 
@@ -1348,9 +1352,9 @@ Përdorni këto të dhëna për t'u përgjigjur saktësisht pyetjeve të përdor
     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!replyText) {
-      return res.status(502).json({ 
-        error: 'empty_response', 
-        message: 'Mori një përgjigje bosh nga modeli i inteligjencës artificiale.' 
+      return res.status(502).json({
+        error: 'empty_response',
+        message: 'Mori një përgjigje bosh nga modeli i inteligjencës artificiale.'
       });
     }
 
@@ -1739,7 +1743,7 @@ app.post('/api/offers/:id/convert', async (req, res) => {
   const client = await pool.getConnection();
   try {
     const ownerId = getTenantId(req);
-    
+
     // 1. Fetch offer
     const [offerRows] = await client.query(
       `SELECT id, klienti, totali, tax_rate, tax_amount FROM offers WHERE id = ? AND user_id = ?`,
@@ -1841,7 +1845,7 @@ app.post('/api/offers/:id/convert', async (req, res) => {
         `UPDATE products
          SET stoku_aktual = stoku_aktual - ?, updated_at = CURRENT_TIMESTAMP
          WHERE id = ? AND user_id = ?`,
-         [item.sasia, item.product_id, ownerId]
+        [item.sasia, item.product_id, ownerId]
       );
     }
 
@@ -1975,6 +1979,270 @@ Mos përdor emoji. Mbaje tonin miqësor por korporativ e formal.`;
 });
 
 // ================================================================
+// PURCHASES CRUD & LOOKUP
+// ================================================================
+
+// GET all purchases for the logged-in user with meta stats
+app.get('/api/purchases', async (req, res) => {
+  try {
+    const tenantId = getTenantId(req);
+    const search = req.query.search || '';
+    const statusi = req.query.statusi || '';
+
+    let query = `
+      SELECT id, numri_blerjes, furnitori, data_blerjes, totali, statusi, tax_rate, tax_amount, discount_rate, source_invoice_numri
+      FROM purchases
+      WHERE user_id = ?
+    `;
+    const params = [tenantId];
+
+    if (search) {
+      query += ` AND (furnitori LIKE ? OR numri_blerjes LIKE ?)`;
+      params.push(`%${search}%`, `%${search}%`);
+    }
+    if (statusi) {
+      query += ` AND statusi = ?`;
+      params.push(statusi);
+    }
+
+    query += ` ORDER BY data_blerjes DESC`;
+
+    const [rows] = await pool.query(query, params);
+
+    // Calculate meta stats
+    const [metaRows] = await pool.query(`
+      SELECT 
+        COUNT(*) AS total,
+        COALESCE(SUM(totali), 0) AS totalSpend,
+        COALESCE(SUM(tax_amount), 0) AS totalTax,
+        COALESCE(SUM(CASE WHEN MONTH(data_blerjes) = MONTH(CURDATE()) AND YEAR(data_blerjes) = YEAR(CURDATE()) THEN totali ELSE 0 END), 0) AS thisMonthSpend
+      FROM purchases
+      WHERE user_id = ?
+    `, [tenantId]);
+
+    res.json({
+      purchases: rows,
+      meta: metaRows[0] || { total: 0, totalSpend: 0, totalTax: 0, thisMonthSpend: 0 }
+    });
+  } catch (error) {
+    console.error('GET /api/purchases error:', error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// POST register a new purchase
+app.post('/api/purchases', async (req, res) => {
+  const client = await pool.getConnection();
+  try {
+    const tenantId = getTenantId(req);
+    const {
+      furnitori,
+      source_invoice_secure_code = null,
+      source_invoice_numri = null,
+      items,
+      tax_rate = 0,
+      discount_rate = 0,
+      statusi = 'paguar',
+      shenime = null,
+      update_stock = false
+    } = req.body;
+
+    if (!furnitori || !items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Plotësoni të gjitha fushat e detyrueshme' });
+    }
+
+    await client.beginTransaction();
+
+    // Generate Purchase number BLR-YYYYMMDD-XXXX
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    await client.query(
+      `INSERT INTO counters (user_id, prefix, date, counter)
+       VALUES (?, 'BLR', CURDATE(), LAST_INSERT_ID(1))
+       ON DUPLICATE KEY UPDATE counter = LAST_INSERT_ID(counter + 1)`,
+      [tenantId]
+    );
+    const [seqRow] = await client.query(`SELECT LAST_INSERT_ID() AS seq`);
+    const seqNum = String(seqRow[0].seq).padStart(4, '0');
+    const numriBlerjes = `BLR-${dateStr}-${seqNum}`;
+
+    // Calculate totals
+    let subtotal = 0;
+    for (const item of items) {
+      subtotal += Number(item.sasia || 1) * Number(item.cmimi_per_njesi || 0);
+    }
+    const discount = subtotal * (Number(discount_rate || 0) / 100);
+    const taxable = subtotal - discount;
+    const taxAmount = taxable * (Number(tax_rate || 0) / 100);
+    const totali = taxable + taxAmount;
+
+    // Save purchase
+    const [result] = await client.query(
+      `INSERT INTO purchases (user_id, numri_blerjes, furnitori, totali, tax_rate, tax_amount, discount_rate, statusi, source_invoice_secure_code, source_invoice_numri, shenime)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tenantId, numriBlerjes, furnitori, totali, tax_rate, taxAmount, discount_rate, statusi, source_invoice_secure_code, source_invoice_numri, shenime]
+    );
+
+    const purchaseId = result.insertId;
+
+    // Save items and update stock if requested
+    for (const item of items) {
+      await client.query(
+        `INSERT INTO purchase_items (purchase_id, emri, kodi_bar, sasia, cmimi_per_njesi)
+         VALUES (?, ?, ?, ?, ?)`,
+        [purchaseId, item.emri, item.kodi_bar || null, item.sasia, item.cmimi_per_njesi]
+      );
+
+      if (update_stock && item.kodi_bar) {
+        await client.query(
+          `UPDATE products 
+           SET stoku_aktual = stoku_aktual + ?, updated_at = CURRENT_TIMESTAMP
+           WHERE kodi_bar = ? AND user_id = ?`,
+          [item.sasia, item.kodi_bar, tenantId]
+        );
+      }
+    }
+
+    // Ledger entries:
+    // Debit: Supplies/Expenses for taxable subtotal
+    await client.query(
+      `INSERT INTO financial_ledger (user_id, purchase_id, pershkrimi, llogaria, debit, kredit)
+       VALUES (?, ?, ?, 'Furnizime / Shpenzime', ?, 0)`,
+      [tenantId, purchaseId, `Blerje: ${numriBlerjes} nga ${furnitori}`, taxable]
+    );
+
+    // Debit: Deductible VAT if taxAmount > 0
+    if (taxAmount > 0) {
+      await client.query(
+        `INSERT INTO financial_ledger (user_id, purchase_id, pershkrimi, llogaria, debit, kredit)
+         VALUES (?, ?, ?, 'TVSH e zbritshme', ?, 0)`,
+        [tenantId, purchaseId, `TVSH nga blerja: ${numriBlerjes}`, taxAmount]
+      );
+    }
+
+    // Credit: Arka or Accounts Payable for grand total
+    const creditAccount = statusi === 'paguar' ? 'Arka' : 'Llogari të pagueshme';
+    await client.query(
+      `INSERT INTO financial_ledger (user_id, purchase_id, pershkrimi, llogaria, debit, kredit)
+       VALUES (?, ?, ?, ?, 0, ?)`,
+      [tenantId, purchaseId, `Pagesë blerje: ${numriBlerjes}`, creditAccount, totali]
+    );
+
+    await client.commit();
+    res.status(201).json({ id: purchaseId, numri_blerjes: numriBlerjes, totali });
+  } catch (error) {
+    await client.rollback();
+    console.error('POST /api/purchases error:', error);
+    res.status(500).json({ error: 'Gabim serveri gjatë regjistrimit të blerjes' });
+  } finally {
+    client.release();
+  }
+});
+
+// PUT update purchase status (change to paid)
+app.put('/api/purchases/:id/status', async (req, res) => {
+  try {
+    const tenantId = getTenantId(req);
+    const { statusi } = req.body;
+    if (!['paguar', 'ne_pritje', 'anuluar'].includes(statusi)) {
+      return res.status(400).json({ error: 'Status i panjohur' });
+    }
+
+    const [purchaseRows] = await pool.query(
+      `SELECT id, user_id, numri_blerjes, totali, statusi FROM purchases WHERE id = ? AND user_id = ?`,
+      [req.params.id, tenantId]
+    );
+
+    if (purchaseRows.length === 0) {
+      return res.status(404).json({ error: 'Blerja nuk u gjet' });
+    }
+
+    const purchase = purchaseRows[0];
+
+    await pool.query(
+      `UPDATE purchases SET statusi = ? WHERE id = ? AND user_id = ?`,
+      [statusi, req.params.id, tenantId]
+    );
+
+    if (purchase.statusi === 'ne_pritje' && statusi === 'paguar') {
+      // Debit Llogari të pagueshme, Credit Arka
+      await pool.query(
+        `INSERT INTO financial_ledger (user_id, purchase_id, pershkrimi, llogaria, debit, kredit)
+         VALUES 
+           (?, ?, ?, 'Llogari të pagueshme', ?, 0),
+           (?, ?, ?, 'Arka', 0, ?)`,
+        [tenantId, purchase.id, `Pagesë blerje: ${purchase.numri_blerjes}`, purchase.totali, tenantId, purchase.id, `Pagesë blerje: ${purchase.numri_blerjes}`, purchase.totali]
+      );
+    }
+
+    res.json({ message: 'Statusi u përditësua' });
+  } catch (error) {
+    console.error('PUT /api/purchases/:id/status error:', error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// DELETE a purchase
+app.delete('/api/purchases/:id', async (req, res) => {
+  try {
+    const tenantId = getTenantId(req);
+    const [result] = await pool.query(
+      `DELETE FROM purchases WHERE id = ? AND user_id = ?`,
+      [req.params.id, tenantId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Blerja nuk u gjet' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('DELETE /api/purchases/:id error:', error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// GET look up supplier invoice by secure code globally for prefill scan
+app.get('/api/purchases/scan/:code', async (req, res) => {
+  try {
+    const [invoiceRows] = await pool.query(
+      `SELECT i.id, i.numri_fatures, i.totali, i.tax_rate, i.tax_amount, i.secure_code,
+              u.emri_biznesit AS furnitori
+       FROM invoices i
+       JOIN users u ON u.id = i.user_id
+       WHERE i.secure_code = ?`,
+      [req.params.code]
+    );
+
+    if (invoiceRows.length === 0) {
+      return res.status(404).json({ error: 'Fatura nuk u gjet' });
+    }
+
+    const invoice = invoiceRows[0];
+
+    const [itemRows] = await pool.query(
+      `SELECT ii.sasia, ii.cmimi_per_njesi, p.emri, p.kodi_bar
+       FROM invoice_items ii
+       JOIN products p ON p.id = ii.product_id
+       WHERE ii.invoice_id = ?
+       ORDER BY ii.id ASC`,
+      [invoice.id]
+    );
+
+    res.json({
+      furnitori: invoice.furnitori,
+      numri_fatures: invoice.numri_fatures,
+      tax_rate: invoice.tax_rate,
+      discount_rate: 0,
+      secure_code: invoice.secure_code,
+      items: itemRows
+    });
+  } catch (error) {
+    console.error('GET /api/purchases/scan/:code error:', error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// ================================================================
 // CLIENTS CRUD
 // ================================================================
 
@@ -2032,7 +2300,7 @@ app.get('/api/clients', async (req, res) => {
 app.get('/api/clients/:id/transactions', async (req, res) => {
   try {
     const ownerId = getTenantId(req);
-    
+
     // First get the client name
     const [clientRows] = await pool.query(
       `SELECT emri FROM clients WHERE id = ? AND user_id = ?`,

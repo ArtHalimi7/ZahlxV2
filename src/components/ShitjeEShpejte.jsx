@@ -32,7 +32,10 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
   const [taxRate, setTaxRate] = useState(0);
   const [paymentTerms, setPaymentTerms] = useState('immediate');
   const [invoiceStatus, setInvoiceStatus] = useState('paguar');
-  const [client, setClient] = useState('Klient i përgjithshëm');
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [clientSearch, setClientSearch] = useState('Klient i përgjithshëm');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -64,6 +67,14 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
       })
       .then((data) => setProducts(Array.isArray(data) ? data : []))
       .catch(() => setProducts([]));
+
+    fetch('/api/clients', { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setClients(Array.isArray(data) ? data : []))
+      .catch(() => setClients([]));
+
+    setSelectedClient(null);
+    setClientSearch('Klient i përgjithshëm');
 
     const focusTimer = window.setTimeout(() => searchRef.current?.focus(), 120);
 
@@ -130,7 +141,10 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          klienti: client,
+          klienti: selectedClient ? selectedClient.emri : (clientSearch || 'Klient i përgjithshëm'),
+          klient_email: selectedClient?.email || null,
+          klient_telefoni: selectedClient?.telefoni || null,
+          klient_adresa: selectedClient?.adresa || null,
           items: [{ product_id: selected.id, sasia: quantity }],
           tax_rate: taxRate,
           payment_terms: paymentTerms,
@@ -282,14 +296,67 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
               </div>
 
               <div className="mt-4 space-y-3">
-                <div>
+                <div className="relative">
                   <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Klienti</label>
                   <input
-                    value={client}
-                    onChange={(e) => setClient(e.target.value)}
-                    placeholder="Klienti (Opcionale)"
-                    className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-3 py-2 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30"
+                    value={clientSearch}
+                    onChange={(e) => {
+                      setClientSearch(e.target.value);
+                      setShowClientDropdown(true);
+                    }}
+                    onFocus={() => setShowClientDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+                    placeholder="Kërko ose zgjidh klient..."
+                    className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-3 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30"
                   />
+                  {showClientDropdown && (
+                    <div className="absolute z-[100] mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl custom-scrollbar py-1.5 text-left">
+                      <div 
+                        onMouseDown={() => {
+                          setSelectedClient(null);
+                          setClientSearch('Klient i përgjithshëm');
+                          setShowClientDropdown(false);
+                        }}
+                        className="px-3 py-1.5 text-[12px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer font-semibold text-indigo-600 dark:text-indigo-400"
+                      >
+                        Klient i përgjithshëm
+                      </div>
+                      {clients
+                        .filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase()))
+                        .map(c => (
+                          <div
+                            key={c.id}
+                            onMouseDown={() => {
+                              setSelectedClient(c);
+                              setClientSearch(c.emri);
+                              setShowClientDropdown(false);
+                            }}
+                            className="px-3 py-1.5 text-[12px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer text-slate-800 dark:text-zinc-200"
+                          >
+                            <p className="font-semibold">{c.emri}</p>
+                            {(c.email || c.telefoni) && (
+                              <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">
+                                {c.email} {c.telefoni && `· ${c.telefoni}`}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      {clients.filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                        <div className="px-3 py-1.5 text-[11px] text-slate-450 dark:text-zinc-500">
+                          Nuk u gjet asnjë klient.
+                          <div 
+                            onMouseDown={() => {
+                              setSelectedClient({ emri: clientSearch });
+                              setShowClientDropdown(false);
+                            }}
+                            className="mt-1 text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer font-semibold"
+                          >
+                            Përdor "{clientSearch}"
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
