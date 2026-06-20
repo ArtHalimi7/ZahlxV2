@@ -160,7 +160,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
 
       setReceiptData({
         ...data.invoice,
-        qrUrl: `${window.location.origin}/fature/publike/${data.invoice.secure_code}`,
+        qrUrl: `${window.location.origin}/fature/${data.invoice.secure_code}`,
       });
       setState(STATES.SUCCESS);
       onSaleComplete?.();

@@ -633,7 +633,7 @@ app.get('/api/transactions', async (req, res) => {
     const tenantId = getTenantId(req);
     const limit = Number.parseInt(req.query.limit, 10) || 10;
     const [rows] = await pool.query(
-      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date
+      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date, secure_code
        FROM invoices
        WHERE user_id = ?
        ORDER BY data_krijimit DESC

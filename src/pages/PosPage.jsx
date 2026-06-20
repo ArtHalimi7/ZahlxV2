@@ -147,7 +147,7 @@ const PosPage = () => {
 
       setReceiptResult({
         ...data.invoice,
-        qrUrl: `${window.location.origin}/fature/${data.invoice.id}`,
+        qrUrl: `${window.location.origin}/fature/${data.invoice.secure_code}`,
       });
       setReceiptItems([]);
       setReceiptBarcode('');
@@ -474,7 +474,7 @@ const PosPage = () => {
                 </p>
                 
                 <Link
-                  to={`/fature/${receiptResult.id}`}
+                  to={`/fature/${receiptResult.secure_code}`}
                   className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(var(--accent-rgb),0.25)] transition hover:bg-indigo-500"
                 >
                   <ReceiptText size={16} />

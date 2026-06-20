@@ -126,6 +126,7 @@ const AppContent = () => {
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
       <Route path="/fature/publike/:invoiceId" element={<ReceiptPage isPublic={true} />} />
+      <Route path="/fature/:invoiceId" element={<ReceiptPage isPublic={true} />} />
       
       <Route element={<PrivateRoute><AuthenticatedLayout /></PrivateRoute>}>
         {/* Owner-only routes */}
@@ -141,7 +142,6 @@ const AppContent = () => {
         <Route path="/shitje" element={<PosPage />} />
         <Route path="/libri-shitjes" element={<TransactionsPage />} />
         <Route path="/produktet" element={<InventoryPage />} />
-        <Route path="/fature/:invoiceId" element={<ReceiptPage isPublic={false} />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />
