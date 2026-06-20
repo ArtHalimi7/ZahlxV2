@@ -105,7 +105,7 @@ const ReceiptPage = ({ isPublic = false }) => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
         <div className="text-center">
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-blue-600" />
           <p className="mt-4 text-[14px] text-zinc-500 font-medium">Po ngarkohet fatura zyrtare...</p>
@@ -116,14 +116,14 @@ const ReceiptPage = ({ isPublic = false }) => {
 
   if (error || !receipt) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4">
-        <div className="max-w-md text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-3xl shadow-xl">
-          <div className="mx-auto h-12 w-12 grid place-items-center rounded-2xl bg-rose-50 dark:bg-rose-950/20 text-rose-600 mb-4">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
+        <div className="max-w-md text-center bg-white border border-zinc-200 p-8 rounded-3xl shadow-xl">
+          <div className="mx-auto h-12 w-12 grid place-items-center rounded-2xl bg-rose-50 text-rose-600 mb-4">
             <ShieldAlert size={24} />
           </div>
           <p className="text-[11px] uppercase tracking-[0.28em] text-rose-600 font-bold">Gabim</p>
-          <h1 className="mt-2 text-[20px] font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Fatura nuk u gjet</h1>
-          <p className="mt-3 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">{error || 'Kontrollo linkun ose skano përsëri barkodin/QR-në.'}</p>
+          <h1 className="mt-2 text-[20px] font-bold tracking-tight text-zinc-900">Fatura nuk u gjet</h1>
+          <p className="mt-3 text-[13px] leading-relaxed text-zinc-500">{error || 'Kontrollo linkun ose skano përsëri barkodin/QR-në.'}</p>
           {user && (
             <Link
               to="/"
@@ -141,14 +141,14 @@ const ReceiptPage = ({ isPublic = false }) => {
   const activeStatus = STATUS_META[receipt.statusi] || STATUS_META.paguar;
 
   return (
-    <div className="min-h-screen bg-zinc-100 dark:bg-zinc-950 py-4 sm:py-6 print:py-0 print:bg-white transition-colors">
+    <div className="min-h-screen bg-zinc-50 py-4 sm:py-6 print:py-0 print:bg-white transition-colors">
 
       {/* Action Bar (hidden when printing) */}
       <div className="mx-auto flex max-w-[850px] flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 pb-3 sm:pb-4 print:hidden">
         {user ? (
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-[13px] font-semibold text-zinc-800 dark:text-zinc-200 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-zinc-800 transition hover:bg-zinc-50"
           >
             <ArrowLeft size={16} />
             Kthehu në Panel
@@ -161,7 +161,7 @@ const ReceiptPage = ({ isPublic = false }) => {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-[13px] font-semibold text-zinc-800 dark:text-zinc-200 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-zinc-800 transition hover:bg-zinc-50"
             >
               {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
               {copied ? 'U kopjua!' : 'Kopjo linkun'}
@@ -244,12 +244,18 @@ const ReceiptPage = ({ isPublic = false }) => {
                 <h2 className="mt-1 text-[13px] sm:text-[16px] font-black text-zinc-900 uppercase tracking-tight leading-tight">{receipt.klienti}</h2>
               </div>
               <div className="space-y-2 sm:space-y-3 text-[10px] sm:text-[11px] text-zinc-700">
-                {receipt.klient_email && (
+                <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+                  {receipt.klient_email && (
+                    <div>
+                      <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Email</span>
+                      <p className="font-semibold text-zinc-900 truncate">{receipt.klient_email}</p>
+                    </div>
+                  )}
                   <div>
-                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Email</span>
-                    <p className="font-semibold text-zinc-900 truncate">{receipt.klient_email}</p>
+                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider">ID e Klientit</span>
+                    <p className="font-mono text-zinc-900 font-bold">#KL-{String(receipt.id).padStart(4, '0')}</p>
                   </div>
-                )}
+                </div>
                 {receipt.klient_telefoni && (
                   <div>
                     <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Tel</span>
@@ -262,10 +268,6 @@ const ReceiptPage = ({ isPublic = false }) => {
                     <p className="font-semibold text-zinc-900">{receipt.klient_adresa}</p>
                   </div>
                 )}
-                <div className="pt-2 border-t border-zinc-100">
-                  <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider">ID e Klientit</span>
-                  <p className="font-mono text-zinc-900 font-bold">#KL-{String(receipt.id).padStart(4, '0')}</p>
-                </div>
               </div>
             </div>
 
@@ -299,10 +301,6 @@ const ReceiptPage = ({ isPublic = false }) => {
               </div>
             </div>
           </div>
-
-          <p className="mt-4 text-[9px] text-zinc-400 italic px-4 sm:px-6">
-            * Ne dërgojmë ekskluzivisht në përputhje me Kushtet tona të Përgjithshme të Shitjes. Ky dokument shërben si faturë zyrtare tatimore.
-          </p>
 
           {/* Structured Items Table */}
           <div className="mt-4 sm:mt-6 mx-3 sm:mx-6 border border-zinc-200 rounded-xl overflow-hidden shadow-sm bg-white">
@@ -467,9 +465,6 @@ const ReceiptPage = ({ isPublic = false }) => {
             <QRCodeSVG value={receipt.qrUrl} size={96} className="hidden sm:block mt-1" fgColor="#18181b" bgColor="transparent" />
             <p className="mt-1 font-mono text-[8px] break-all select-all text-zinc-400 hover:text-zinc-700 underline transition max-w-xs">
               {receipt.qrUrl}
-            </p>
-            <p className="mt-2 text-[8px] sm:text-[9px] text-zinc-400 italic max-w-sm">
-              * Ky dokument shërben si faturë zyrtare dhe dëshmi e kryerjes së transaksionit fiskal.
             </p>
           </div>
 

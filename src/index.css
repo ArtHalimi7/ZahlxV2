@@ -278,33 +278,62 @@
 }
 
 @media print {
-  /* Suppress browser default headers & footers and set custom margin */
+  /* A4 page setup */
   @page {
-    margin: 1.2cm !important;
+    margin: 0.6cm !important;
     size: A4 portrait;
   }
 
-  /* Core resets on main wrappers for print */
-  html, body, #root, #root > div, main,
-  .min-h-screen, .min-h-full, .relative,
-  [class*="bg-zinc-950"], [class*="dark:bg-zinc-950"],
-  [class*="bg-black"], [class*="dark:bg-black"],
-  [class*="bg-[#f4f4f5]"], [class*="bg-zinc-100"] {
+  /* Enable color printing for backgrounds/badges */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Nuke every dark background globally on wrappers */
+  html, body, #root, #root > div, main {
     background: #ffffff !important;
     background-color: #ffffff !important;
-    color: #000000 !important;
+  }
+
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    color: #000 !important;
+  }
+
+  html, #root, #root > div, main,
+  .min-h-screen, .min-h-full {
     min-height: 0 !important;
     height: auto !important;
     overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
-  body {
-    padding: 0 !important;
+  /* NUCLEAR: kill every dark-mode background in print. 
+     .dark class on <html> cascades dark bg to all dark:bg-* children. 
+     We use ultra-high specificity to override Tailwind's generated rules. */
+  .dark [class*="dark:bg-"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+  html.dark, html.dark body, 
+  html.dark #root, html.dark #root > div,
+  html.dark main, html.dark [class*="min-h-screen"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  /* Also catch dark border colors */
+  .dark [class*="dark:border-"] {
+    border-color: #e4e4e7 !important;
   }
 
-  /* Reset sidebar layout constraints on print */
+  /* Reset sidebar layout constraints */
   .lg\:pl-72,
   .lg\:pl-24 {
     padding-left: 0 !important;
@@ -317,15 +346,14 @@
   #root > div {
     display: block !important;
     transform: none !important;
-    min-height: 0 !important;
-    height: auto !important;
   }
 
-  /* Override paper container on print to take full page */
+  /* Paper container — full width, no styling artifacts */
   .paper-preview {
     max-width: 100% !important;
+    width: 100% !important;
     min-height: 0 !important;
-    padding: 0 !important;
+    padding: 0.4cm !important;
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
@@ -333,16 +361,113 @@
     color: #000000 !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
+    font-size: 85% !important;
   }
 
-  /* Enable color printing for backgrounds/badges */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  /* The outermost page wrapper (bg-zinc-100 dark:bg-zinc-950) */
+  .paper-preview ~ *,
+  [class*="bg-zinc-100"],
+  [class*="bg-zinc-950"],
+  [class*="dark:bg-zinc-950"],
+  [class*="bg-zinc-50"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
-  /* Hide print buttons and sidebar widgets */
+  /* ===== Preserve intentional dark elements ===== */
+  /* Table header (bg-zinc-900) and TOTALI bar (bg-zinc-950) — keep dark */
+  .paper-preview tr[class*="bg-zinc-900"] {
+    background: #18181b !important;
+    background-color: #18181b !important;
+    color: #ffffff !important;
+  }
+  .paper-preview tr[class*="bg-zinc-950"] {
+    background: #09090b !important;
+    background-color: #09090b !important;
+    color: #ffffff !important;
+  }
+  .paper-preview tr[class*="bg-zinc-900"] th,
+  .paper-preview tr[class*="bg-zinc-900"] td,
+  .paper-preview tr[class*="bg-zinc-950"] th,
+  .paper-preview tr[class*="bg-zinc-950"] td {
+    color: #ffffff !important;
+  }
+
+  /* Mobile total bar — keep dark */
+  .paper-preview div[class*="bg-zinc-950"][class*="text-white"] {
+    background: #09090b !important;
+    background-color: #09090b !important;
+    color: #ffffff !important;
+  }
+  .paper-preview div[class*="bg-zinc-950"][class*="text-white"] span {
+    color: #ffffff !important;
+  }
+
+  /* Mobile header bar */
+  .paper-preview div[class*="bg-zinc-900"][class*="text-white"] {
+    background: #18181b !important;
+    background-color: #18181b !important;
+    color: #ffffff !important;
+  }
+
+  /* Header bar subtle bg */
+  .paper-preview > div > div[class*="bg-zinc-50\\/50"] {
+    background: #fafafa !important;
+  }
+
+  /* Status badge — preserve */
+  .paper-preview span[class*="bg-zinc-900"] {
+    background: #18181b !important;
+    background-color: #18181b !important;
+    color: #ffffff !important;
+  }
+
+  /* ===== Tighten spacing to fit A4 ===== */
+  .paper-preview .mt-4 { margin-top: 0.25rem !important; }
+  .paper-preview .mt-5 { margin-top: 0.3rem !important; }
+  .paper-preview .mt-6 { margin-top: 0.3rem !important; }
+  .paper-preview .mt-8 { margin-top: 0.35rem !important; }
+  .paper-preview .mt-10 { margin-top: 0.35rem !important; }
+  .paper-preview .mt-12 { margin-top: 0.35rem !important; }
+
+  /* Reduce vertical padding */
+  .paper-preview .py-4, .paper-preview .py-6,
+  .paper-preview .sm\:py-6 {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  /* Compact table cells */
+  .paper-preview th,
+  .paper-preview td {
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
+  }
+
+  /* Barcode row logo — smaller for print */
+  .paper-preview img[alt="Zahlx"] {
+    height: 2rem !important;
+  }
+
+  /* Signature blank space — reduce */
+  .paper-preview .h-8 {
+    height: 0.5rem !important;
+  }
+
+  /* Spacer row in table — collapse */
+  .paper-preview tr.h-16 {
+    height: 0.5rem !important;
+  }
+
+  /* Gap reductions */
+  .paper-preview .gap-6 { gap: 0.3rem !important; }
+  .paper-preview .gap-12 { gap: 0.5rem !important; }
+  .paper-preview .sm\:gap-12 { gap: 0.5rem !important; }
+  .paper-preview .sm\:gap-6 { gap: 0.3rem !important; }
+
+  /* Hide print buttons, sidebar, and navigation */
   .print-hidden,
+  .print\:hidden,
   header,
   aside,
   button,
@@ -350,4 +475,4 @@
   [role="button"] {
     display: none !important;
   }
-}
+}
