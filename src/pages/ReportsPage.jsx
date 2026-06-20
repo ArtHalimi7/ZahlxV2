@@ -68,7 +68,7 @@ const ReportsPage = () => {
   const [reportData, setReportData] = useState({
     chartData: [],
     topProducts: [],
-    profitMargin: { revenue: 0, cost: 0, profit: 0, taxLiability: 0, netProfit: 0 },
+    profitMargin: { revenue: 0, cost: 0, profit: 0, taxLiability: 0, taxPaid: 0, taxCollected: 0, netProfit: 0 },
     monthlyComparison: { thisMonth: 0, lastMonth: 0, changePercent: 0 },
     inventoryValue: { atSalePrice: 0, atCostPrice: 0 },
   });
@@ -147,7 +147,7 @@ const ReportsPage = () => {
         setReportData({
           chartData: Array.isArray(data.chartData) ? data.chartData : [],
           topProducts: Array.isArray(data.topProducts) ? data.topProducts : [],
-          profitMargin: data.profitMargin || { revenue: 0, cost: 0, profit: 0, taxLiability: 0, netProfit: 0 },
+          profitMargin: data.profitMargin || { revenue: 0, cost: 0, profit: 0, taxLiability: 0, taxPaid: 0, taxCollected: 0, netProfit: 0 },
           monthlyComparison: data.monthlyComparison || { thisMonth: 0, lastMonth: 0, changePercent: 0 },
           inventoryValue: data.inventoryValue || { atSalePrice: 0, atCostPrice: 0 },
         });
@@ -363,11 +363,11 @@ const ReportsPage = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 dark:text-zinc-400">
-                      Rezerva për Taksa
+                      Detyrimi për Taksa
                       <span className="group/tooltip relative inline-block cursor-help print:hidden">
                         <Info size={11} className="text-slate-400 dark:text-zinc-500 transition hover:text-indigo-550" />
                         <span className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 w-48 -translate-x-1/2 rounded-lg bg-slate-900/95 dark:bg-black/95 border border-slate-200/20 px-2.5 py-2 text-[10px] font-medium leading-normal text-white shadow-xl opacity-0 transition group-hover/tooltip:opacity-100 normal-case tracking-normal">
-                          Shuma e rezervuar për të paguar TVSH-në dhe tatimin mbi fitimin sipas shitjeve të kryera.
+                          Shuma e mbetur e detyrimit për TVSH (e mbledhur minus e paguar).
                         </span>
                       </span>
                     </p>
@@ -379,9 +379,15 @@ const ReportsPage = () => {
                     <Scale size={18} />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-transparent">
-                  <span className="flex h-2 w-2 rounded-full bg-amber-500" />
-                  <span className="text-[12px] text-slate-400 dark:text-zinc-500">Detyrimet e vlerësuara për taksa (TVSH & Fitim)</span>
+                <div className="mt-4 pt-2 border-t border-slate-200/40 dark:border-transparent text-[12px] space-y-1.5 text-slate-500 dark:text-zinc-400">
+                  <div className="flex justify-between">
+                    <span>TVSH e Mbledhur:</span>
+                    <span className="font-semibold text-slate-700 dark:text-zinc-300 font-mono">{currency.format(reportData.profitMargin?.taxCollected || 0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>TVSH e Paguar:</span>
+                    <span className="font-semibold text-slate-700 dark:text-zinc-300 font-mono">{currency.format(reportData.profitMargin?.taxPaid || 0)}</span>
+                  </div>
                 </div>
               </motion.div>
 

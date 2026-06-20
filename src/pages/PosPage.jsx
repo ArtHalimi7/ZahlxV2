@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Logo from '../assets/X.png';
 
 const currency = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -535,14 +536,106 @@ const PosPage = () => {
                 </Link>
               </motion.div>
             ) : (
-              <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-8 text-center opacity-70 shadow-sm backdrop-blur-xl">
-                <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-400 dark:text-zinc-500">
-                  <QrCode size={20} />
+              <div className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-[2.5rem] border border-slate-200/60 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col justify-between min-h-[500px]">
+                <div>
+                  {/* Receipt Header */}
+                  <div className="flex justify-between items-center px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+                    <div className="flex items-center gap-3">
+                      <img src={Logo} alt="Zahlx Logo" className="h-7 w-auto object-contain brightness-0 dark:invert" />
+                      <div>
+                        <h2 className="text-[14px] font-black uppercase tracking-wider text-zinc-900 dark:text-white">Paraqitje e Faturës</h2>
+                        <p className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">{user?.emri_biznesit || 'Zahlx Business'}</p>
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center rounded-lg border px-2 py-1 text-[8px] font-black uppercase tracking-wider ${invoiceStatus === 'paguar' ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900' : 'border-zinc-300 bg-zinc-50 text-zinc-650 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+                      {invoiceStatus === 'paguar' ? 'PAGUAR (PAID)' : 'NË PRITJE (DRAFT)'}
+                    </span>
+                  </div>
+
+                  {/* Receipt Metadata */}
+                  <div className="p-6 grid grid-cols-2 gap-4 text-[11px] border-b border-zinc-100 dark:border-zinc-800/40">
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Blerësi (Klienti)</p>
+                      <p className="font-bold text-zinc-900 dark:text-white uppercase truncate">{selectedClient ? selectedClient.emri : (clientSearch || 'Klient i përgjithshëm')}</p>
+                      {selectedClient?.email && <p className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">{selectedClient.email}</p>}
+                      {selectedClient?.telefoni && <p className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">{selectedClient.telefoni}</p>}
+                    </div>
+                    <div className="space-y-1 text-right">
+                      <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-550 uppercase tracking-wider">Detajet</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">Data: <span className="font-semibold text-zinc-900 dark:text-white">{new Date().toLocaleDateString('sq-AL')}</span></p>
+                      <p className="text-zinc-500 dark:text-zinc-400">Pagesa: <span className="font-semibold text-zinc-900 dark:text-white">{paymentMethod}</span></p>
+                      <p className="text-zinc-500 dark:text-zinc-400">Afati: <span className="font-semibold text-zinc-900 dark:text-white">{paymentTerms === 'immediate' ? 'Menjëherë' : paymentTerms === 'net_15' ? '15 Ditë' : '30 Ditë'}</span></p>
+                    </div>
+                  </div>
+
+                  {/* Receipt Items List */}
+                  <div className="p-6">
+                    <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Artikujt e Faturuar</p>
+                    {receiptItems.length === 0 ? (
+                      <p className="text-[12px] text-zinc-450 dark:text-zinc-500 italic py-6 text-center">Nuk ka produkte të shtuara ende.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-[11px] border-collapse">
+                          <thead>
+                            <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[9px] font-bold text-zinc-400 dark:text-zinc-550 uppercase tracking-wider">
+                              <th className="pb-2">Përshkrimi</th>
+                              <th className="pb-2 text-center w-12">Sasia</th>
+                              <th className="pb-2 text-right w-16">Çmimi</th>
+                              <th className="pb-2 text-right w-20">Vlera</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/40">
+                            {receiptItems.map((item) => (
+                              <tr key={item.id} className="text-zinc-800 dark:text-zinc-200">
+                                <td className="py-2.5 pr-2 font-medium">
+                                  <p className="font-semibold text-zinc-900 dark:text-white leading-tight">{item.emri}</p>
+                                  <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-mono mt-0.5">{item.kodi_bar}</p>
+                                </td>
+                                <td className="py-2.5 text-center font-bold font-mono text-zinc-800 dark:text-zinc-300">{item.quantity}</td>
+                                <td className="py-2.5 text-right font-mono text-zinc-550 dark:text-zinc-400">{currency.format(item.cmimi_shitjes)}</td>
+                                <td className="py-2.5 text-right font-bold font-mono text-zinc-900 dark:text-white">{currency.format(item.cmimi_shitjes * item.quantity)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-[14px] font-semibold text-slate-850 dark:text-zinc-200">Gjeneratori i QR</h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-slate-450 dark:text-zinc-400">
-                  Pas regjistrimit të shitjes, kodi QR dhe detajet e faturës do të shfaqen këtu për klientin.
-                </p>
+
+                {/* Receipt Totals Summary */}
+                <div className="p-6 bg-zinc-50/50 dark:bg-zinc-900/30 border-t border-zinc-200 dark:border-zinc-800 mt-auto space-y-2">
+                  <div className="flex justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
+                    <span>Nëntotali (para zbritjes):</span>
+                    <span className="font-semibold font-mono text-zinc-700 dark:text-zinc-300">{currency.format(receiptSubtotal)}</span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
+                      <span>Zbritja ({discountRate}%):</span>
+                      <span className="font-semibold font-mono text-rose-600">-{currency.format(discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
+                    <span>Nëntotali (pa TVSH):</span>
+                    <span className="font-semibold font-mono text-zinc-700 dark:text-zinc-300">{currency.format(receiptTotal - receiptTaxAmount)}</span>
+                  </div>
+                  {receiptTaxAmount > 0 && (
+                    <div className="flex justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
+                      <span>TVSH:</span>
+                      <span className="font-semibold font-mono text-zinc-700 dark:text-zinc-300">{currency.format(receiptTaxAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-end pt-3 border-t border-zinc-200 dark:border-zinc-800 mt-2">
+                    <div>
+                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Totali (përfshirë TVSH)</p>
+                      <p className="text-[24px] font-black text-zinc-900 dark:text-white font-mono mt-0.5">{currency.format(receiptTotal)}</p>
+                    </div>
+                    <div className="text-right text-[8px] text-zinc-450 dark:text-zinc-500 font-mono tracking-tighter">
+                      <p>KODI: PARAPAMJE</p>
+                      <p>ZAHLX SMART POS</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

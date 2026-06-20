@@ -42,6 +42,7 @@ const Dashboard = () => {
     revenue_excl_tax: 0,
     total_cost: 0,
     tax_liability: 0,
+    tax_paid: 0,
     net_profit: 0,
     profit_margin: 0,
   });
@@ -258,12 +259,12 @@ const Dashboard = () => {
     {
       label: 'Rezerva për Taksa',
       value: euroFormatter.format(metrics.tax_liability),
-      detail: 'TVSH & Tatim i vlerësuar',
+      detail: `Paguara: ${euroFormatter.format(metrics.tax_paid || 0)}`,
       icon: Percent,
       tone: 'rose',
       delta: 'Tatimet',
       deltaIcon: ReceiptText,
-      tooltip: 'Shuma e rezervuar për të paguar TVSH-në dhe tatimin mbi fitimin sipas shitjeve të kryera.',
+      tooltip: 'Shuma e mbetur e detyrimit për TVSH (e mbledhur minus e paguar).',
     },
     {
       label: 'Gjendja e Stokut',

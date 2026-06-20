@@ -586,9 +586,18 @@ app.get('/api/dashboard', async (req, res) => {
       [tenantId]
     );
 
+    const [paidTaxRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS tax_paid
+       FROM financial_ledger
+       WHERE llogaria = 'Detyrimi për TVSH' AND user_id = ?`,
+      [tenantId]
+    );
+
     const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
     const total_cost = Number(profitRows[0].total_cost || 0);
-    const tax_liability = Number(taxRows[0].tax_liability || 0);
+    const gross_tax_collected = Number(taxRows[0].tax_liability || 0);
+    const tax_paid = Number(paidTaxRows[0].tax_paid || 0);
+    const tax_liability = Math.max(0, gross_tax_collected - tax_paid);
     const net_profit = revenue_excl_tax - total_cost - (revenue_excl_tax - total_cost > 0 ? (revenue_excl_tax - total_cost) * 0.10 : 0);
     const profit_margin = revenue_excl_tax > 0 ? (net_profit / revenue_excl_tax) * 100 : 0;
 
@@ -604,6 +613,7 @@ app.get('/api/dashboard', async (req, res) => {
         revenue_excl_tax: null,
         total_cost: null,
         tax_liability: null,
+        tax_paid: null,
         net_profit: null,
         profit_margin: null,
       });
@@ -619,6 +629,7 @@ app.get('/api/dashboard', async (req, res) => {
       revenue_excl_tax,
       total_cost,
       tax_liability,
+      tax_paid,
       net_profit,
       profit_margin,
     });
@@ -1006,6 +1017,53 @@ app.get('/api/arka', async (req, res) => {
   }
 });
 
+app.post('/api/taxes/pay', async (req, res) => {
+  try {
+    if (req.user.role === 'worker') {
+      return res.status(403).json({ error: 'Nuk keni autorizim' });
+    }
+    const tenantId = getTenantId(req);
+    const { amount, pershkrimi } = req.body;
+
+    const paymentAmount = Number(amount);
+    if (isNaN(paymentAmount) || paymentAmount <= 0) {
+      return res.status(400).json({ error: 'Vlera e pagesës duhet të jetë një numër pozitiv' });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const desc = pershkrimi || 'Pagesë e rezervës tatimore (TVSH/Fitim)';
+
+      // 1. Debit Detyrimi për TVSH (reduce liability)
+      await connection.query(
+        `INSERT INTO financial_ledger (user_id, pershkrimi, llogaria, debit, kredit)
+         VALUES (?, ?, 'Detyrimi për TVSH', ?, 0)`,
+        [tenantId, desc, paymentAmount]
+      );
+
+      // 2. Credit Arka (reduce cash)
+      await connection.query(
+        `INSERT INTO financial_ledger (user_id, pershkrimi, llogaria, debit, kredit)
+         VALUES (?, ?, 'Arka', 0, ?)`,
+        [tenantId, desc, paymentAmount]
+      );
+
+      await connection.commit();
+      res.json({ message: 'Pagesa e tatimit u regjistrua me sukses' });
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error('POST /api/taxes/pay error:', error?.stack || error);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
 app.get('/api/reports', async (req, res) => {
   try {
     if (req.user.role === 'worker') {
@@ -1089,7 +1147,7 @@ app.get('/api/reports', async (req, res) => {
 
     const [profitRows] = await pool.query(
       `SELECT
-         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS total_revenue,
+         COALESCE(SUM((ii.sasia * ii.cmimi_per_njesi / (1 + ii.tax_rate / 100)) * (1 - COALESCE(i.discount_rate, 0) / 100)), 0) AS total_revenue,
          COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
@@ -1134,11 +1192,20 @@ app.get('/api/reports', async (req, res) => {
       [tenantId]
     );
 
+    const [paidTaxRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS tax_paid
+       FROM financial_ledger
+       WHERE llogaria = 'Detyrimi për TVSH' AND user_id = ?`,
+      [tenantId]
+    );
+
     const totalRevenue = Number(profitRows[0].total_revenue);
     const totalCost = Number(profitRows[0].total_cost);
     const thisMonth = Number(thisMonthRows[0].revenue);
     const lastMonth = Number(lastMonthRows[0].revenue);
-    const taxLiability = Number(taxRows[0].tax_liability || 0);
+    const gross_tax_collected = Number(taxRows[0].tax_liability || 0);
+    const taxPaid = Number(paidTaxRows[0].tax_paid || 0);
+    const taxLiability = Math.max(0, gross_tax_collected - taxPaid);
 
     const formattedChartData = chartDataRows.map(row => {
       let formattedDate = row.date;
@@ -1178,6 +1245,8 @@ app.get('/api/reports', async (req, res) => {
         cost: totalCost,
         profit: totalRevenue - totalCost,
         taxLiability: taxLiability,
+        taxPaid: taxPaid,
+        taxCollected: gross_tax_collected,
         netProfit: totalRevenue - totalCost - taxLiability,
       },
       monthlyComparison: {
@@ -1264,6 +1333,13 @@ app.post('/api/chat', async (req, res) => {
       [tenantId]
     );
 
+    const [paidTaxRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS tax_paid
+       FROM financial_ledger
+       WHERE llogaria = 'Detyrimi për TVSH' AND user_id = ?`,
+      [tenantId]
+    );
+
     const [arkaRows] = await pool.query(
       `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
        FROM financial_ledger
@@ -1291,7 +1367,8 @@ app.post('/api/chat', async (req, res) => {
 
     const revenue_excl_tax = Number(profitRows[0].revenue_excl_tax || 0);
     const total_cost = Number(profitRows[0].total_cost || 0);
-    const tax_liability = Number(taxRows[0].tax_liability || 0);
+    const tax_paid = Number(paidTaxRows[0].tax_paid || 0);
+    const tax_liability = Math.max(0, Number(taxRows[0].tax_liability || 0) - tax_paid);
     const net_profit = revenue_excl_tax - total_cost - (revenue_excl_tax - total_cost > 0 ? (revenue_excl_tax - total_cost) * 0.10 : 0);
     const profit_margin = revenue_excl_tax > 0 ? (net_profit / revenue_excl_tax) * 100 : 0;
     const arka_balance = Number(arkaRows[0].total_in || 0) - Number(arkaRows[0].total_out || 0);
@@ -1321,7 +1398,7 @@ ${lowStockListStr}
 - Shitjet e Sotme: ${todayRows[0].shitjet_sot_nr} shitje me vlerë totali ${Number(todayRows[0].shitjet_sot_vlera).toFixed(2)} EUR
 - Të hyrat Bruto (totale të paguara): ${Number(revenueRows[0].fitimi_total).toFixed(2)} EUR
 - Fitimi Neto: ${net_profit.toFixed(2)} EUR
-- Provizioni Tatimor (TVSH & Tatimet e vlerësuara): ${tax_liability.toFixed(2)} EUR
+- Provizioni Tatimor (TVSH i mbetur për pagesë): ${tax_liability.toFixed(2)} EUR (TVSH e mbledhur: ${Number(taxRows[0].tax_liability || 0).toFixed(2)} EUR, TVSH e paguar: ${tax_paid.toFixed(2)} EUR)
 - Margjina e Fitimit: ${profit_margin.toFixed(1)}%
 
 Transaksionet e fundit:
@@ -1538,6 +1615,13 @@ app.post('/api/ai/tab-insight', async (req, res) => {
       [tenantId]
     );
 
+    const [paidTaxRows] = await pool.query(
+      `SELECT COALESCE(SUM(debit), 0) AS tax_paid
+       FROM financial_ledger
+       WHERE llogaria = 'Detyrimi për TVSH' AND user_id = ?`,
+      [tenantId]
+    );
+
     const [arkaRows] = await pool.query(
       `SELECT COALESCE(SUM(debit), 0) AS total_in, COALESCE(SUM(kredit), 0) AS total_out
        FROM financial_ledger
@@ -1549,7 +1633,8 @@ app.post('/api/ai/tab-insight', async (req, res) => {
     const total_cost = Number(profitRows[0].total_cost || 0);
     const net_profit = revenue_excl_tax - total_cost;
     const profit_margin = revenue_excl_tax > 0 ? (net_profit / revenue_excl_tax) * 100 : 0;
-    const tax_liability = Number(taxRows[0].tax_liability || 0);
+    const tax_paid = Number(paidTaxRows[0].tax_paid || 0);
+    const tax_liability = Math.max(0, Number(taxRows[0].tax_liability || 0) - tax_paid);
     const arka_balance = Number(arkaRows[0].total_in || 0) - Number(arkaRows[0].total_out || 0);
 
     const lowStockListStr = lowStockProducts.length > 0
@@ -1562,7 +1647,7 @@ app.post('/api/ai/tab-insight', async (req, res) => {
 - Stok i ulët: ${lowStockProducts.length} produkte
 ${lowStockListStr}
 - Fitimi Neto: ${net_profit.toFixed(2)} EUR (Margjina: ${profit_margin.toFixed(1)}%)
-- Taksat: ${tax_liability.toFixed(2)} EUR
+- Taksat (TVSH e mbetur për pagesë): ${tax_liability.toFixed(2)} EUR (TVSH e mbledhur: ${Number(taxRows[0].tax_liability || 0).toFixed(2)} EUR, TVSH e paguar: ${tax_paid.toFixed(2)} EUR)
 - Bilanci Arkës: ${arka_balance.toFixed(2)} EUR
 
 Përgjigju në shqip, profesionalisht, në 3-4 fjali. Mos përdor emoji. Jep rekomandime konkrete dhe strategjike.

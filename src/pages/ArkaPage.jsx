@@ -1,7 +1,8 @@
-import { motion } from 'framer-motion';
-import { ArrowDownLeft, ArrowUpRight, RefreshCcw, Wallet, Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowDownLeft, ArrowUpRight, RefreshCcw, Wallet, Sparkles, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const currency = new Intl.NumberFormat('de-DE', {
   style: 'currency',
@@ -10,9 +11,17 @@ const currency = new Intl.NumberFormat('de-DE', {
 });
 
 const ArkaPage = () => {
+  const { user } = useAuth();
   const [data, setData] = useState({ balance: 0, totalIn: 0, totalOut: 0, todayIn: 0, todayOut: 0, entries: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Tax payment modal state
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [pershkrimi, setPershkrimi] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const fetchArka = async () => {
     setLoading(true);
@@ -33,6 +42,35 @@ const ArkaPage = () => {
     fetchArka();
   }, []);
 
+  const handlePayTax = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    const payVal = parseFloat(amount);
+    if (isNaN(payVal) || payVal <= 0) {
+      setFormError('Vlera e pagesës duhet të jetë një numër pozitiv.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/taxes/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: payVal, pershkrimi }),
+      });
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || 'Gabim gjatë regjistrimit të pagesës.');
+      
+      setIsPayModalOpen(false);
+      setAmount('');
+      setPershkrimi('');
+      await fetchArka();
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="relative min-h-full overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)]" />
@@ -49,13 +87,28 @@ const ArkaPage = () => {
               Gjendja aktuale e arkës, paratë që kanë hyrë dhe dalë, dhe historiku i plotë i lëvizjeve.
             </p>
           </div>
-          <button
-            onClick={fetchArka}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
-          >
-            <RefreshCcw size={16} />
-            Rifresko
-          </button>
+          <div className="flex items-center gap-3">
+            {user?.role === 'owner' && (
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setFormError('');
+                  setIsPayModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 rounded-2xl bg-zinc-900 dark:bg-white px-5 py-3 text-[13px] font-bold text-white dark:text-zinc-950 shadow-sm transition hover:bg-zinc-800 dark:hover:bg-zinc-200"
+              >
+                Paguaj Tatimin
+              </motion.button>
+            )}
+            <button
+              onClick={fetchArka}
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03] backdrop-blur-xl"
+            >
+              <RefreshCcw size={16} />
+              Rifresko
+            </button>
+          </div>
         </div>
 
         {error ? (
@@ -214,6 +267,114 @@ const ArkaPage = () => {
           </>
         )}
       </div>
+
+      <AnimatePresence>
+        {isPayModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsPayModalOpen(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="relative w-full max-w-md rounded-[2rem] border border-slate-200/60 dark:border-zinc-800 bg-[#f0f0f2] dark:bg-zinc-900 shadow-2xl overflow-hidden"
+            >
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200/60 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900">
+                <div>
+                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                    Paguaj Tatimin
+                  </h3>
+                  <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Regjistro pagesën e TVSH-së ose detyrimeve tjera tatimore.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsPayModalOpen(false)}
+                  className="p-2 rounded-xl text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Modal body */}
+              <form onSubmit={handlePayTax} className="px-6 py-5 space-y-4">
+                {formError && (
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-[12px] text-rose-600 dark:text-rose-400 font-medium">
+                    {formError}
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-500">
+                    Vlera e Pagesës (€) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-slate-400 dark:text-zinc-500">
+                      €
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-2xl border border-slate-200/60 dark:border-zinc-700 bg-white/60 dark:bg-zinc-800 py-3 pl-9 pr-4 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-zinc-400/40 focus:bg-white dark:focus:bg-zinc-750"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-500">
+                    Përshkrimi
+                  </label>
+                  <input
+                    type="text"
+                    value={pershkrimi}
+                    onChange={(e) => setPershkrimi(e.target.value)}
+                    placeholder="P.sh. Pagesa e TVSH-së Q1"
+                    className="w-full rounded-2xl border border-slate-200/60 dark:border-zinc-700 bg-white/60 dark:bg-zinc-800 py-3 px-4 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-zinc-400/40 focus:bg-white dark:focus:bg-zinc-750"
+                  />
+                </div>
+
+                {/* Modal footer */}
+                <div className="flex items-center justify-end gap-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsPayModalOpen(false)}
+                    className="px-5 py-2.5 rounded-2xl border border-slate-200/60 dark:border-zinc-700 bg-white/60 dark:bg-zinc-800 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 transition"
+                  >
+                    Anulo
+                  </button>
+                  <motion.button
+                    whileHover={{ scale: 1.005 }}
+                    whileTap={{ scale: 0.99 }}
+                    type="submit"
+                    disabled={submitting}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-[13px] hover:bg-slate-800 dark:hover:bg-zinc-200 transition shadow-sm disabled:opacity-50"
+                  >
+                    {submitting ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      'Regjistro'
+                    )}
+                  </motion.button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
