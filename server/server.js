@@ -773,11 +773,11 @@ app.post('/api/sales', async (req, res) => {
       [ownerId, invoiceId, `Shitje: ${numriFatures}`, debitAccount, grandTotal]
     );
 
-    // 2. Credit Sales Revenue (Subtotal - Discount)
+    // 2. Credit Sales Revenue (Subtotal - Discount - VAT)
     await client.query(
       `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
        VALUES (?, ?, ?, 'Të hyrat nga shitjet', 0, ?)`,
-      [ownerId, invoiceId, `Shitje: ${numriFatures}`, subtotal - discountAmount]
+      [ownerId, invoiceId, `Shitje: ${numriFatures}`, subtotal - discountAmount - taxAmount]
     );
 
     // 3. Credit VAT Payable (if taxAmount > 0)
@@ -1876,7 +1876,7 @@ app.post('/api/offers/:id/convert', async (req, res) => {
     await client.query(
       `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
        VALUES (?, ?, ?, 'Të hyrat nga shitjet', 0, ?)`,
-      [ownerId, invoiceId, `Shitje (nga Ofertë): ${numriFatures}`, subtotal]
+      [ownerId, invoiceId, `Shitje (nga Ofertë): ${numriFatures}`, subtotal - taxAmount]
     );
 
     if (taxAmount > 0) {
