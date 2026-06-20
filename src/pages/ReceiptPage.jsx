@@ -333,7 +333,7 @@ const ReceiptPage = ({ isPublic = false }) => {
                 ))}
 
                 {/* Vertical columns fill spacer row (keeps grid aligned) */}
-                <tr className="h-16 bg-zinc-50/10">
+                <tr className="h-16 bg-zinc-55/10">
                   <td className="px-3 py-3"></td>
                   <td className="px-3 py-3"></td>
                   <td className="px-3 py-3 text-zinc-400 italic align-top pt-3 font-medium text-[10px]">
@@ -344,69 +344,51 @@ const ReceiptPage = ({ isPublic = false }) => {
                   <td className="px-3 py-3"></td>
                   <td className="px-3 py-3"></td>
                 </tr>
+
+                {/* Subtotals & Taxes inside table columns */}
+                {Number(receipt.discount_rate) > 0 && (
+                  <>
+                    <tr className="border-t border-zinc-200/80 bg-zinc-50/20">
+                      <td colSpan={6} className="px-3 py-2.5 text-right text-zinc-500 uppercase tracking-wider text-[9px] font-bold">Subtotali (para zbritjes):</td>
+                      <td className="px-3 py-2.5 text-right font-mono text-zinc-800 font-bold text-[12px]">{currency.format(subtotalBeforeDiscount)}</td>
+                    </tr>
+                    <tr className="border-t border-zinc-200/40 bg-zinc-50/20">
+                      <td colSpan={6} className="px-3 py-2.5 text-right text-zinc-500 uppercase tracking-wider text-[9px] font-bold">Zbritja ({receipt.discount_rate}%):</td>
+                      <td className="px-3 py-2.5 text-right font-mono text-rose-600 font-bold text-[12px]">-{currency.format(receipt.discount_amount)}</td>
+                    </tr>
+                  </>
+                )}
+                <tr className="border-t border-zinc-200/80 bg-zinc-50/20">
+                  <td colSpan={6} className="px-3 py-2.5 text-right text-zinc-500 uppercase tracking-wider text-[9px] font-bold">Nëntotali (pa TVSH):</td>
+                  <td className="px-3 py-2.5 text-right font-mono text-zinc-800 font-bold text-[12px]">{currency.format(receipt.totali - (receipt.tax_amount || 0))}</td>
+                </tr>
+                {Number(receipt.tax_amount) > 0 && (
+                  <tr className="border-t border-zinc-200/40 bg-zinc-50/20">
+                    <td colSpan={6} className="px-3 py-2.5 text-right text-zinc-500 uppercase tracking-wider text-[9px] font-bold">TVSH:</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-zinc-800 font-bold text-[12px]">{currency.format(receipt.tax_amount)}</td>
+                  </tr>
+                )}
+                <tr className="border-t-2 border-b-2 border-zinc-950 bg-zinc-950 text-white font-black">
+                  <td colSpan={6} className="px-3 py-3.5 text-right uppercase tracking-widest text-[10px] font-black">TOTALI (ME TVSH):</td>
+                  <td className="px-3 py-3.5 text-right font-mono text-[15px] font-black">{currency.format(receipt.totali)}</td>
+                </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Totals Section */}
-          <div className="mt-6 flex justify-between items-start gap-8 px-6">
-            {/* QR Code Validation */}
-            <div className="flex items-start gap-4">
-              <div className="bg-white p-2 rounded-xl border border-zinc-200">
-                <QRCodeSVG value={receipt.qrUrl} size={85} fgColor="#000000" bgColor="#ffffff" />
-              </div>
-              <div className="max-w-[200px] text-[10px] text-zinc-400 leading-normal">
-                <p className="font-bold text-zinc-800 uppercase tracking-wider">Verifikimi i Faturës</p>
-                <p className="mt-1">Skanoni QR kodin për verifikimin zyrtar të faturës në portalin publik.</p>
-                <p className="mt-1.5 font-mono text-[9px] break-all select-all text-zinc-800 font-bold underline hover:text-black">{receipt.qrUrl}</p>
+          {/* Footer Receipt Info (QR & Verification - Clean and minimalist) */}
+          <div className="mt-8 flex justify-between items-start gap-12 px-6">
+            <div className="flex items-center gap-4">
+              <QRCodeSVG value={receipt.qrUrl} size={70} fgColor="#000000" bgColor="transparent" />
+              <div className="max-w-[280px] text-[10px] text-zinc-400 leading-normal">
+                <p className="font-bold text-zinc-800 uppercase tracking-wider text-[9px]">Verifikimi i Faturës</p>
+                <p className="mt-0.5">Skanoni QR kodin për verifikimin zyrtar të faturës në portalin e Zahlx.</p>
+                <p className="mt-1 font-mono text-[8px] break-all select-all text-zinc-500 hover:text-zinc-850 underline transition">{receipt.qrUrl}</p>
               </div>
             </div>
 
-            {/* Breakdown Totals Box */}
-            <div className="w-80 border border-zinc-200 rounded-xl overflow-hidden bg-zinc-50/30 p-4 space-y-2 text-[12px]">
-              {Number(receipt.discount_rate) > 0 ? (
-                <>
-                  <div className="flex justify-between text-zinc-500">
-                    <span>Subtotali (para zbritjes):</span>
-                    <span className="font-mono font-bold text-zinc-800">
-                      {currency.format(subtotalBeforeDiscount)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-zinc-500">
-                    <span>Zbritja ({receipt.discount_rate}%):</span>
-                    <span className="font-mono font-bold text-rose-600">
-                      -{currency.format(receipt.discount_amount)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-zinc-500">
-                    <span>Nëntotali (pa TVSH):</span>
-                    <span className="font-mono font-bold text-zinc-800">
-                      {currency.format(receipt.totali - (receipt.tax_amount || 0))}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="flex justify-between text-zinc-500">
-                  <span>Nëntotali (pa TVSH):</span>
-                  <span className="font-mono font-bold text-zinc-800">
-                    {currency.format(receipt.totali - (receipt.tax_amount || 0))}
-                  </span>
-                </div>
-              )}
-              {Number(receipt.tax_amount) > 0 && (
-                <div className="flex justify-between text-zinc-500">
-                  <span>TVSH:</span>
-                  <span className="font-mono font-bold text-zinc-800">
-                    {currency.format(receipt.tax_amount)}
-                  </span>
-                </div>
-              )}
-              <div className="border-t border-zinc-200 pt-2 flex justify-between text-[14px] font-black text-zinc-950">
-                <span>Totali (me TVSH):</span>
-                <span className="font-mono text-zinc-950">
-                  {currency.format(receipt.totali)}
-                </span>
-              </div>
+            <div className="text-right text-[9px] text-zinc-400 max-w-xs italic pt-2">
+              * Ky dokument shërben si faturë zyrtare dhe dëshmi e kryerjes së transaksionit fiskal.
             </div>
           </div>
 
