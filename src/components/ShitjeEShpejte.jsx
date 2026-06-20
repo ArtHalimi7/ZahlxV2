@@ -32,6 +32,8 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
   const [taxRate, setTaxRate] = useState(0);
   const [paymentTerms, setPaymentTerms] = useState('immediate');
   const [invoiceStatus, setInvoiceStatus] = useState('paguar');
+  const [paymentMethod, setPaymentMethod] = useState('KESH');
+  const [discountRate, setDiscountRate] = useState('0');
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clientSearch, setClientSearch] = useState('Klient i përgjithshëm');
@@ -56,7 +58,9 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
     
     setPaymentTerms('immediate');
     setInvoiceStatus('paguar');
-    setClient('Klient i përgjithshëm');
+    setPaymentMethod('KESH');
+    setDiscountRate('0');
+    setClientSearch('Klient i përgjithshëm');
 
     document.body.style.overflow = 'hidden';
 
@@ -107,8 +111,9 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
   }, [products, search]);
 
   const subtotal = selected ? selected.cmimi_shitjes * quantity : 0;
-  const taxAmount = taxRate > 0 ? subtotal * (taxRate / (100 + taxRate)) : 0;
-  const total = subtotal;
+  const discountAmount = subtotal * (Number(discountRate || 0) / 100);
+  const total = subtotal - discountAmount;
+  const taxAmount = taxRate > 0 ? total * (taxRate / (100 + taxRate)) : 0;
 
   const handleSelect = (product) => {
     setSelected(product);
@@ -149,6 +154,8 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
           tax_rate: taxRate,
           payment_terms: paymentTerms,
           statusi: invoiceStatus,
+          menyra_pageses: paymentMethod,
+          discount_rate: Number(discountRate || 0),
         }),
       });
 
@@ -359,7 +366,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">TVSH</label>
                     <select
@@ -387,26 +394,64 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
                   </div>
 
                   <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Mënyra</label>
+                    <select
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                    >
+                      <option value="KESH">Kesh</option>
+                      <option value="KARTE">Kartë</option>
+                      <option value="BANKE">Bankë</option>
+                    </select>
+                  </div>
+
+                  <div>
                     <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Statusi</label>
                     <select
                       value={invoiceStatus}
                       onChange={(e) => setInvoiceStatus(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-550/30 dark:bg-zinc-900"
                     >
                       <option value="paguar">Paguar</option>
                       <option value="ne_pritje">Draft</option>
                     </select>
                   </div>
+
+                  <div className="col-span-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Zbritje (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={discountRate}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val >= 0 && val <= 100) {
+                          setDiscountRate(e.target.value);
+                        }
+                      }}
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-3 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="mt-4 rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-4 space-y-1.5">
-                {taxAmount > 0 && (
+                <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                  <span>Nëntotali (para zbritjes):</span>
+                  <span className="font-semibold tabular-nums">{formatEuro(subtotal)}</span>
+                </div>
+                {discountAmount > 0 && (
                   <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
-                    <span>Nëntotali (pa TVSH):</span>
-                    <span className="font-semibold tabular-nums">{formatEuro(subtotal - taxAmount)}</span>
+                    <span>Zbritja ({discountRate}%):</span>
+                    <span className="font-semibold tabular-nums text-rose-600 font-mono">-{formatEuro(discountAmount)}</span>
                   </div>
                 )}
+                <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                  <span>Nëntotali (pa TVSH):</span>
+                  <span className="font-semibold tabular-nums">{formatEuro(total - taxAmount)}</span>
+                </div>
                 {taxAmount > 0 && (
                   <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
                     <span>TVSH ({taxRate}%):</span>

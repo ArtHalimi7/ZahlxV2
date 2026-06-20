@@ -31,6 +31,11 @@ const ReceiptPage = ({ isPublic = false }) => {
   const [copied, setCopied] = useState(false);
   const barcodeRef = useRef(null);
 
+  const subtotalBeforeDiscount = useMemo(() => {
+    if (!receipt || !receipt.items) return 0;
+    return receipt.items.reduce((sum, item) => sum + Number(item.cmimi_per_njesi) * Number(item.sasia), 0);
+  }, [receipt]);
+
   useEffect(() => {
     const loadReceipt = async () => {
       setLoading(true);
@@ -270,7 +275,7 @@ const ReceiptPage = ({ isPublic = false }) => {
                 </div>
                 <div>
                   <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Mënyra e Pagesës</span>
-                  <p className="font-semibold text-zinc-900">KESH</p>
+                  <p className="font-semibold text-zinc-900">{receipt.menyra_pageses || 'KESH'}</p>
                 </div>
                 <div>
                   <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">ID e Operatorit</span>
@@ -359,12 +364,35 @@ const ReceiptPage = ({ isPublic = false }) => {
 
             {/* Breakdown Totals Box */}
             <div className="w-80 border border-zinc-200 rounded-xl overflow-hidden bg-zinc-50/30 p-4 space-y-2 text-[12px]">
-              <div className="flex justify-between text-zinc-500">
-                <span>Nëntotali (pa TVSH):</span>
-                <span className="font-mono font-bold text-zinc-800">
-                  {currency.format(receipt.totali - (receipt.tax_amount || 0))}
-                </span>
-              </div>
+              {Number(receipt.discount_rate) > 0 ? (
+                <>
+                  <div className="flex justify-between text-zinc-500">
+                    <span>Subtotali (para zbritjes):</span>
+                    <span className="font-mono font-bold text-zinc-800">
+                      {currency.format(subtotalBeforeDiscount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-zinc-500">
+                    <span>Zbritja ({receipt.discount_rate}%):</span>
+                    <span className="font-mono font-bold text-rose-600">
+                      -{currency.format(receipt.discount_amount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-zinc-500">
+                    <span>Nëntotali (pa TVSH):</span>
+                    <span className="font-mono font-bold text-zinc-800">
+                      {currency.format(receipt.totali - (receipt.tax_amount || 0))}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between text-zinc-500">
+                  <span>Nëntotali (pa TVSH):</span>
+                  <span className="font-mono font-bold text-zinc-800">
+                    {currency.format(receipt.totali - (receipt.tax_amount || 0))}
+                  </span>
+                </div>
+              )}
               {Number(receipt.tax_amount) > 0 && (
                 <div className="flex justify-between text-zinc-500">
                   <span>TVSH:</span>

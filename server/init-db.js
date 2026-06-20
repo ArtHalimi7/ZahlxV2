@@ -193,7 +193,10 @@ export const initDatabase = async ({ closePool = true } = {}) => {
       { name: 'secure_code', type: 'VARCHAR(64) DEFAULT NULL' },
       { name: 'klient_email', type: 'VARCHAR(200) DEFAULT NULL' },
       { name: 'klient_telefoni', type: 'VARCHAR(100) DEFAULT NULL' },
-      { name: 'klient_adresa', type: 'TEXT DEFAULT NULL' }
+      { name: 'klient_adresa', type: 'TEXT DEFAULT NULL' },
+      { name: 'menyra_pageses', type: "VARCHAR(50) DEFAULT 'KESH'" },
+      { name: 'discount_rate', type: 'DECIMAL(5,2) DEFAULT 0' },
+      { name: 'discount_amount', type: 'DECIMAL(12,2) DEFAULT 0' }
     ];
 
     // Backfill secure_code for existing invoices that don't have one

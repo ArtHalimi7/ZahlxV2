@@ -34,6 +34,8 @@ const PosPage = () => {
   const [receiptError, setReceiptError] = useState('');
   const [paymentTerms, setPaymentTerms] = useState('immediate');
   const [invoiceStatus, setInvoiceStatus] = useState('paguar');
+  const [paymentMethod, setPaymentMethod] = useState('KESH');
+  const [discountRate, setDiscountRate] = useState('0');
   const barcodeRef = useRef(null);
 
   useEffect(() => {
@@ -66,20 +68,26 @@ const PosPage = () => {
     [receiptItems]
   );
 
+  const discountAmount = useMemo(
+    () => receiptSubtotal * (Number(discountRate || 0) / 100),
+    [receiptSubtotal, discountRate]
+  );
+
+  const receiptTotal = useMemo(
+    () => receiptSubtotal - discountAmount,
+    [receiptSubtotal, discountAmount]
+  );
+
   const receiptTaxAmount = useMemo(
     () => {
-      return receiptItems.reduce((total, item) => {
+      const baseTax = receiptItems.reduce((total, item) => {
         const rate = Number(item.tax_rate || 0);
         const itemTotal = item.cmimi_shitjes * item.quantity;
         return total + (rate > 0 ? itemTotal * (rate / (100 + rate)) : 0);
       }, 0);
+      return baseTax * (1 - Number(discountRate || 0) / 100);
     },
-    [receiptItems]
-  );
-
-  const receiptTotal = useMemo(
-    () => receiptSubtotal,
-    [receiptSubtotal]
+    [receiptItems, discountRate]
   );
 
   const addReceiptProduct = (barcode) => {
@@ -137,6 +145,8 @@ const PosPage = () => {
           tax_rate: 0,
           payment_terms: paymentTerms,
           statusi: invoiceStatus,
+          menyra_pageses: paymentMethod,
+          discount_rate: Number(discountRate || 0),
         }),
       });
 
@@ -153,6 +163,8 @@ const PosPage = () => {
       setReceiptBarcode('');
       setPaymentTerms('immediate');
       setInvoiceStatus('paguar');
+      setPaymentMethod('KESH');
+      setDiscountRate('0');
       setSelectedClient(null);
       setClientSearch('Klient i përgjithshëm');
       
@@ -255,20 +267,8 @@ const PosPage = () => {
                         </div>
                       )}
                     </div>
-                    <div>
-                      <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Statusi</label>
-                      <select
-                        value={invoiceStatus}
-                        onChange={(e) => setInvoiceStatus(e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
-                      >
-                        <option value="paguar">Paguar (Paid)</option>
-                        <option value="ne_pritje">Në Pritje (Draft)</option>
-                      </select>
-                    </div>
                   </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-4">
                     <div>
                       <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Afati i Pagesës</label>
                       <select
@@ -280,6 +280,45 @@ const PosPage = () => {
                         <option value="net_15">Net 15 Ditë</option>
                         <option value="net_30">Net 30 Ditë</option>
                       </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Mënyra e Pagesës</label>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      >
+                        <option value="KESH">Kesh (Cash)</option>
+                        <option value="KARTE">Kartë (Card)</option>
+                        <option value="BANKE">Bankë (Bank)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Statusi</label>
+                      <select
+                        value={invoiceStatus}
+                        onChange={(e) => setInvoiceStatus(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      >
+                        <option value="paguar">Paguar (Paid)</option>
+                        <option value="ne_pritje">Në Pritje (Draft)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Zbritje (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={discountRate}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          if (val >= 0 && val <= 100) {
+                            setDiscountRate(e.target.value);
+                          }
+                        }}
+                        className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 py-3.5 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+                      />
                     </div>
                   </div>
 
@@ -410,12 +449,20 @@ const PosPage = () => {
                 )}
                 
                 <div className="mt-6 border-t border-slate-200/60 dark:border-transparent pt-6 space-y-2">
-                  {receiptTaxAmount > 0 && (
+                  <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
+                    <span>Nëntotali (para zbritjes):</span>
+                    <span className="font-semibold tabular-nums text-slate-700 dark:text-zinc-300">{currency.format(receiptSubtotal)}</span>
+                  </div>
+                  {discountAmount > 0 && (
                     <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
-                      <span>Nëntotali (pa TVSH):</span>
-                      <span className="font-semibold tabular-nums text-slate-700 dark:text-zinc-300">{currency.format(receiptSubtotal - receiptTaxAmount)}</span>
+                      <span>Zbritja ({discountRate}%):</span>
+                      <span className="font-semibold tabular-nums text-rose-600 font-mono">-{currency.format(discountAmount)}</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
+                    <span>Nëntotali (pa TVSH):</span>
+                    <span className="font-semibold tabular-nums text-slate-700 dark:text-zinc-300">{currency.format(receiptTotal - receiptTaxAmount)}</span>
+                  </div>
                   {receiptTaxAmount > 0 && (
                     <div className="flex justify-between text-[13px] text-slate-500 dark:text-zinc-400">
                       <span>TVSH:</span>

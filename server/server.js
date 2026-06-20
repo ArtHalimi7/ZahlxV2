@@ -570,7 +570,7 @@ app.get('/api/dashboard', async (req, res) => {
 
     const [profitRows] = await pool.query(
       `SELECT
-         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM((ii.sasia * ii.cmimi_per_njesi / (1 + ii.tax_rate / 100)) * (1 - COALESCE(i.discount_rate, 0) / 100)), 0) AS revenue_excl_tax,
          COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
@@ -633,7 +633,7 @@ app.get('/api/transactions', async (req, res) => {
     const tenantId = getTenantId(req);
     const limit = Number.parseInt(req.query.limit, 10) || 10;
     const [rows] = await pool.query(
-      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date, secure_code
+      `SELECT id, numri_fatures, klienti, data_krijimit, totali, statusi, tax_rate, tax_amount, due_date, secure_code, discount_rate, discount_amount
        FROM invoices
        WHERE user_id = ?
        ORDER BY data_krijimit DESC
@@ -661,7 +661,7 @@ app.post('/api/sales', async (req, res) => {
 
   try {
     const ownerId = getTenantId(req);
-    const { klienti, klient_email = null, klient_telefoni = null, klient_adresa = null, items, tax_rate = 0, payment_terms = 'immediate', statusi = 'paguar' } = req.body;
+    const { klienti, klient_email = null, klient_telefoni = null, klient_adresa = null, items, tax_rate = 0, payment_terms = 'immediate', statusi = 'paguar', menyra_pageses = 'KESH', discount_rate = 0 } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Duhet të shtoni së paku një produkt' });
@@ -727,9 +727,10 @@ app.post('/api/sales', async (req, res) => {
       totalTaxAmount += lineTax;
     }
 
+    const discountAmount = subtotal * (Number(discount_rate || 0) / 100);
+    const grandTotal = subtotal - discountAmount;
     const taxRate = 0;
-    const taxAmount = totalTaxAmount;
-    const grandTotal = subtotal;
+    const taxAmount = totalTaxAmount * (1 - Number(discount_rate || 0) / 100);
 
     let daysToAdd = 0;
     if (payment_terms === 'net_15') daysToAdd = 15;
@@ -740,9 +741,9 @@ app.post('/api/sales', async (req, res) => {
 
     const secureCode = crypto.randomUUID();
     const [invoiceResult] = await client.query(
-      `INSERT INTO invoices (user_id, numri_fatures, klienti, klient_email, klient_telefoni, klient_adresa, totali, statusi, tax_rate, tax_amount, due_date, seller_id, secure_code)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', klient_email, klient_telefoni, klient_adresa, grandTotal, statusi, taxRate, taxAmount, dueDate, req.user.id, secureCode]
+      `INSERT INTO invoices (user_id, numri_fatures, klienti, klient_email, klient_telefoni, klient_adresa, totali, statusi, tax_rate, tax_amount, due_date, seller_id, secure_code, menyra_pageses, discount_rate, discount_amount)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerId, numriFatures, klienti || 'Klient i përgjithshëm', klient_email, klient_telefoni, klient_adresa, grandTotal, statusi, taxRate, taxAmount, dueDate, req.user.id, secureCode, menyra_pageses, Number(discount_rate || 0), discountAmount]
     );
 
     const invoiceId = invoiceResult.insertId;
@@ -772,11 +773,11 @@ app.post('/api/sales', async (req, res) => {
       [ownerId, invoiceId, `Shitje: ${numriFatures}`, debitAccount, grandTotal]
     );
 
-    // 2. Credit Sales Revenue (Subtotal)
+    // 2. Credit Sales Revenue (Subtotal - Discount)
     await client.query(
       `INSERT INTO financial_ledger (user_id, invoice_id, pershkrimi, llogaria, debit, kredit)
        VALUES (?, ?, ?, 'Të hyrat nga shitjet', 0, ?)`,
-      [ownerId, invoiceId, `Shitje: ${numriFatures}`, subtotal]
+      [ownerId, invoiceId, `Shitje: ${numriFatures}`, subtotal - discountAmount]
     );
 
     // 3. Credit VAT Payable (if taxAmount > 0)
@@ -802,6 +803,8 @@ app.post('/api/sales', async (req, res) => {
         due_date: dueDate,
         statusi,
         items: resolvedItems,
+        discount_rate: Number(discount_rate || 0),
+        discount_amount: discountAmount,
       },
     });
   } catch (error) {
@@ -817,7 +820,7 @@ app.get('/api/invoices/:id', async (req, res) => {
   try {
     const tenantId = getTenantId(req);
     const [invoiceRows] = await pool.query(
-      `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
+      `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code, i.menyra_pageses, i.discount_rate, i.discount_amount,
               owner.emri_biznesit AS emri_biznesit,
               owner.email AS email_biznesit,
               COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
@@ -860,7 +863,7 @@ app.get('/api/invoices/:id', async (req, res) => {
 app.get('/api/invoices/public/:secureCode', async (req, res) => {
   try {
     const [invoiceRows] = await pool.query(
-      `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code,
+      `SELECT i.id, i.numri_fatures, i.klienti, i.klient_email, i.klient_telefoni, i.klient_adresa, i.data_krijimit, i.totali, i.statusi, i.tax_rate, i.tax_amount, i.due_date, i.seller_id, i.secure_code, i.menyra_pageses, i.discount_rate, i.discount_amount,
               owner.emri_biznesit AS emri_biznesit,
               owner.email AS email_biznesit,
               COALESCE(seller.emri_biznesit, owner.emri_biznesit) AS emri_shitesit
@@ -1245,7 +1248,7 @@ app.post('/api/chat', async (req, res) => {
 
     const [profitRows] = await pool.query(
       `SELECT
-         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM((ii.sasia * ii.cmimi_per_njesi / (1 + ii.tax_rate / 100)) * (1 - COALESCE(i.discount_rate, 0) / 100)), 0) AS revenue_excl_tax,
          COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
@@ -1417,7 +1420,7 @@ app.get('/api/ai/daily-insight', async (req, res) => {
 
     const [profitRows] = await pool.query(
       `SELECT
-         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM((ii.sasia * ii.cmimi_per_njesi / (1 + ii.tax_rate / 100)) * (1 - COALESCE(i.discount_rate, 0) / 100)), 0) AS revenue_excl_tax,
          COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
@@ -1519,7 +1522,7 @@ app.post('/api/ai/tab-insight', async (req, res) => {
 
     const [profitRows] = await pool.query(
       `SELECT
-         COALESCE(SUM(ii.sasia * ii.cmimi_per_njesi), 0) AS revenue_excl_tax,
+         COALESCE(SUM((ii.sasia * ii.cmimi_per_njesi / (1 + ii.tax_rate / 100)) * (1 - COALESCE(i.discount_rate, 0) / 100)), 0) AS revenue_excl_tax,
          COALESCE(SUM(ii.sasia * p.cmimi_blerjes), 0) AS total_cost
        FROM invoice_items ii
        JOIN invoices i ON i.id = ii.invoice_id
