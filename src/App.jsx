@@ -76,16 +76,6 @@ const AuthenticatedLayout = () => {
     }
   }, [user]);
 
-  // Keep-alive ping every 1 minute to prevent Render spin-down
-  useEffect(() => {
-    const ping = () => {
-      fetch('/api/health').catch(() => {});
-    };
-    ping();
-    const interval = setInterval(ping, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="flex min-h-screen overflow-hidden bg-[#f4f4f5] dark:bg-zinc-950 text-slate-900 dark:text-zinc-100">
       <Sidebar

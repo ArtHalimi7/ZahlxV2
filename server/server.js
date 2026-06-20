@@ -163,14 +163,6 @@ const getTenantId = (req) => {
 };
 
 // ================================================================
-// HEALTH CHECK (keep Render from spinning down)
-// ================================================================
-
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: Date.now() });
-});
-
-// ================================================================
 // AUTHENTICATION & STAFF APIS
 // ================================================================
 
@@ -2528,6 +2520,17 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', time: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`✓ Zahlx API running on http://localhost:${PORT}`);
+
+  // Self-keepalive every 14 minutes to prevent Render spin-down
+  const publicUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(async () => {
+    try {
+      const res = await fetch(`${publicUrl}/api/health`);
+      if (res.ok) console.log('♥ Keepalive ping successful');
+    } catch {
+      // server might be starting up; ignore
+    }
+  }, 4 * 60 * 1000);
 });
