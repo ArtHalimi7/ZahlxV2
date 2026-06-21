@@ -29,7 +29,6 @@ const ReceiptPage = ({ isPublic = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const barcodeRef = useRef(null);
 
   const subtotalBeforeDiscount = useMemo(() => {
     if (!receipt || !receipt.items) return 0;
@@ -62,11 +61,11 @@ const ReceiptPage = ({ isPublic = false }) => {
     loadReceipt();
   }, [invoiceId]);
 
-  // Render barcode once secure_code is available
-  useEffect(() => {
-    if (barcodeRef.current && receipt?.secure_code) {
+  // Render barcode once secure_code is available via callback ref to avoid race conditions during transitions
+  const barcodeRef = useCallback((node) => {
+    if (node && receipt?.secure_code) {
       try {
-        JsBarcode(barcodeRef.current, receipt.secure_code, {
+        JsBarcode(node, receipt.secure_code, {
           format: "CODE128",
           lineColor: "#1f2937",
           width: 1.4,
@@ -141,7 +140,9 @@ const ReceiptPage = ({ isPublic = false }) => {
   const activeStatus = STATUS_META[receipt.statusi] || STATUS_META.paguar;
 
   return (
-    <div className="min-h-screen bg-zinc-50 py-4 sm:py-6 print:py-0 print:bg-white transition-colors">
+    <div className="relative min-h-screen bg-[#f4f4f5] dark:bg-zinc-950 py-4 sm:py-6 print:py-0 print:bg-white transition-colors overflow-hidden">
+      {/* Decorative gradient overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(var(--accent-rgb),0.08),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.01),transparent_18%)] print:hidden" />
 
       {/* Action Bar (hidden when printing) */}
       <div className="mx-auto flex max-w-[850px] flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 pb-3 sm:pb-4 print:hidden">
@@ -179,7 +180,16 @@ const ReceiptPage = ({ isPublic = false }) => {
       </div>
 
       {/* Main Official Document Wrapper */}
-      <div className="paper-preview relative flex flex-col justify-between max-w-[210mm] mx-auto bg-white shadow-lg rounded-2xl border border-zinc-200/50 select-text print:shadow-none print:rounded-none print:border-0">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+        className="paper-preview relative flex flex-col justify-between max-w-[210mm] mx-auto bg-white dark:bg-black shadow-lg rounded-2xl border border-zinc-200/50 select-text print:shadow-none print:rounded-none print:border-0 overflow-hidden"
+      >
+        {/* Background Watermark Logo (hidden on print) */}
+        <div className="pointer-events-none absolute left-[74%] top-[15%] -translate-x-1/2 w-[1350px] h-[1350px] opacity-[0.06] dark:opacity-[0.04] select-none print:hidden flex items-center justify-center">
+          <img src={Logo} alt="Watermark" className="w-full h-full object-contain filter grayscale" />
+        </div>
         <div>
           {/* Simple, Minimalized & Premium Header — always one row */}
           <div className="flex flex-row justify-between items-center gap-2 px-4 sm:px-6 py-4 sm:py-6 border-b border-zinc-200 bg-zinc-50/50">
@@ -284,7 +294,7 @@ const ReceiptPage = ({ isPublic = false }) => {
                 </div>
                 <div className="text-center">
                   <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Data e Lëshimit</span>
-                  <p className="font-semibold text-zinc-900">{new Date(receipt.data_krijimit).toLocaleDateString('sq-AL')}</p>
+                  <p className="font-semibold text-zinc-900 font-mono">{new Date(receipt.data_krijimit).toLocaleDateString('sq-AL')}</p>
                 </div>
                 <div>
                   <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Mënyra e Pagesës</span>
@@ -468,17 +478,44 @@ const ReceiptPage = ({ isPublic = false }) => {
             </p>
           </div>
 
-          {/* Signatures Section */}
-          <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-12 px-4 sm:px-6">
-            <div className="border-t border-dashed border-zinc-300 pt-3 text-center">
+          {/* Signatures Section with E-Verified Digital Seal */}
+          <div className="relative mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-12 px-4 sm:px-6">
+            {/* Pranoi */}
+            <div className="border-t border-dashed border-zinc-300 pt-3 text-center z-10">
               <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Pranoi (Blerësi / Klienti)</p>
               <div className="h-8" />
               <p className="text-[12px] font-extrabold text-zinc-900 uppercase">{receipt.klienti}</p>
             </div>
-            <div className="border-t border-dashed border-zinc-300 pt-3 text-center">
+
+            {/* Zahlx E-Verified Stamp (Absolute Center on tablet/desktop, stacked on mobile) */}
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex print:flex flex-col items-center justify-center select-none">
+              <div className="text-center font-sans tracking-[0.25em] text-red-600 dark:text-red-500">
+                <span className="text-[15px] font-black uppercase">KONFIRMUAR</span>
+                {receipt.secure_code && (
+                  <span className="block text-[8.5px] font-mono tracking-[0.15em] uppercase opacity-80 mt-1">
+                    {receipt.secure_code.substring(0, 12).toUpperCase()}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Lëshoi */}
+            <div className="border-t border-dashed border-zinc-300 pt-3 text-center z-10">
               <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Lëshoi (Operatori / Përfaqësuesi)</p>
               <div className="h-8" />
               <p className="text-[12px] font-extrabold text-zinc-900 uppercase">{receipt.emri_shitesit || receipt.emri_biznesit}</p>
+            </div>
+
+            {/* Mobile E-Verified Stamp (visible on mobile only, placed below signature columns) */}
+            <div className="sm:hidden flex justify-center mt-4 print:hidden print:!hidden z-10">
+              <div className="text-center font-sans tracking-[0.25em] text-red-600 dark:text-red-500">
+                <span className="text-[13px] font-black uppercase">KONFIRMUAR</span>
+                {receipt.secure_code && (
+                  <span className="block text-[8px] font-mono tracking-[0.15em] uppercase opacity-80 mt-0.5">
+                    {receipt.secure_code.substring(0, 12).toUpperCase()}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -489,7 +526,7 @@ const ReceiptPage = ({ isPublic = false }) => {
             Faleminderit për bashkëpunimin tuaj! Kjo faturë është gjeneruar në mënyrë elektronike dhe është e vlefshme pa vulë fizike.
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

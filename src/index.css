@@ -278,13 +278,13 @@
 }
 
 @media print {
-  /* A4 page setup */
+  /* A4 page setup — tight margins to maximize space */
   @page {
-    margin: 0.6cm !important;
+    margin: 0.4cm !important;
     size: A4 portrait;
   }
 
-  /* Enable color printing for backgrounds/badges */
+  /* Enable color printing for backgrounds/badges/stamps */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -353,7 +353,7 @@
     max-width: 100% !important;
     width: 100% !important;
     min-height: 0 !important;
-    padding: 0.4cm !important;
+    padding: 0.3cm !important;
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
@@ -422,50 +422,93 @@
     color: #ffffff !important;
   }
 
+  /* ===== KONFIRMUAR stamp — must print in red ===== */
+  .paper-preview [class*="text-red-600"],
+  .paper-preview [class*="text-red-500"] {
+    color: #dc2626 !important;
+  }
+  .paper-preview .dark\:text-red-500 {
+    color: #dc2626 !important;
+  }
+
+  /* ===== Logos — ensure they print with dark filter ===== */
+  .paper-preview img[alt="Zahlx Logo"] {
+    filter: brightness(0) !important;
+    opacity: 1 !important;
+  }
+  .paper-preview img[alt="Zahlx"] {
+    filter: brightness(0) !important;
+    opacity: 1 !important;
+    height: 2.5rem !important;
+  }
+
   /* ===== Tighten spacing to fit A4 ===== */
-  .paper-preview .mt-4 { margin-top: 0.25rem !important; }
-  .paper-preview .mt-5 { margin-top: 0.3rem !important; }
-  .paper-preview .mt-6 { margin-top: 0.3rem !important; }
-  .paper-preview .mt-8 { margin-top: 0.35rem !important; }
-  .paper-preview .mt-10 { margin-top: 0.35rem !important; }
-  .paper-preview .mt-12 { margin-top: 0.35rem !important; }
+  .paper-preview .mt-2 { margin-top: 0.15rem !important; }
+  .paper-preview .mt-3 { margin-top: 0.2rem !important; }
+  .paper-preview .mt-4 { margin-top: 0.2rem !important; }
+  .paper-preview .mt-5 { margin-top: 0.25rem !important; }
+  .paper-preview .mt-6 { margin-top: 0.25rem !important; }
+  .paper-preview .mt-8 { margin-top: 0.3rem !important; }
+  .paper-preview .mt-10 { margin-top: 0.3rem !important; }
+  .paper-preview .mt-12 { margin-top: 0.3rem !important; }
 
   /* Reduce vertical padding */
   .paper-preview .py-4, .paper-preview .py-6,
   .paper-preview .sm\:py-6 {
-    padding-top: 0.3rem !important;
-    padding-bottom: 0.3rem !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
   }
 
   /* Compact table cells */
   .paper-preview th,
   .paper-preview td {
-    padding-top: 0.2rem !important;
-    padding-bottom: 0.2rem !important;
-  }
-
-  /* Barcode row logo — smaller for print */
-  .paper-preview img[alt="Zahlx"] {
-    height: 2rem !important;
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
   }
 
   /* Signature blank space — reduce */
   .paper-preview .h-8 {
-    height: 0.5rem !important;
+    height: 0.4rem !important;
   }
 
   /* Spacer row in table — collapse */
   .paper-preview tr.h-16 {
-    height: 0.5rem !important;
+    height: 0.4rem !important;
   }
 
   /* Gap reductions */
-  .paper-preview .gap-6 { gap: 0.3rem !important; }
-  .paper-preview .gap-12 { gap: 0.5rem !important; }
-  .paper-preview .sm\:gap-12 { gap: 0.5rem !important; }
-  .paper-preview .sm\:gap-6 { gap: 0.3rem !important; }
+  .paper-preview .gap-2 { gap: 0.15rem !important; }
+  .paper-preview .gap-4 { gap: 0.2rem !important; }
+  .paper-preview .gap-6 { gap: 0.25rem !important; }
+  .paper-preview .gap-12 { gap: 0.4rem !important; }
+  .paper-preview .sm\:gap-12 { gap: 0.4rem !important; }
+  .paper-preview .sm\:gap-6 { gap: 0.25rem !important; }
 
-  /* Hide print buttons, sidebar, and navigation */
+  /* Horizontal padding reduction */
+  .paper-preview .px-4, .paper-preview .sm\:px-6 {
+    padding-left: 0.4rem !important;
+    padding-right: 0.4rem !important;
+  }
+  .paper-preview .mx-3, .paper-preview .sm\:mx-6 {
+    margin-left: 0.4rem !important;
+    margin-right: 0.4rem !important;
+  }
+
+  /* Footer spacing */
+  .paper-preview .pb-2 {
+    padding-bottom: 0.1rem !important;
+  }
+  .paper-preview .pt-4 {
+    padding-top: 0.2rem !important;
+  }
+
+  /* QR code — slightly smaller on print */
+  .paper-preview svg[class*="sm:block"] {
+    width: 72px !important;
+    height: 72px !important;
+  }
+
+  /* Hide print buttons, sidebar, navigation, and decorative elements */
   .print-hidden,
   .print\:hidden,
   header,
@@ -474,5 +517,19 @@
   .assistant-chat-widget,
   [role="button"] {
     display: none !important;
+  }
+
+  /* Force the KONFIRMUAR stamp container to display on print */
+  .paper-preview [class*="print\:flex"] {
+    display: flex !important;
+  }
+
+  /* Prevent page breaks inside the receipt */
+  .paper-preview {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .paper-preview > div {
+    page-break-inside: avoid !important;
   }
 }
