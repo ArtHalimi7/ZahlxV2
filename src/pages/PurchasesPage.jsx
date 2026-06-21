@@ -47,6 +47,13 @@ const STATUS_COLORS = {
   anuluar: 'border-neutral-500/20 bg-neutral-500/10 text-neutral-600 dark:text-neutral-400',
 };
 
+const METRIC_COLORS = {
+  indigo: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400',
+  rose: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400',
+  amber: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:border-amber-500/15 dark:text-amber-400',
+  green: 'border-green-500/20 bg-green-500/10 text-green-600 dark:border-green-500/15 dark:text-green-400',
+};
+
 const emptyItem = { emri: '', kodi_bar: '', sasia: 1, cmimi_per_njesi: '' };
 
 // ─── Barcode Scanner input (same UX as InventoryPage) ───────────────────────
@@ -211,7 +218,7 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 md:p-10"
+        className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-6 md:p-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -228,10 +235,10 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-          className="relative z-10 flex h-auto max-h-[92vh] w-full max-w-[680px] flex-col border border-slate-200/60 dark:border-transparent bg-white/95 dark:bg-black/95 shadow-2xl rounded-[2.5rem] overflow-hidden backdrop-blur-2xl"
+          className="relative z-10 flex h-auto max-h-[96vh] sm:max-h-[92vh] w-full max-w-[680px] flex-col border border-slate-200/60 dark:border-transparent bg-white/95 dark:bg-black/95 shadow-2xl rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden backdrop-blur-2xl"
         >
           {/* Modal Header */}
-          <div className="flex items-start justify-between gap-4 border-b border-slate-200/40 dark:border-transparent px-6 py-5 shrink-0">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-200/40 dark:border-transparent px-4 sm:px-6 py-4 sm:py-5 shrink-0">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-400">
                 {prefill ? 'Importuar nga fatura' : 'Regjistrim i ri'}
@@ -253,7 +260,7 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
           </div>
 
           {/* Modal Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 custom-scrollbar">
             <div className="grid gap-5">
 
               {/* Furnitori */}
@@ -268,7 +275,7 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
               </div>
 
               {/* Status & Tax row */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 ml-1 mb-2 block uppercase tracking-wider">Statusi</label>
                   <select
@@ -323,8 +330,8 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
 
                 <div className="space-y-2.5">
                   {items.map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-start">
-                      <div>
+                    <div key={idx} className="p-4 rounded-2xl border border-slate-200/40 dark:border-transparent bg-white/20 dark:bg-white/[0.01] space-y-3 sm:space-y-0 sm:bg-transparent sm:dark:bg-transparent sm:border-0 sm:p-0 sm:grid sm:grid-cols-[1fr_auto_auto_auto] sm:gap-2 sm:items-start">
+                      <div className="space-y-2 sm:space-y-0">
                         <input
                           value={item.emri}
                           onChange={e => updateItem(idx, 'emri', e.target.value)}
@@ -335,37 +342,51 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
                           value={item.kodi_bar}
                           onChange={e => updateItem(idx, 'kodi_bar', e.target.value)}
                           placeholder="Barkod (opsionale)"
-                          className="w-full mt-1.5 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2 text-[11px] font-mono text-slate-600 dark:text-zinc-400 outline-none transition focus:border-indigo-500/30"
+                          className="w-full sm:mt-1.5 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2 text-[11px] font-mono text-slate-600 dark:text-zinc-400 outline-none transition focus:border-indigo-500/30"
                         />
                       </div>
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        value={item.sasia}
-                        onChange={e => updateItem(idx, 'sasia', e.target.value)}
-                        placeholder="Sasia"
-                        title="Sasia"
-                        className="w-20 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 text-right"
-                      />
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.cmimi_per_njesi}
-                        onChange={e => updateItem(idx, 'cmimi_per_njesi', e.target.value)}
-                        placeholder="€/njësi"
-                        title="Çmimi për njësi"
-                        className="w-24 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 text-right"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeItem(idx)}
-                        disabled={items.length === 1}
-                        className="p-2.5 rounded-xl border border-rose-500/15 bg-rose-500/8 text-rose-500 transition hover:bg-rose-500/15 disabled:opacity-30"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      
+                      <div className="flex items-center gap-2 sm:contents">
+                        <div className="flex-1 sm:flex-initial">
+                          <label className="text-[9px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider ml-1 mb-1 block sm:hidden">Sasia</label>
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            value={item.sasia}
+                            onChange={e => updateItem(idx, 'sasia', e.target.value)}
+                            placeholder="Sasia"
+                            title="Sasia"
+                            className="w-full sm:w-20 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 text-right"
+                          />
+                        </div>
+                        
+                        <div className="flex-1 sm:flex-initial">
+                          <label className="text-[9px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider ml-1 mb-1 block sm:hidden">Çmimi</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.cmimi_per_njesi}
+                            onChange={e => updateItem(idx, 'cmimi_per_njesi', e.target.value)}
+                            placeholder="€/njësi"
+                            title="Çmimi për njësi"
+                            className="w-full sm:w-24 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 text-right"
+                          />
+                        </div>
+
+                        <div className="shrink-0 self-end sm:self-start">
+                          <label className="text-[9px] font-semibold text-transparent uppercase tracking-wider mb-1 block sm:hidden">Fshi</label>
+                          <button
+                            type="button"
+                            onClick={() => removeItem(idx)}
+                            disabled={items.length === 1}
+                            className="p-2.5 rounded-xl border border-rose-500/15 bg-rose-500/8 text-rose-500 transition hover:bg-rose-500/15 disabled:opacity-30"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -433,11 +454,11 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
           </div>
 
           {/* Modal Footer */}
-          <div className="flex items-center justify-between gap-3 border-t border-slate-200/40 dark:border-transparent px-6 py-4 shrink-0">
+          <div className="flex items-center justify-between gap-3 border-t border-slate-200/40 dark:border-transparent px-4 sm:px-6 py-3.5 sm:py-4 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-5 py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:bg-white/60 dark:hover:bg-white/[0.04]"
+              className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-4 sm:px-5 py-2.5 sm:py-3 text-[13px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:bg-white/60 dark:hover:bg-white/[0.04]"
             >
               Anulo
             </button>
@@ -445,7 +466,7 @@ const PurchaseModal = ({ isOpen, onClose, onSave, prefill = null }) => {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-500/25 bg-indigo-500/15 px-6 py-3 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 shadow-[0_4px_14px_rgba(99,102,241,0.2)] transition hover:bg-indigo-500/25 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-indigo-500/25 bg-indigo-500/15 px-5 sm:px-6 py-2.5 sm:py-3 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 shadow-[0_4px_14px_rgba(99,102,241,0.2)] transition hover:bg-indigo-500/25 disabled:opacity-60"
             >
               {saving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
               {saving ? 'Duke ruajtur...' : 'Regjistro Blerjen'}
@@ -568,7 +589,7 @@ const PurchasesPage = () => {
           <button
             type="button"
             onClick={openManualModal}
-            className="inline-flex items-center gap-2 self-start rounded-full border border-indigo-500/20 bg-indigo-500/10 dark:bg-indigo-500/15 px-5 py-3.5 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 shadow-[0_12px_30px_rgba(var(--accent-rgb),0.15)] transition hover:border-indigo-500/30 hover:bg-indigo-500/20"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-full border border-indigo-500/20 bg-indigo-500/10 dark:bg-indigo-500/15 px-5 py-3.5 text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 shadow-[0_12px_30px_rgba(var(--accent-rgb),0.15)] transition hover:border-indigo-500/30 hover:bg-indigo-500/20"
           >
             <Plus size={16} />
             Blerje e Re
@@ -576,7 +597,7 @@ const PurchasesPage = () => {
         </div>
 
         {/* Metrics Cards */}
-        <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
               label: 'Totali i Blerjeve',
@@ -611,14 +632,14 @@ const PurchasesPage = () => {
               key={label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative rounded-3xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-5 shadow-sm"
+              className="relative rounded-3xl border border-zinc-200/50 dark:border-transparent bg-white dark:bg-black p-4 sm:p-5 shadow-sm"
             >
               <div className="flex justify-between items-start">
                 <div className="min-w-0">
                   <p className="text-[12px] font-medium text-zinc-500 dark:text-zinc-400 truncate">{label}</p>
-                  <p className="mt-2 text-[22px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{value}</p>
+                  <p className="mt-2 text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-zinc-100 tracking-tight font-mono">{value}</p>
                 </div>
-                <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-${color}-500/20 bg-${color}-500/10 text-${color}-600 dark:border-${color}-500/15 dark:text-${color}-400`}>
+                <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl border ${METRIC_COLORS[color]}`}>
                   <Icon size={18} />
                 </div>
               </div>
@@ -627,14 +648,14 @@ const PurchasesPage = () => {
           ))}
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.65fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
 
           {/* Left: Main Table */}
           <div className="space-y-6">
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <div className="relative flex-1 min-w-[200px]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
                 <Search size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
                 <input
                   value={search}
@@ -643,19 +664,21 @@ const PurchasesPage = () => {
                   className="w-full rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/70 dark:bg-white/[0.03] py-2.5 pl-9 pr-4 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30"
                 />
               </div>
-              {['', 'paguar', 'ne_pritje', 'anuluar'].map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setStatusFilter(s)}
-                  className={`rounded-2xl border px-4 py-2.5 text-[12px] font-semibold transition ${statusFilter === s
-                    ? 'border-indigo-500/30 bg-indigo-500/15 text-indigo-600 dark:text-indigo-400'
-                    : 'border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-white/[0.04]'
-                  }`}
-                >
-                  {s === '' ? 'Të gjitha' : STATUS_LABELS[s]}
-                </button>
-              ))}
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {['', 'paguar', 'ne_pritje', 'anuluar'].map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setStatusFilter(s)}
+                    className={`rounded-2xl border px-4 py-2 text-[12px] font-semibold transition shrink-0 snap-start ${statusFilter === s
+                      ? 'border-indigo-500/30 bg-indigo-500/15 text-indigo-600 dark:text-indigo-400'
+                      : 'border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    {s === '' ? 'Të gjitha' : STATUS_LABELS[s]}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Purchases Table */}
@@ -678,7 +701,8 @@ const PurchasesPage = () => {
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Desktop/Tablet Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full min-w-[700px] text-left text-[13px]">
                   <thead>
                     <tr className="border-b border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.02] text-[11px] uppercase tracking-wider text-slate-500 dark:text-zinc-400">
@@ -731,7 +755,7 @@ const PurchasesPage = () => {
                             <select
                               value={p.statusi}
                               onChange={e => handleStatusChange(p.id, e.target.value)}
-                              className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold outline-none cursor-pointer bg-transparent ${STATUS_COLORS[p.statusi]}`}
+                              className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold outline-none cursor-pointer bg-white dark:bg-zinc-950 ${STATUS_COLORS[p.statusi]}`}
                             >
                               <option value="paguar">Paguar</option>
                               <option value="ne_pritje">Në Pritje</option>
@@ -754,6 +778,67 @@ const PurchasesPage = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Card List View */}
+              <div className="md:hidden divide-y divide-slate-200/40 dark:divide-zinc-800/50">
+                {loading ? (
+                  <div className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
+                    <RefreshCw size={20} className="mx-auto mb-2 animate-spin opacity-40" />
+                    Duke ngarkuar blerjet...
+                  </div>
+                ) : purchases.length === 0 ? (
+                  <div className="px-6 py-16 text-center">
+                    <ShoppingBag size={32} className="mx-auto mb-3 text-slate-300 dark:text-zinc-600" />
+                    <p className="text-[14px] font-semibold text-slate-500 dark:text-zinc-400">Nuk ka blerje të regjistruara</p>
+                    <p className="mt-1 text-[12px] text-slate-400 dark:text-zinc-500">Skano një faturë ose shto blerje manuale</p>
+                  </div>
+                ) : (
+                  purchases.map(p => (
+                    <div key={p.id} className="p-5 flex flex-col gap-4 transition-colors hover:bg-white/40 dark:hover:bg-white/[0.01]">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 dark:text-zinc-100 font-mono text-[12px]">{p.numri_blerjes}</span>
+                            {p.source_invoice_numri && (
+                              <span className="text-[10px] text-indigo-500 font-mono bg-indigo-500/10 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <QrCode size={10} />
+                                {p.source_invoice_numri}
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-semibold text-[14px] text-slate-800 dark:text-zinc-200">{p.furnitori}</h4>
+                          <span className="text-[11px] text-slate-400 dark:text-zinc-500 font-mono block">
+                            {new Date(p.data_blerjes).toLocaleDateString('sq-AL')}
+                          </span>
+                        </div>
+                        <div className="text-right flex flex-col items-end gap-2 shrink-0">
+                          <p className="font-bold font-mono text-[15px] text-slate-900 dark:text-zinc-100">{currency.format(p.totali)}</p>
+                          <select
+                            value={p.statusi}
+                            onChange={e => handleStatusChange(p.id, e.target.value)}
+                            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold outline-none cursor-pointer bg-white dark:bg-zinc-900 ${STATUS_COLORS[p.statusi]}`}
+                          >
+                            <option value="paguar">Paguar</option>
+                            <option value="ne_pritje">Në Pritje</option>
+                            <option value="anuluar">Anuluar</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-200/40 dark:border-zinc-800/40">
+                        <span className="text-[11px] text-slate-400 dark:text-zinc-500">Blerje</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(p.id)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/15 bg-rose-500/8 text-rose-500 px-3 py-2 text-[11px] font-semibold transition hover:bg-rose-500/15"
+                        >
+                          <Trash2 size={12} />
+                          Fshi
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
@@ -769,23 +854,25 @@ const PurchasesPage = () => {
             />
 
             {/* Info Card */}
-            <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 shadow-sm backdrop-blur-xl">
-              <div className="flex items-start gap-3">
+            <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-4 sm:p-6 shadow-sm backdrop-blur-xl">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
                   <Info size={16} />
                 </div>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Si funksionon?</p>
-                  <p className="mt-2 text-[13px] leading-relaxed text-slate-600 dark:text-zinc-400">
-                    Kur marrin faturë nga furnitor tjetër ZahlX, <strong className="text-slate-800 dark:text-zinc-200">skanoni barkoden</strong> e faturës së tyre. Sistemi do të lexojë automatikisht të dhënat e shitjes dhe t'i regjistrojë si blerje tuajën.
-                  </p>
-                  <ul className="mt-3 space-y-1.5 text-[12px] text-slate-500 dark:text-zinc-500">
-                    <li className="flex items-center gap-2"><ArrowDownLeft size={11} className="text-indigo-500" /> Artikujt importohen automatikisht</li>
-                    <li className="flex items-center gap-2"><Package size={11} className="text-green-500" /> Stoku mund të përditësohet direkt</li>
-                    <li className="flex items-center gap-2"><BookOpen size={11} className="text-amber-500" /> Regjistrohet në librin kontabël</li>
-                    <li className="flex items-center gap-2"><BarChart2 size={11} className="text-rose-500" /> Shpenzimet reflektohen në raporte</li>
-                  </ul>
                 </div>
+              </div>
+              <div>
+                <p className="mt-2 text-[13px] leading-relaxed text-slate-600 dark:text-zinc-400">
+                  Kur marrin faturë nga furnitor tjetër ZahlX, <strong className="text-slate-800 dark:text-zinc-200">skanoni barkoden</strong> e faturës së tyre. Sistemi do të lexojë automatikisht të dhënat e shitjes dhe t'i regjistrojë si blerje tuajën.
+                </p>
+                <ul className="mt-3 space-y-1.5 text-[12px] text-slate-500 dark:text-zinc-500">
+                  <li className="flex items-center gap-2"><ArrowDownLeft size={11} className="text-indigo-500" /> Artikujt importohen automatikisht</li>
+                  <li className="flex items-center gap-2"><Package size={11} className="text-green-500" /> Stoku mund të përditësohet direkt</li>
+                  <li className="flex items-center gap-2"><BookOpen size={11} className="text-amber-500" /> Regjistrohet në librin kontabël</li>
+                  <li className="flex items-center gap-2"><BarChart2 size={11} className="text-rose-500" /> Shpenzimet reflektohen në raporte</li>
+                </ul>
               </div>
             </div>
 

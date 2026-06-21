@@ -142,7 +142,7 @@ const PosPage = () => {
           klient_email: selectedClient?.email || null,
           klient_telefoni: selectedClient?.telefoni || null,
           klient_adresa: selectedClient?.adresa || null,
-          items: receiptItems.map((item) => ({ product_id: item.id, sasia: item.quantity, tax_rate: item.tax_rate })),
+          items: receiptItems.map((item) => ({ product_id: item.id, sasia: Number(item.quantity) || 1, tax_rate: item.tax_rate })),
           tax_rate: 0,
           payment_terms: paymentTerms,
           statusi: invoiceStatus,
@@ -196,15 +196,17 @@ const PosPage = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_420px] items-start">
-          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-6 sm:p-8 shadow-sm backdrop-blur-xl">
-            <div className="flex items-start gap-3">
+          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-4 sm:p-8 shadow-sm backdrop-blur-xl">
+            <div className="flex items-center gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/15 dark:text-indigo-400">
                 <ReceiptText size={16} />
               </div>
-              <div className="w-full">
+              <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Ndërto Faturën</p>
-                
-                <div className="mt-6 space-y-5">
+              </div>
+            </div>
+            
+            <div className="mt-6 space-y-5">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="relative">
                       <label className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-widest ml-1 mb-2 block">Klienti</label>
@@ -420,7 +422,24 @@ const PosPage = () => {
                               >
                                 -
                               </button>
-                              <span className="min-w-[32px] text-center text-[14px] font-bold text-slate-900 dark:text-zinc-100 tabular-nums">{item.quantity}</span>
+                              <input
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setReceiptItems((current) => current.map((entry) => 
+                                    entry.id === item.id ? { ...entry, quantity: isNaN(val) ? '' : Math.max(1, val) } : entry
+                                  ));
+                                }}
+                                onBlur={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setReceiptItems((current) => current.map((entry) => 
+                                    entry.id === item.id ? { ...entry, quantity: isNaN(val) || val < 1 ? 1 : val } : entry
+                                  ));
+                                }}
+                                className="w-12 text-center text-[14px] font-bold text-slate-900 dark:text-zinc-100 tabular-nums bg-white/50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.08] rounded-xl py-1 outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-white/[0.05] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              />
                               <button
                                 type="button"
                                 onClick={() => updateReceiptQuantity(item.id, 1)}
@@ -488,15 +507,13 @@ const PosPage = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
           <div className="grid gap-6">
             {receiptResult ? (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-8 shadow-sm backdrop-blur-xl"
+                className="relative overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-4 sm:p-8 shadow-sm backdrop-blur-xl"
               >
                 {/* Soft success light glow top right */}
                 <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-green-500/10 dark:bg-green-500/5 blur-3xl" />
@@ -511,7 +528,7 @@ const PosPage = () => {
                   </div>
                 </div>
                 
-                <div className="mt-6 flex flex-col items-center justify-center p-6 rounded-3xl border border-slate-200/40 dark:border-transparent bg-white dark:bg-zinc-900 shadow-inner">
+                <div className="mt-6 flex flex-col items-center justify-center p-4 sm:p-6 rounded-3xl border border-slate-200/40 dark:border-transparent bg-white dark:bg-zinc-900 shadow-inner">
                   <QRCodeSVG value={receiptResult.qrUrl} size={160} fgColor="#09090b" bgColor="#ffffff" className="dark:hidden" />
                   <QRCodeSVG value={receiptResult.qrUrl} size={160} fgColor="#ffffff" bgColor="#09090b" className="hidden dark:block" />
                   <p className="mt-4 text-[10px] font-bold tracking-widest text-slate-400 uppercase">Skano për faturën</p>
@@ -539,7 +556,7 @@ const PosPage = () => {
               <div className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-[2.5rem] border border-slate-200/60 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col justify-between min-h-[500px]">
                 <div>
                   {/* Receipt Header */}
-                  <div className="flex justify-between items-center px-6 py-5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
                     <div className="flex items-center gap-3">
                       <img src={Logo} alt="Zahlx Logo" className="h-7 w-auto object-contain brightness-0 dark:invert" />
                       <div>
@@ -553,14 +570,14 @@ const PosPage = () => {
                   </div>
 
                   {/* Receipt Metadata */}
-                  <div className="p-6 grid grid-cols-2 gap-4 text-[11px] border-b border-zinc-100 dark:border-zinc-800/40">
+                  <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] border-b border-zinc-100 dark:border-zinc-800/40">
                     <div className="space-y-1">
-                      <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Blerësi (Klienti)</p>
+                      <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-550 uppercase tracking-wider">Blerësi (Klienti)</p>
                       <p className="font-bold text-zinc-900 dark:text-white uppercase truncate">{selectedClient ? selectedClient.emri : (clientSearch || 'Klient i përgjithshëm')}</p>
                       {selectedClient?.email && <p className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">{selectedClient.email}</p>}
                       {selectedClient?.telefoni && <p className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">{selectedClient.telefoni}</p>}
                     </div>
-                    <div className="space-y-1 text-right">
+                    <div className="space-y-1 text-left sm:text-right">
                       <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-550 uppercase tracking-wider">Detajet</p>
                       <p className="text-zinc-500 dark:text-zinc-400">Data: <span className="font-semibold text-zinc-900 dark:text-white">{new Date().toLocaleDateString('sq-AL')}</span></p>
                       <p className="text-zinc-500 dark:text-zinc-400">Pagesa: <span className="font-semibold text-zinc-900 dark:text-white">{paymentMethod}</span></p>
@@ -569,7 +586,7 @@ const PosPage = () => {
                   </div>
 
                   {/* Receipt Items List */}
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Artikujt e Faturuar</p>
                     {receiptItems.length === 0 ? (
                       <p className="text-[12px] text-zinc-450 dark:text-zinc-500 italic py-6 text-center">Nuk ka produkte të shtuara ende.</p>
@@ -604,7 +621,7 @@ const PosPage = () => {
                 </div>
 
                 {/* Receipt Totals Summary */}
-                <div className="p-6 bg-zinc-50/50 dark:bg-zinc-900/30 border-t border-zinc-200 dark:border-zinc-800 mt-auto space-y-2">
+                <div className="p-4 sm:p-6 bg-zinc-50/50 dark:bg-zinc-900/30 border-t border-zinc-200 dark:border-zinc-800 mt-auto space-y-2">
                   <div className="flex justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
                     <span>Nëntotali (para zbritjes):</span>
                     <span className="font-semibold font-mono text-zinc-700 dark:text-zinc-300">{currency.format(receiptSubtotal)}</span>

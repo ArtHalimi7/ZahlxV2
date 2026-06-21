@@ -413,7 +413,7 @@ const InventoryPage = () => {
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">
           
           {/* Main products table */}
-          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
+          <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl overflow-hidden">
             <div className="flex flex-col gap-4 border-b border-slate-200/40 dark:border-transparent px-6 py-5 sm:flex-row sm:items-center sm:justify-between bg-white/60 dark:bg-white/[0.02]">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Lista e produkteve</p>
@@ -431,29 +431,29 @@ const InventoryPage = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-left text-[14px] text-slate-700 dark:text-zinc-300">
+              <table className="w-full text-left text-[13px] text-slate-700 dark:text-zinc-300">
                 <thead>
                   <tr className="border-b border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.02]">
-                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Produkt</th>
-                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Barkod</th>
-                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Blerja (€)</th>
-                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Shitja (€)</th>
-                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">TVSH</th>
-                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Stoku</th>
-                    <th className="px-6 py-4 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Kategori</th>
-                    <th className="px-6 py-4 text-right font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Veprime</th>
+                    <th className="px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider">Produkt</th>
+                    <th className="px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider whitespace-nowrap">Barkod</th>
+                    <th className="px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider whitespace-nowrap">Blerja (€)</th>
+                    <th className="px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider whitespace-nowrap">Shitja (€)</th>
+                    <th className="px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider whitespace-nowrap">TVSH</th>
+                    <th className="px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider whitespace-nowrap">Stoku</th>
+                    <th className="px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider whitespace-nowrap">Kategori</th>
+                    <th className="px-4 py-3.5 text-right font-semibold text-slate-500 dark:text-zinc-400 text-[12px] uppercase tracking-wider whitespace-nowrap">Veprime</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/40 dark:divide-transparent">
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
+                      <td colSpan={8} className="px-4 py-12 text-center text-slate-400 dark:text-zinc-500">
                         Duke ngarkuar katalogun...
                       </td>
                     </tr>
                   ) : filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500">
+                      <td colSpan={8} className="px-4 py-12 text-center text-slate-400 dark:text-zinc-500">
                         Nuk u gjet asnjë produkt.
                       </td>
                     </tr>
@@ -462,7 +462,7 @@ const InventoryPage = () => {
                       const isLow = Number(product.stoku_aktual) <= 5;
                       return (
                         <tr key={product.id} className="transition-colors hover:bg-white/60 dark:hover:bg-white/[0.03]">
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3.5">
                             <div className="flex items-center gap-3">
                               {/* Product thumbnail */}
                               <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-slate-100/60 dark:bg-white/[0.03]">
@@ -478,17 +478,17 @@ const InventoryPage = () => {
                                   </div>
                                 )}
                               </div>
-                              <div>
-                                <p className="font-semibold text-slate-900 dark:text-zinc-100">{product.emri}</p>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-slate-900 dark:text-zinc-100 truncate max-w-[140px] sm:max-w-[180px]" title={product.emri}>{product.emri}</p>
                                 <p className="mt-0.5 text-[11px] text-slate-400 dark:text-zinc-500">ID #{product.id}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 font-mono font-medium text-slate-700 dark:text-zinc-350">{product.kodi_bar}</td>
-                          <td className="px-6 py-4 font-medium tabular-nums text-slate-650 dark:text-zinc-300">{currency.format(product.cmimi_blerjes)}</td>
-                          <td className="px-6 py-4 font-bold tabular-nums text-slate-900 dark:text-zinc-100">{currency.format(product.cmimi_shitjes)}</td>
-                          <td className="px-6 py-4 font-medium text-slate-700 dark:text-zinc-300 font-mono">{product.tax_rate}%</td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3.5 font-mono font-medium text-slate-700 dark:text-zinc-350 whitespace-nowrap">{product.kodi_bar}</td>
+                          <td className="px-4 py-3.5 font-medium tabular-nums text-slate-650 dark:text-zinc-300 whitespace-nowrap">{currency.format(product.cmimi_blerjes)}</td>
+                          <td className="px-4 py-3.5 font-bold tabular-nums text-slate-900 dark:text-zinc-100 whitespace-nowrap">{currency.format(product.cmimi_shitjes)}</td>
+                          <td className="px-4 py-3.5 font-medium text-slate-700 dark:text-zinc-300 font-mono whitespace-nowrap">{product.tax_rate}%</td>
+                          <td className="px-4 py-3.5 whitespace-nowrap">
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-bold font-mono ${
                               isLow ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'text-slate-800 dark:text-zinc-200'
                             }`}>
@@ -496,28 +496,28 @@ const InventoryPage = () => {
                               {isLow && <AlertTriangle size={12} />}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3.5 whitespace-nowrap">
                             <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/60 dark:border-transparent bg-slate-100/40 dark:bg-white/[0.02] px-2.5 py-0.5 text-[11px] font-medium text-slate-500 dark:text-zinc-400">
                               <Bookmark size={10} />
                               {product.kategoria || 'Pa kategori'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-4 py-3.5 text-right whitespace-nowrap">
                             <div className="inline-flex items-center gap-2">
                               <button
                                 type="button"
                                 onClick={() => openEditForm(product)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2 text-[12px] font-semibold text-slate-750 dark:text-zinc-200 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03]"
+                                className="inline-flex items-center gap-1 rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-2.5 py-1.5 text-[11px] font-semibold text-slate-750 dark:text-zinc-200 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.03]"
                               >
-                                <PencilLine size={14} />
+                                <PencilLine size={12} />
                                 Edit
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteProduct(product)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-rose-500/15 bg-rose-500/10 px-3 py-2 text-[12px] font-semibold text-rose-600 transition hover:bg-rose-500/15"
+                                className="inline-flex items-center gap-1 rounded-xl border border-rose-500/15 bg-rose-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-rose-600 transition hover:bg-rose-500/15"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={12} />
                                 Fshi
                               </button>
                             </div>

@@ -29,7 +29,6 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
   const [quantity, setQuantity] = useState(1);
   const [errorMsg, setErrorMsg] = useState('');
   const [receiptData, setReceiptData] = useState(null);
-  const [taxRate, setTaxRate] = useState(0);
   const [paymentTerms, setPaymentTerms] = useState('immediate');
   const [invoiceStatus, setInvoiceStatus] = useState('paguar');
   const [paymentMethod, setPaymentMethod] = useState('KESH');
@@ -52,10 +51,6 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
     setSearch('');
     setErrorMsg('');
     setReceiptData(null);
-    
-    const savedTax = user ? localStorage.getItem(`default_tax_rate_${user.id}`) : null;
-    setTaxRate(savedTax ? Number(savedTax) : 0);
-    
     setPaymentTerms('immediate');
     setInvoiceStatus('paguar');
     setPaymentMethod('KESH');
@@ -110,6 +105,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
     ));
   }, [products, search]);
 
+  const taxRate = selected ? Number(selected.tax_rate || 0) : 0;
   const subtotal = selected ? selected.cmimi_shitjes * quantity : 0;
   const discountAmount = subtotal * (Number(discountRate || 0) / 100);
   const total = subtotal - discountAmount;
@@ -150,8 +146,8 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
           klient_email: selectedClient?.email || null,
           klient_telefoni: selectedClient?.telefoni || null,
           klient_adresa: selectedClient?.adresa || null,
-          items: [{ product_id: selected.id, sasia: quantity }],
-          tax_rate: taxRate,
+          items: [{ product_id: selected.id, sasia: Number(quantity) || 1, tax_rate: Number(selected.tax_rate || 0) }],
+          tax_rate: 0,
           payment_terms: paymentTerms,
           statusi: invoiceStatus,
           menyra_pageses: paymentMethod,
@@ -181,7 +177,7 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
 
   return (
     <AnimatePresence>
-      <motion.div className="fixed inset-0 z-[120] flex justify-end" initial={false}>
+      <motion.div className="fixed inset-0 z-[200] flex justify-end" initial={false}>
         <motion.button
           type="button"
           aria-label="Mbyll panelin"
@@ -193,6 +189,14 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
         />
 
         <motion.aside
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={{ left: 0, right: 0.7 }}
+          onDragEnd={(event, info) => {
+            if (info.offset.x > 120) {
+              onClose();
+            }
+          }}
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
@@ -273,198 +277,203 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
 
           {state === STATES.CONFIRMING && selected && (
             <div className="flex min-h-0 flex-1 flex-col px-5 py-6 sm:px-6">
-              <div className="rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-4">
-                <p className="text-[12px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Produkti i përzgjedhur</p>
-                <h3 className="mt-2 text-[20px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">{selected.emri}</h3>
-                <p className="mt-2 text-[13px] text-slate-400 dark:text-zinc-500">
-                  {formatEuro(selected.cmimi_shitjes)} për copë · {selected.stoku_aktual} në stok
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <p className="text-[12px] font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Sasia</p>
-                <div className="mt-3 flex items-center gap-4">
-                  <button
-                    onClick={() => adjustQty(-1)}
-                    disabled={quantity <= 1}
-                    className="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <Minus size={18} />
-                  </button>
-                  <span className="min-w-20 text-center text-4xl font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">{quantity}</span>
-                  <button
-                    onClick={() => adjustQty(1)}
-                    disabled={quantity >= selected.stoku_aktual}
-                    className="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <Plus size={18} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <div className="relative">
-                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Klienti</label>
-                  <input
-                    value={clientSearch}
-                    onChange={(e) => {
-                      setClientSearch(e.target.value);
-                      setShowClientDropdown(true);
-                    }}
-                    onFocus={() => setShowClientDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
-                    placeholder="Kërko ose zgjidh klient..."
-                    className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-3 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30"
-                  />
-                  {showClientDropdown && (
-                    <div className="absolute z-[100] mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl custom-scrollbar py-1.5 text-left">
-                      <div 
-                        onMouseDown={() => {
-                          setSelectedClient(null);
-                          setClientSearch('Klient i përgjithshëm');
-                          setShowClientDropdown(false);
-                        }}
-                        className="px-3 py-1.5 text-[12px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer font-semibold text-indigo-600 dark:text-indigo-400"
-                      >
-                        Klient i përgjithshëm
-                      </div>
-                      {clients
-                        .filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase()))
-                        .map(c => (
-                          <div
-                            key={c.id}
-                            onMouseDown={() => {
-                              setSelectedClient(c);
-                              setClientSearch(c.emri);
-                              setShowClientDropdown(false);
-                            }}
-                            className="px-3 py-1.5 text-[12px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer text-slate-800 dark:text-zinc-200"
-                          >
-                            <p className="font-semibold">{c.emri}</p>
-                            {(c.email || c.telefoni) && (
-                              <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">
-                                {c.email} {c.telefoni && `· ${c.telefoni}`}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      {clients.filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
-                        <div className="px-3 py-1.5 text-[11px] text-slate-450 dark:text-zinc-500">
-                          Nuk u gjet asnjë klient.
-                          <div 
-                            onMouseDown={() => {
-                              setSelectedClient({ emri: clientSearch });
-                              setShowClientDropdown(false);
-                            }}
-                            className="mt-1 text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer font-semibold"
-                          >
-                            Përdor "{clientSearch}"
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+              {/* Scrollable Form Content */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-1.5 space-y-5">
+                <div className="rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-4">
+                  <p className="text-[12px] uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Produkti i përzgjedhur</p>
+                  <h3 className="mt-2 text-[20px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">{selected.emri}</h3>
+                  <p className="mt-2 text-[13px] text-slate-400 dark:text-zinc-500">
+                    {formatEuro(selected.cmimi_shitjes)} për copë · {selected.stoku_aktual} në stok
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">TVSH</label>
-                    <select
-                      value={taxRate}
-                      onChange={(e) => setTaxRate(Number(e.target.value))}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                <div className="mt-6">
+                  <p className="text-[12px] font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-zinc-500">Sasia</p>
+                  <div className="mt-3 flex items-center gap-4">
+                    <button
+                      onClick={() => adjustQty(-1)}
+                      disabled={quantity <= 1}
+                      className="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
                     >
-                      <option value={0}>0%</option>
-                      <option value={8}>8%</option>
-                      <option value={18}>18%</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Afati</label>
-                    <select
-                      value={paymentTerms}
-                      onChange={(e) => setPaymentTerms(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
-                    >
-                      <option value="immediate">Menjëherë</option>
-                      <option value="net_15">Net 15</option>
-                      <option value="net_30">Net 30</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Mënyra</label>
-                    <select
-                      value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
-                    >
-                      <option value="KESH">Kesh</option>
-                      <option value="KARTE">Kartë</option>
-                      <option value="BANKE">Bankë</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Statusi</label>
-                    <select
-                      value={invoiceStatus}
-                      onChange={(e) => setInvoiceStatus(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-550/30 dark:bg-zinc-900"
-                    >
-                      <option value="paguar">Paguar</option>
-                      <option value="ne_pritje">Draft</option>
-                    </select>
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Zbritje (%)</label>
+                      <Minus size={18} />
+                    </button>
                     <input
                       type="number"
-                      min="0"
-                      max="100"
-                      value={discountRate}
+                      min="1"
+                      max={selected.stoku_aktual}
+                      value={quantity}
                       onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val >= 0 && val <= 100) {
-                          setDiscountRate(e.target.value);
-                        }
+                        const val = parseInt(e.target.value, 10);
+                        setQuantity(isNaN(val) ? '' : Math.max(1, Math.min(selected.stoku_aktual, val)));
                       }}
-                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-3 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      onBlur={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        setQuantity(isNaN(val) || val < 1 ? 1 : Math.min(selected.stoku_aktual, val));
+                      }}
+                      className="w-24 text-center text-3xl font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums bg-white/50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.08] rounded-2xl py-2 outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-white/[0.05] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
+                    <button
+                      onClick={() => adjustQty(1)}
+                      disabled={quantity >= selected.stoku_aktual}
+                      className="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] text-slate-500 dark:text-zinc-400 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <div className="relative">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Klienti</label>
+                    <input
+                      value={clientSearch}
+                      onChange={(e) => {
+                        setClientSearch(e.target.value);
+                        setShowClientDropdown(true);
+                      }}
+                      onFocus={() => setShowClientDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+                      placeholder="Kërko ose zgjidh klient..."
+                      className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-3 py-2.5 text-[13px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30"
+                    />
+                    {showClientDropdown && (
+                      <div className="absolute z-[100] mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl custom-scrollbar py-1.5 text-left">
+                        <div 
+                          onMouseDown={() => {
+                            setSelectedClient(null);
+                            setClientSearch('Klient i përgjithshëm');
+                            setShowClientDropdown(false);
+                          }}
+                          className="px-3 py-1.5 text-[12px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer font-semibold text-indigo-600 dark:text-indigo-400"
+                        >
+                          Klient i përgjithshëm
+                        </div>
+                        {clients
+                          .filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase()))
+                          .map(c => (
+                            <div
+                              key={c.id}
+                              onMouseDown={() => {
+                                  setSelectedClient(c);
+                                  setClientSearch(c.emri);
+                                  setShowClientDropdown(false);
+                                }}
+                              className="px-3 py-1.5 text-[12px] hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer text-slate-800 dark:text-zinc-200"
+                            >
+                              <p className="font-semibold">{c.emri}</p>
+                              {(c.email || c.telefoni) && (
+                                <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">
+                                  {c.email} {c.telefoni && `· ${c.telefoni}`}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        {clients.filter(c => c.emri.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                          <div className="px-3 py-1.5 text-[11px] text-slate-450 dark:text-zinc-500">
+                            Nuk u gjet asnjë klient.
+                            <div 
+                              onMouseDown={() => {
+                                setSelectedClient({ emri: clientSearch });
+                                setShowClientDropdown(false);
+                              }}
+                              className="mt-1 text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer font-semibold"
+                            >
+                              Përdor "{clientSearch}"
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Afati</label>
+                      <select
+                        value={paymentTerms}
+                        onChange={(e) => setPaymentTerms(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      >
+                        <option value="immediate">Menjëherë</option>
+                        <option value="net_15">Net 15</option>
+                        <option value="net_30">Net 30</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Mënyra</label>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      >
+                        <option value="KESH">Kesh</option>
+                        <option value="KARTE">Kartë</option>
+                        <option value="BANKE">Bankë</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Statusi</label>
+                      <select
+                        value={invoiceStatus}
+                        onChange={(e) => setInvoiceStatus(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-550/30 dark:bg-zinc-900"
+                      >
+                        <option value="paguar">Paguar</option>
+                        <option value="ne_pritje">Draft</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 block mb-1">Zbritje (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={discountRate}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          if (val >= 0 && val <= 100) {
+                            setDiscountRate(e.target.value);
+                          }
+                        }}
+                        className="w-full rounded-xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-2 py-2 text-[12px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 dark:bg-zinc-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-4 space-y-1.5">
+                  <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                    <span>Nëntotali (para zbritjes):</span>
+                    <span className="font-semibold tabular-nums">{formatEuro(subtotal)}</span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                      <span>Zbritja ({discountRate}%):</span>
+                      <span className="font-semibold tabular-nums text-rose-600 font-mono">-{formatEuro(discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                    <span>Nëntotali (pa TVSH):</span>
+                    <span className="font-semibold tabular-nums">{formatEuro(total - taxAmount)}</span>
+                  </div>
+                  {taxAmount > 0 && (
+                    <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
+                      <span>TVSH ({taxRate}%):</span>
+                      <span className="font-semibold tabular-nums">{formatEuro(taxAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex items-end justify-between border-t border-slate-200/30 dark:border-transparent pt-1.5">
+                    <span className="text-[13px] text-slate-400 dark:text-zinc-500">Totali (përfshirë TVSH)</span>
+                    <span className="text-[30px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">{formatEuro(total)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] p-4 space-y-1.5">
-                <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
-                  <span>Nëntotali (para zbritjes):</span>
-                  <span className="font-semibold tabular-nums">{formatEuro(subtotal)}</span>
-                </div>
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
-                    <span>Zbritja ({discountRate}%):</span>
-                    <span className="font-semibold tabular-nums text-rose-600 font-mono">-{formatEuro(discountAmount)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
-                  <span>Nëntotali (pa TVSH):</span>
-                  <span className="font-semibold tabular-nums">{formatEuro(total - taxAmount)}</span>
-                </div>
-                {taxAmount > 0 && (
-                  <div className="flex justify-between text-[12px] text-slate-500 dark:text-zinc-400">
-                    <span>TVSH ({taxRate}%):</span>
-                    <span className="font-semibold tabular-nums">{formatEuro(taxAmount)}</span>
-                  </div>
-                )}
-                <div className="flex items-end justify-between border-t border-slate-200/30 dark:border-transparent pt-1.5">
-                  <span className="text-[13px] text-slate-400 dark:text-zinc-500">Totali (përfshirë TVSH)</span>
-                  <span className="text-[30px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">{formatEuro(total)}</span>
-                </div>
-              </div>
-
-              <div className="mt-auto grid gap-3 pt-6 sm:grid-cols-2">
+              {/* Sticky Footer */}
+              <div className="shrink-0 grid gap-3 pt-4 border-t border-slate-200/40 dark:border-transparent mt-4 sm:grid-cols-2">
                 <button
                   onClick={handleBack}
                   className="rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[14px] font-medium text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100"
@@ -489,56 +498,60 @@ const ShitjeEShpejte = ({ isOpen, onClose, onSaleComplete }) => {
           )}
 
           {state === STATES.SUCCESS && receiptData && (
-            <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-green-500/20 bg-green-500/10 text-green-600 dark:border-green-500/15 dark:text-green-400 shadow-[0_0_30px_rgba(34,197,94,0.12)]">
-                <Check size={26} />
-              </div>
-              <p className="mt-5 text-[18px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Shitja u regjistrua me sukses</p>
-              <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 tabular-nums">Totali: {formatEuro(total)}</p>
-
-              <div className="mt-8 w-full max-w-sm rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-5 text-left">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-indigo-600">Fatura</p>
-                    <p className="mt-1 text-[15px] font-medium text-slate-900 dark:text-zinc-100">{receiptData.numri_fatures}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white p-2">
-                    <QRCodeSVG value={receiptData.qrUrl} size={48} fgColor="#09090b" bgColor="#ffffff" />
-                  </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-12">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="grid h-14 w-14 place-items-center rounded-2xl border border-green-500/20 bg-green-500/10 text-green-600 dark:border-green-500/15 dark:text-green-400 shadow-[0_0_30px_rgba(34,197,94,0.12)]">
+                  <Check size={26} />
                 </div>
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                  <button
-                    onClick={onClose}
-                    className="flex justify-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[13px] font-medium text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100"
-                  >
-                    Mbyll
-                  </button>
-                  <Link
-                    to={`/fature/${receiptData.secure_code || receiptData.id}`}
-                    onClick={onClose}
-                    className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(var(--accent-rgb),0.35)] transition hover:bg-indigo-500"
-                  >
-                    <QrCode size={16} />
-                    Hap Faturën
-                  </Link>
+                <p className="mt-5 text-[18px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Shitja u regjistrua me sukses</p>
+                <p className="mt-2 text-[14px] text-slate-500 dark:text-zinc-400 tabular-nums">Totali: {formatEuro(total)}</p>
+
+                <div className="mt-8 w-full max-w-sm rounded-[1.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] p-5 text-left">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-indigo-600">Fatura</p>
+                      <p className="mt-1 text-[15px] font-medium text-slate-900 dark:text-zinc-100">{receiptData.numri_fatures}</p>
+                    </div>
+                    <div className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white p-2">
+                      <QRCodeSVG value={receiptData.qrUrl} size={48} fgColor="#09090b" bgColor="#ffffff" />
+                    </div>
+                  </div>
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    <button
+                      onClick={onClose}
+                      className="flex justify-center rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-4 py-3 text-[13px] font-medium text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100"
+                    >
+                      Mbyll
+                    </button>
+                    <Link
+                      to={`/fature/${receiptData.secure_code || receiptData.id}`}
+                      onClick={onClose}
+                      className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-[13px] font-semibold text-white shadow-[0_18px_40px_rgba(var(--accent-rgb),0.35)] transition hover:bg-indigo-500"
+                    >
+                      <QrCode size={16} />
+                      Hap Faturën
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {state === STATES.ERROR && (
-            <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400">
-                <AlertCircle size={26} />
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-12">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="grid h-14 w-14 place-items-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:border-rose-500/15 dark:text-rose-400">
+                  <AlertCircle size={26} />
+                </div>
+                <p className="mt-5 text-[16px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Diçka shkoi keq</p>
+                <p className="mt-2 max-w-sm text-[13px] leading-6 text-slate-400 dark:text-zinc-500">{errorMsg}</p>
+                <button
+                  onClick={handleBack}
+                  className="mt-6 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-5 py-3 text-[13px] font-medium text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100"
+                >
+                  Provo përsëri
+                </button>
               </div>
-              <p className="mt-5 text-[16px] font-semibold tracking-tight text-slate-900 dark:text-zinc-100">Diçka shkoi keq</p>
-              <p className="mt-2 max-w-sm text-[13px] leading-6 text-slate-400 dark:text-zinc-500">{errorMsg}</p>
-              <button
-                onClick={handleBack}
-                className="mt-6 rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.03] px-5 py-3 text-[13px] font-medium text-slate-700 dark:text-zinc-300 transition hover:border-slate-300 dark:border-transparent hover:text-slate-900 dark:text-zinc-100"
-              >
-                Provo përsëri
-              </button>
             </div>
           )}
         </motion.aside>

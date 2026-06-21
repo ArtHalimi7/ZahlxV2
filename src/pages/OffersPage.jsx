@@ -490,7 +490,7 @@ const OffersPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-full min-w-[180px] appearance-none rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
+              className="w-full sm:w-[180px] appearance-none rounded-2xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] py-3.5 pl-11 pr-10 text-[14px] text-slate-900 dark:text-zinc-100 outline-none transition focus:border-indigo-500/30 focus:bg-white/60 dark:focus:bg-white/[0.04]"
             >
               <option value="te_gjitha">Të Gjitha Statuset</option>
               <option value="draft">Draft</option>
@@ -511,11 +511,12 @@ const OffersPage = () => {
             </div>
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-12 print:block">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 print:block w-full">
             {/* Left Hand: Historical List */}
-            <div className={`lg:col-span-8 print:hidden ${selectedOffer ? 'hidden md:block' : 'col-span-full'}`}>
-              <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
-                <div className="overflow-x-auto">
+            <div className={`w-full lg:col-span-8 print:hidden ${selectedOffer ? 'hidden md:block' : 'col-span-full'}`}>
+              <div className="w-full overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] shadow-sm backdrop-blur-xl">
+                {/* Desktop/Tablet Table View */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-[14px] text-slate-700 dark:text-zinc-300">
                     <thead>
                       <tr className="border-b border-slate-200/60 dark:border-transparent bg-white/60 dark:bg-white/[0.02]">
@@ -592,13 +593,74 @@ const OffersPage = () => {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Mobile Card List View */}
+                <div className="md:hidden divide-y divide-slate-200/40 dark:divide-zinc-800/50 w-full">
+                  {filteredOffers.length === 0 ? (
+                    <div className="px-6 py-12 text-center text-slate-400 dark:text-zinc-500 font-medium">
+                      Nuk u gjet asnjë ofertë.
+                    </div>
+                  ) : (
+                    filteredOffers.map((o) => (
+                      <div
+                        key={o.id}
+                        onClick={() => handleOpenDetails(o.id)}
+                        className={`p-5 flex flex-col gap-4 cursor-pointer transition-colors hover:bg-white/40 dark:hover:bg-white/[0.01] ${selectedOffer?.id === o.id ? 'bg-indigo-500/[0.05] dark:bg-indigo-500/[0.03]' : ''} w-full`}
+                      >
+                        <div className="flex justify-between items-start gap-4 w-full min-w-0">
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <span className="font-mono font-semibold text-slate-900 dark:text-zinc-100 text-[13px] block truncate">
+                              {o.numri_ofertes}
+                            </span>
+                            <h4 className="font-semibold text-[14px] text-slate-800 dark:text-zinc-200 truncate">{o.klienti}</h4>
+                            {o.email_klientit && <p className="text-[11px] text-slate-400 dark:text-zinc-500 truncate">{o.email_klientit}</p>}
+                            <span className="text-[11px] text-slate-400 dark:text-zinc-500 font-medium block">
+                              {new Date(o.data_krijimit).toLocaleString('sq-AL', { dateStyle: 'short', timeStyle: 'short' })}
+                            </span>
+                          </div>
+                          <div className="text-right flex flex-col items-end gap-2 shrink-0">
+                            <p className="font-bold font-mono text-[15px] text-slate-900 dark:text-zinc-100">
+                              {currencyFormatter.format(o.totali)}
+                            </p>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${STATUS_COLORS[o.statusi] || 'border-zinc-500/20 bg-zinc-500/10 text-slate-500'}`}>
+                              {o.statusi === 'pranuar' && <CheckCircle2 size={12} />}
+                              {o.statusi === 'derguar' && <Clock size={12} />}
+                              {o.statusi === 'draft' && <CircleDashed size={12} />}
+                              {o.statusi === 'refuzuar' && <XCircle size={12} />}
+                              {o.statusi === 'skaduar' && <AlertTriangle size={12} />}
+                              {STATUS_LABELS[o.statusi] || o.statusi}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-200/40 dark:border-zinc-800/40" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-[11px] text-slate-450 dark:text-zinc-500">Veprime</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleOpenDetails(o.id)}
+                              className="rounded-xl border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-white/[0.02] px-3 py-2 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 transition hover:border-slate-350 hover:bg-white/60 dark:hover:bg-white/[0.04]"
+                            >
+                              Detajet
+                            </button>
+                            <button
+                              onClick={() => handleDeleteOffer(o.id)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/15 bg-rose-500/8 text-rose-500 px-3 py-2 text-[11px] font-semibold transition hover:bg-rose-500/15"
+                            >
+                              <Trash2 size={12} />
+                              Fshi
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Right Hand: Detailed View & Print Format */}
             {selectedOffer && (
               <div className="lg:col-span-4 print:col-span-full print:block">
-                <div className="rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-zinc-900 shadow-sm backdrop-blur-xl p-6 relative overflow-hidden print:border-none print:bg-white print:p-0 print:shadow-none">
+                <div className="rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200/60 dark:border-transparent bg-white/40 dark:bg-zinc-900 shadow-sm backdrop-blur-xl p-4 sm:p-6 relative overflow-hidden print:border-none print:bg-white print:p-0 print:shadow-none">
                   {/* Actions Header (Hidden on print) */}
                   <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-transparent pb-4 mb-6 print:hidden">
                     <h3 className="text-[15px] font-bold text-slate-900 dark:text-zinc-100">Detajet e Ofertës</h3>

@@ -78,12 +78,22 @@ const AssistantChatWidget = () => {
 
   useEffect(() => {
     const updateConstraints = () => {
-      setViewportConstraints({
-        left: -window.innerWidth + 400,
-        right: 16,
-        top: -window.innerHeight + 450,
-        bottom: 16
-      });
+      const isMobile = window.innerWidth < 640;
+      if (isMobile) {
+        setViewportConstraints({
+          left: -16,
+          right: window.innerWidth - 80,
+          top: -window.innerHeight + 450,
+          bottom: 16
+        });
+      } else {
+        setViewportConstraints({
+          left: -window.innerWidth + 400,
+          right: 16,
+          top: -window.innerHeight + 450,
+          bottom: 16
+        });
+      }
     };
     updateConstraints();
     window.addEventListener('resize', updateConstraints);
@@ -214,7 +224,7 @@ const AssistantChatWidget = () => {
             isDraggingRef.current = false;
           }, 50);
         }}
-        className="fixed bottom-4 right-4 z-[160] sm:bottom-6 sm:right-6 flex flex-col items-end print:hidden"
+        className="fixed bottom-4 left-4 right-auto sm:right-6 sm:left-auto z-[160] sm:bottom-6 flex flex-col items-start sm:items-end print:hidden"
       >
         <AnimatePresence>
           {!open && (
