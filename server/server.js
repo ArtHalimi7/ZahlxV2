@@ -140,7 +140,12 @@ const upload = multer({
   }
 })();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'zahlx-super-secret-key-12345';
+// No hardcoded fallback: without JWT_SECRET use a random per-process secret so
+// tokens can't be forged (logins just reset on restart).
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(48).toString('hex');
+if (!process.env.JWT_SECRET) {
+  console.warn('JWT_SECRET is not set; using a random secret, so logins reset on restart.');
+}
 
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.token;

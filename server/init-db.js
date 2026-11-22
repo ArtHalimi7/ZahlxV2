@@ -1,10 +1,20 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 import pool from './db.js';
 import bcrypt from 'bcryptjs';
 
 dotenv.config();
+
+// The first owner's password comes from DEFAULT_OWNER_PASSWORD. Without it a random
+// one is generated and printed once, so no deployment starts with a known login.
+const ownerBootstrapPassword = () => {
+  if (process.env.DEFAULT_OWNER_PASSWORD) return process.env.DEFAULT_OWNER_PASSWORD;
+  const generated = crypto.randomBytes(12).toString('base64url');
+  console.warn(`DEFAULT_OWNER_PASSWORD is not set; generated owner password: ${generated} (change it after logging in)`);
+  return generated;
+};
 
 const statements = [
   `CREATE TABLE IF NOT EXISTS users (
@@ -156,7 +166,7 @@ const ensureOwner = async () => {
 
   const businessName = process.env.DEFAULT_BUSINESS_NAME || 'Zahlx Business';
   const businessEmail = process.env.DEFAULT_BUSINESS_EMAIL || 'owner@zahlx.local';
-  const hashedDefault = await bcrypt.hash('bootstrap', 10);
+  const hashedDefault = await bcrypt.hash(ownerBootstrapPassword(), 10);
 
   const [result] = await pool.query(
     `INSERT INTO users (emri_biznesit, email, password_hash, role)
@@ -440,8 +450,12 @@ export const initDatabase = async ({ closePool = true } = {}) => {
     }
 
     const ownerId = await ensureOwner();
-    const hashedDefault = await bcrypt.hash('bootstrap', 10);
-    await pool.query("UPDATE users SET password_hash = ? WHERE password_hash = 'bootstrap'", [hashedDefault]);
+    // Legacy rows stored the placeholder 'bootstrap' in plain text: give them a real password.
+    const [legacyOwners] = await pool.query("SELECT id FROM users WHERE password_hash = 'bootstrap'");
+    if (legacyOwners.length > 0) {
+      const hashedDefault = await bcrypt.hash(ownerBootstrapPassword(), 10);
+      await pool.query("UPDATE users SET password_hash = ? WHERE password_hash = 'bootstrap'", [hashedDefault]);
+    }
 
     console.log('✓ Database schema is ready');
     console.log(`✓ Owner user available with id ${ownerId}`);
